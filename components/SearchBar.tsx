@@ -5,20 +5,21 @@ import { useState, FormEvent } from 'react'
 type Props = {
   onSearch: (query: string) => void
   loading: boolean
+  initialQuery?: string
 }
 
 const SUGGESTIONS = [
   'aceite girasol',
   'leche entera',
-  'fideos spaghetti',
+  'fideos',
   'detergente',
   'papel higiénico',
-  'arroz largo fino',
+  'arroz',
   'yerba mate',
 ]
 
-export default function SearchBar({ onSearch, loading }: Props) {
-  const [query, setQuery] = useState('')
+export default function SearchBar({ onSearch, loading, initialQuery = '' }: Props) {
+  const [query, setQuery] = useState(initialQuery)
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -37,12 +38,12 @@ export default function SearchBar({ onSearch, loading }: Props) {
         gap: 8,
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
       }}>
-        <span style={{ fontSize: 20, opacity: 0.5 }}>🔍</span>
+        <span style={{ fontSize: 20, opacity: 0.5, flexShrink: 0 }}>🔍</span>
         <input
-          type="text"
+          type="search"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Ej: aceite girasol 1.5 litros, leche La Serenísima..."
+          placeholder="Ej: aceite girasol, leche La Serenísima..."
           style={{
             flex: 1,
             border: 'none',
@@ -51,9 +52,12 @@ export default function SearchBar({ onSearch, loading }: Props) {
             color: 'var(--foreground)',
             fontSize: 16,
             padding: '8px 0',
+            minWidth: 0,
           }}
           disabled={loading}
           autoFocus
+          autoComplete="off"
+          enterKeyHint="search"
         />
         <button
           type="submit"
@@ -73,14 +77,25 @@ export default function SearchBar({ onSearch, loading }: Props) {
             boxShadow: loading || !query.trim() ? 'none' : '0 4px 16px rgba(14,165,233,0.35)',
             whiteSpace: 'nowrap',
             flexShrink: 0,
+            // touch-friendly
+            minHeight: 40,
+            minWidth: 72,
           }}
         >
           {loading ? '...' : 'Buscar'}
         </button>
       </form>
 
-      {/* Sugerencias */}
-      <div className="flex flex-wrap gap-2 mt-3">
+      {/* Sugerencias — scroll horizontal en mobile */}
+      <div style={{
+        display: 'flex',
+        gap: 8,
+        marginTop: 10,
+        overflowX: 'auto',
+        paddingBottom: 4,
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}>
         {SUGGESTIONS.map(s => (
           <button
             key={s}
@@ -90,10 +105,14 @@ export default function SearchBar({ onSearch, loading }: Props) {
               border: '1px solid var(--border)',
               color: 'var(--muted)',
               borderRadius: 999,
-              padding: '4px 14px',
+              padding: '6px 14px',
               fontSize: 12,
               cursor: 'pointer',
               transition: 'all 0.15s',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              // touch-friendly
+              minHeight: 32,
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.background = '#e0f2fe'

@@ -7,11 +7,13 @@ import { getStoreConfig } from '@/lib/stores'
 type Props = {
   results: SearchResult[]
   query: string
+  onClear?: () => void
 }
 
-export default function ResultsTable({ results, query }: Props) {
+export default function ResultsTable({ results, query, onClear }: Props) {
   const [filter, setFilter] = useState<'all' | 'vtex' | 'mercadolibre' | 'searxng'>('all')
   const [sortBy, setSortBy] = useState<'price' | 'store'>('price')
+  const [shared, setShared] = useState(false)
 
   const filtered = results
     .filter(r => filter === 'all' || r.source === filter)
@@ -19,49 +21,84 @@ export default function ResultsTable({ results, query }: Props) {
 
   const cheapest = filtered[0]
 
+  function handleShare() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setShared(true)
+      setTimeout(() => setShared(false), 2000)
+    })
+  }
+
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
-        <p style={{ fontSize: 13, color: 'var(--muted)' }}>
-          {results.length} resultado{results.length !== 1 ? 's' : ''} para{' '}
+      {/* Header: volver + resultados + compartir */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {onClear && (
+          <button onClick={onClear} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--muted)', fontSize: 13, padding: '4px 0',
+            display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+          }}>
+            ← Inicio
+          </button>
+        )}
+        <p style={{ fontSize: 13, color: 'var(--muted)', flex: 1 }}>
+          <strong style={{ color: 'var(--foreground)' }}>{results.length}</strong> resultado{results.length !== 1 ? 's' : ''} para{' '}
           <strong style={{ color: 'var(--accent)' }}>&quot;{query}&quot;</strong>
         </p>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          {(['all', 'vtex', 'mercadolibre', 'searxng'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              style={{
-                background: filter === f
-                  ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
-                  : 'rgba(255,255,255,0.8)',
-                color: filter === f ? '#fff' : 'var(--muted)',
-                border: '1px solid var(--border)',
-                borderRadius: 999,
-                padding: '4px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: filter === f ? '0 2px 12px rgba(14,165,233,0.3)' : 'none',
-                transition: 'all 0.2s',
-              }}>
-              {f === 'all' ? 'Todos' : f === 'vtex' ? 'Tiendas' : f === 'mercadolibre' ? 'Mercado Libre' : '🌐 Web'}
-            </button>
-          ))}
-          <select value={sortBy} onChange={e => setSortBy(e.target.value as 'price' | 'store')}
+        <button onClick={handleShare} style={{
+          background: shared ? '#dcfce7' : '#f8fafc',
+          border: '1px solid var(--border)',
+          borderRadius: 999,
+          padding: '5px 12px',
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: 'pointer',
+          color: shared ? '#16a34a' : 'var(--muted)',
+          flexShrink: 0,
+          transition: 'all 0.2s',
+          minHeight: 32,
+        }}>
+          {shared ? '✓ Copiado' : '🔗 Compartir'}
+        </button>
+      </div>
+
+      {/* Filtros por fuente */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
+        {(['all', 'vtex', 'mercadolibre', 'searxng'] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)}
             style={{
-              background: 'rgba(255,255,255,0.8)',
-              color: 'var(--muted)',
+              background: filter === f
+                ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
+                : 'rgba(255,255,255,0.8)',
+              color: filter === f ? '#fff' : 'var(--muted)',
               border: '1px solid var(--border)',
               borderRadius: 999,
-              padding: '4px 14px',
+              padding: '5px 14px',
               fontSize: 12,
-              outline: 'none',
+              fontWeight: 600,
               cursor: 'pointer',
+              boxShadow: filter === f ? '0 2px 12px rgba(14,165,233,0.3)' : 'none',
+              transition: 'all 0.2s',
+              minHeight: 32,
             }}>
-            <option value="price">Menor precio</option>
-            <option value="store">Por tienda</option>
-          </select>
-        </div>
+            {f === 'all' ? 'Todos' : f === 'vtex' ? 'Tiendas' : f === 'mercadolibre' ? 'Mercado Libre' : '🌐 Web'}
+          </button>
+        ))}
+        <select value={sortBy} onChange={e => setSortBy(e.target.value as 'price' | 'store')}
+          style={{
+            background: 'rgba(255,255,255,0.8)',
+            color: 'var(--muted)',
+            border: '1px solid var(--border)',
+            borderRadius: 999,
+            padding: '5px 14px',
+            fontSize: 12,
+            outline: 'none',
+            cursor: 'pointer',
+            minHeight: 32,
+          }}>
+          <option value="price">Menor precio</option>
+          <option value="store">Por tienda</option>
+        </select>
       </div>
 
       {/* Banner más barato */}
@@ -206,7 +243,7 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
       {/* Precio */}
       <div style={{ textAlign: 'right', padding: '8px 14px 8px 4px', flexShrink: 0 }}>
         <p style={{
-          fontSize: 'clamp(16px, 4vw, 20px)',
+          fontSize: 'clamp(14px, 4vw, 20px)',
           fontWeight: 800,
           background: isCheapest
             ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'

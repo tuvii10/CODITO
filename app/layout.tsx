@@ -1,9 +1,44 @@
 import type { Metadata } from 'next'
 import './globals.css'
 
+const BASE_URL = 'https://codito.com.ar'
+
 export const metadata: Metadata = {
-  title: 'Codito — Comparador de Precios Argentina',
-  description: 'Compará precios de supermercados y Mercado Libre en un solo lugar',
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: 'Codito — Comparador de Precios Argentina',
+    template: '%s | Codito',
+  },
+  description: 'Compará precios de supermercados y Mercado Libre en tiempo real. Encontrá el precio más barato en Carrefour, Disco, Jumbo, Coto, Vea y más tiendas de Argentina.',
+  keywords: ['comparador de precios argentina', 'precios supermercados', 'mercado libre precios', 'ofertas argentina', 'precio más barato', 'codito'],
+  openGraph: {
+    type: 'website',
+    url: BASE_URL,
+    title: 'Codito — Comparador de Precios Argentina',
+    description: 'Compará precios de supermercados y Mercado Libre en tiempo real. Encontrá el precio más barato al instante.',
+    siteName: 'Codito',
+    locale: 'es_AR',
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Codito — Comparador de precios Argentina',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Codito — Comparador de Precios Argentina',
+    description: 'Compará precios de supermercados y Mercado Libre en tiempo real.',
+    images: ['/og-image.png'],
+  },
+  alternates: {
+    canonical: BASE_URL,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-snippet': -1 },
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import SearchBar from '@/components/SearchBar'
 import ResultsTable from '@/components/ResultsTable'
 import DealsSection from '@/components/DealsSection'
+import PriceAlertBanner from '@/components/PriceAlertBanner'
 import { SearchResult } from '@/lib/types'
 
 const STORES = ['Carrefour','Disco','Vea','Chango Más','Walmart','Coto','Frávega','Garbarino','Farmacity','Musimundo','Mercado Libre']
@@ -14,11 +15,19 @@ export default function Home() {
   const [searched, setSearched] = useState(false)
   const [lastQuery, setLastQuery] = useState('')
 
+  // Leer ?q= al cargar para que los links sean compartibles
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q')
+    if (q) handleSearch(q)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   async function handleSearch(query: string) {
     if (!query.trim()) return
     setLoading(true)
     setSearched(true)
-    setLastQuery(query)
+    setLastQuery(query.trim())
+    window.history.replaceState({}, '', `?q=${encodeURIComponent(query.trim())}`)
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
@@ -28,6 +37,13 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleClearSearch() {
+    setSearched(false)
+    setResults([])
+    setLastQuery('')
+    window.history.replaceState({}, '', '/')
   }
 
   return (
@@ -48,7 +64,7 @@ export default function Home() {
             fontSize: 48,
           }}>🐭</div>
 
-          <h2 style={{
+          <h1 style={{
             fontSize: 'clamp(26px, 6vw, 40px)',
             fontWeight: 800,
             marginBottom: 12,
@@ -58,7 +74,7 @@ export default function Home() {
             backgroundClip: 'text',
           }}>
             ¿Cuánto sale hoy?
-          </h2>
+          </h1>
           <p style={{ color: 'var(--muted)', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
             Buscá cualquier producto y compará precios en supermercados y Mercado Libre.
           </p>
@@ -66,7 +82,7 @@ export default function Home() {
       )}
 
       {/* Buscador */}
-      <SearchBar onSearch={handleSearch} loading={loading} />
+      <SearchBar onSearch={handleSearch} loading={loading} initialQuery={lastQuery} />
 
       {/* Resultados */}
       {searched && (
@@ -83,9 +99,21 @@ export default function Home() {
                 Sin resultados para &quot;{lastQuery}&quot;
               </p>
               <p style={{ fontSize: 13 }}>Probá con otro nombre o una búsqueda más corta.</p>
+              <button
+                onClick={handleClearSearch}
+                style={{ marginTop: 16, fontSize: 13, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                ← Volver al inicio
+              </button>
             </div>
           ) : (
-            <ResultsTable results={results} query={lastQuery} />
+            <>
+              <ResultsTable results={results} query={lastQuery} onClear={handleClearSearch} />
+              <PriceAlertBanner
+                query={lastQuery}
+                cheapestPrice={results.length > 0 ? Math.min(...results.map(r => r.price)) : undefined}
+              />
+            </>
           )}
         </div>
       )}
