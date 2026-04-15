@@ -275,10 +275,12 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
   const vtex = vtexRes.status === 'fulfilled' ? vtexRes.value : []
   const ml   = mlRes.status   === 'fulfilled' ? mlRes.value   : []
 
-  // Filtrar solo los VTEX con require/exclude. Los ML vienen curados
-  // por la categoría de highlights, no pasan por el filtro de nombres.
+  // Filtrar VTEX Y ML con require/exclude por nombre. ML highlights
+  // vienen de una categoría TOP-LEVEL (ej: Alimentos), así que trae
+  // de todo — hay que filtrar para quedarnos con lo que corresponde
+  // a cada subcategoría.
   const vtexFiltered = vtex.filter(r => r.price > 0 && passesFilter(r.name, category))
-  const mlFiltered = ml.filter(r => r.price > 0)
+  const mlFiltered = ml.filter(r => r.price > 0 && passesFilter(r.name, category))
 
   // Deduplicar por URL
   const seen = new Set<string>()
