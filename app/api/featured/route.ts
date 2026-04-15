@@ -4,9 +4,15 @@ import { fetchMLHighlightsByCategory } from '@/lib/mercadolibre'
 import { applyCrossSellerDiscounts, deduplicateToCheapest } from '@/lib/compare'
 import { SearchResult } from '@/lib/types'
 
-// 15 minutos de cache — suficiente para performance pero no tanto como
-// para quedarse atascado con productos faltantes cuando una tienda falla
-export const revalidate = 900
+// 12 horas de cache. El pipeline hace muchas requests a tiendas VTEX
+// y la regeneración es costosa, así que cacheamos agresivamente.
+// Next.js usa stale-while-revalidate, así que los usuarios siempre
+// ven algo (incluso cuando la regeneración está corriendo en background).
+export const revalidate = 43200
+
+// Hasta 60 segundos para regenerar (requiere plan Pro de Vercel,
+// en Hobby el máximo es 10s, ver vercel.json si corresponde)
+export const maxDuration = 60
 
 type Category = {
   key: string

@@ -251,7 +251,7 @@ async function fetchVtexStore(store: VtexStore, query: string, timeoutMs: number
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       },
       signal: AbortSignal.timeout(timeoutMs),
-      next: { revalidate: 300 },
+      next: { revalidate: 1800 },
     })
     if (!res.ok) return null
     const products = await res.json()
@@ -263,12 +263,9 @@ async function fetchVtexStore(store: VtexStore, query: string, timeoutMs: number
 
 async function searchOneStore(store: VtexStore, query: string): Promise<SearchResult[]> {
   try {
-    // Intento 1: timeout 8s. Si falla, intento 2: timeout 12s.
-    let products = await fetchVtexStore(store, query, 8000)
-    if (products === null) {
-      console.warn('[vtex]', store.name, 'retry after fail')
-      products = await fetchVtexStore(store, query, 12000)
-    }
+    // Un solo intento con timeout ajustado. El retry agregaba latencia
+    // sin mucho beneficio en práctica.
+    const products = await fetchVtexStore(store, query, 5000)
     if (!products || products.length === 0) return []
 
     return products.flatMap(p => {

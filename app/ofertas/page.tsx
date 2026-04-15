@@ -2,8 +2,10 @@ import Link from 'next/link'
 import { fetchAllDeals, Deal } from '@/lib/deals'
 import { getStoreConfig } from '@/lib/stores'
 
-// Cache 6 horas — ofertas no cambian tan seguido pero queremos datos frescos
-export const revalidate = 21600
+// Cache 12 horas — ofertas se regeneran 2 veces al día, suficiente para
+// que no estemos golpeando las APIs de las tiendas constantemente.
+export const revalidate = 43200
+export const maxDuration = 60
 
 function fmt(n: number) {
   return new Intl.NumberFormat('es-AR', {
