@@ -4,8 +4,9 @@ import { fetchMLHighlightsByCategory } from '@/lib/mercadolibre'
 import { applyCrossSellerDiscounts, deduplicateToCheapest } from '@/lib/compare'
 import { SearchResult } from '@/lib/types'
 
-// 1 hora de cache
-export const revalidate = 3600
+// 15 minutos de cache — suficiente para performance pero no tanto como
+// para quedarse atascado con productos faltantes cuando una tienda falla
+export const revalidate = 900
 
 type Category = {
   key: string

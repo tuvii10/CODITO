@@ -236,22 +236,34 @@ type VtexProduct = {
   }[]
 }
 
-async function searchOneStore(store: VtexStore, query: string): Promise<SearchResult[]> {
+async function fetchVtexStore(store: VtexStore, query: string, timeoutMs: number): Promise<VtexProduct[] | null> {
   try {
     const url = `https://${store.domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=7`
-
     const res = await fetch(url, {
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(timeoutMs),
       next: { revalidate: 300 },
     })
+    if (!res.ok) return null
+    const products = await res.json()
+    return Array.isArray(products) ? products : null
+  } catch {
+    return null
+  }
+}
 
-    if (!res.ok) return []
-    const products: VtexProduct[] = await res.json()
-    if (!Array.isArray(products)) return []
+async function searchOneStore(store: VtexStore, query: string): Promise<SearchResult[]> {
+  try {
+    // Intento 1: timeout 8s. Si falla, intento 2: timeout 12s.
+    let products = await fetchVtexStore(store, query, 8000)
+    if (products === null) {
+      console.warn('[vtex]', store.name, 'retry after fail')
+      products = await fetchVtexStore(store, query, 12000)
+    }
+    if (!products || products.length === 0) return []
 
     return products.flatMap(p => {
       // Buscar la combinación item+seller con el precio más bajo
