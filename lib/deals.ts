@@ -11,16 +11,45 @@ export type Deal = SearchResult & {
 }
 
 const DEAL_QUERIES = [
-  { q: 'aceite girasol',          cat: 'Aceites' },
-  { q: 'leche entera',            cat: 'Lácteos' },
-  { q: 'yerba mate',              cat: 'Yerba' },
-  { q: 'detergente lavavajillas', cat: 'Limpieza' },
-  { q: 'papel higienico',         cat: 'Higiene' },
-  { q: 'arroz largo fino',        cat: 'Arroz' },
-  { q: 'fideos spaghetti',        cat: 'Pastas' },
-  { q: 'shampoo',                 cat: 'Belleza' },
-  { q: 'gaseosa',                  cat: 'Bebidas' },
-  { q: 'azucar blanca',           cat: 'Azúcar' },
+  // Lácteos
+  { q: 'leche entera',              cat: 'Lácteos' },
+  { q: 'leche descremada',          cat: 'Lácteos' },
+  { q: 'yogur',                     cat: 'Lácteos' },
+  { q: 'manteca',                   cat: 'Lácteos' },
+  // Aceites
+  { q: 'aceite girasol',            cat: 'Aceites' },
+  { q: 'aceite oliva',              cat: 'Aceites' },
+  // Yerba y bebidas
+  { q: 'yerba mate',                cat: 'Yerba' },
+  { q: 'cafe molido',               cat: 'Bebidas' },
+  { q: 'gaseosa',                   cat: 'Bebidas' },
+  { q: 'agua mineral',              cat: 'Bebidas' },
+  { q: 'jugo en polvo',             cat: 'Bebidas' },
+  // Cereales y pastas
+  { q: 'arroz largo fino',          cat: 'Cereales' },
+  { q: 'fideos spaghetti',          cat: 'Pastas' },
+  { q: 'fideos moño',               cat: 'Pastas' },
+  { q: 'harina trigo',              cat: 'Harinas' },
+  { q: 'avena',                     cat: 'Cereales' },
+  // Condimentos
+  { q: 'azucar blanca',             cat: 'Azúcar' },
+  { q: 'sal fina',                  cat: 'Condimentos' },
+  { q: 'mayonesa',                  cat: 'Condimentos' },
+  { q: 'pure tomate',               cat: 'Condimentos' },
+  // Limpieza
+  { q: 'detergente lavavajillas',   cat: 'Limpieza' },
+  { q: 'lavandina',                 cat: 'Limpieza' },
+  { q: 'jabón en polvo',            cat: 'Limpieza' },
+  { q: 'suavizante ropa',           cat: 'Limpieza' },
+  // Higiene
+  { q: 'papel higienico',           cat: 'Higiene' },
+  { q: 'shampoo',                   cat: 'Higiene' },
+  { q: 'jabón tocador',             cat: 'Higiene' },
+  { q: 'desodorante',               cat: 'Higiene' },
+  { q: 'pasta dental',              cat: 'Higiene' },
+  // Galletitas y snacks
+  { q: 'galletitas dulces',         cat: 'Snacks' },
+  { q: 'galletitas saladas',        cat: 'Snacks' },
 ]
 
 // ─── Normalización de nombres ──────────────────────────────────────────────
@@ -402,7 +431,7 @@ export async function fetchAllDeals(): Promise<Deal[]> {
   const deduped = Array.from(byName.values())
     .filter(d => d.discount_pct >= 5)
     .sort((a, b) => b.discount_pct - a.discount_pct)
-    .slice(0, 40) // verificar top 40
+    .slice(0, 60) // verificar top 60 para asegurar 30 finales
 
   // Paso 2: verificar cada deal contra el mercado en paralelo
   const verified = await Promise.allSettled(deduped.map(verifyDeal))
@@ -411,11 +440,7 @@ export async function fetchAllDeals(): Promise<Deal[]> {
     .filter(r => r.status === 'fulfilled')
     .map(r => (r as PromiseFulfilledResult<Deal | null>).value)
     .filter((d): d is Deal => d !== null)
-    .sort((a, b) => {
-      // Primero los verificados, luego por % descuento
-      if (a.verified !== b.verified) return a.verified ? -1 : 1
-      return b.discount_pct - a.discount_pct
-    })
+    .sort((a, b) => a.price - b.price) // ordenar por precio de menor a mayor
     .slice(0, 30)
 
   return final
