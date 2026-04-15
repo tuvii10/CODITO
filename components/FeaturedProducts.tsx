@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { SearchResult } from '@/lib/types'
 import { getStoreConfig } from '@/lib/stores'
-import { searchMercadoLibreClient } from '@/lib/ml-client'
 
 type Category = {
   key: string
@@ -31,8 +30,6 @@ export default function FeaturedProducts() {
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState<string>('supermercado')
   const [activeCategory, setActiveCategory] = useState<string>('gaseosa')
-  // Set de categorías que ya enriquecimos con ML (para no re-fetchar)
-  const [mlFetched, setMlFetched] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetch('/api/featured')
@@ -50,75 +47,6 @@ export default function FeaturedProducts() {
       .catch(() => setSections([]))
       .finally(() => setLoading(false))
   }, [])
-
-  /**
-   * Fetchea ML client-side para UNA categoría y mergea con los productos
-   * del server. Dedupe por URL + interleave VTEX/ML.
-   */
-  const enrichWithMl = useCallback(async (sectionKey: string, categoryKey: string, query: string) => {
-    const key = `${sectionKey}/${categoryKey}`
-
-    console.log('[FeaturedProducts] Fetching ML for', key, 'query:', query)
-    const mlResults = await searchMercadoLibreClient(query, 12)
-    console.log('[FeaturedProducts] ML returned', mlResults.length, 'products for', key)
-
-    if (mlResults.length === 0) return
-
-    setSections(prevSections =>
-      prevSections.map(s => {
-        if (s.key !== sectionKey) return s
-        return {
-          ...s,
-          categories: s.categories.map(c => {
-            if (c.key !== categoryKey) return c
-            const seen = new Set(c.products.map(p => p.url).filter(Boolean))
-            const newMl = mlResults.filter(r => !r.url || !seen.has(r.url))
-            const vtexOnly = c.products.filter(p => p.source !== 'mercadolibre')
-            const merged: SearchResult[] = []
-            const maxLen = Math.max(vtexOnly.length, newMl.length)
-            for (let i = 0; i < maxLen; i++) {
-              if (i < vtexOnly.length) merged.push(vtexOnly[i])
-              if (i < newMl.length) merged.push(newMl[i])
-            }
-            return { ...c, products: merged.slice(0, 24) }
-          }),
-        }
-      })
-    )
-  }, [])
-
-  // Cuando sections se carga, enriquecer TODAS las categorías de TODAS las
-  // secciones con ML en paralelo (de a poco para no saturar)
-  useEffect(() => {
-    if (sections.length === 0) return
-
-    const toFetch: Array<{ section: string; category: string; query: string }> = []
-    for (const s of sections) {
-      for (const c of s.categories) {
-        const key = `${s.key}/${c.key}`
-        if (mlFetched.has(key)) continue
-        if (!c.query) continue
-        toFetch.push({ section: s.key, category: c.key, query: c.query })
-      }
-    }
-
-    if (toFetch.length === 0) return
-
-    // Marcar todos como fetcheados antes de iniciar
-    setMlFetched(prev => {
-      const next = new Set(prev)
-      for (const t of toFetch) next.add(`${t.section}/${t.category}`)
-      return next
-    })
-
-    // Fetchar en paralelo pero con un pequeño stagger para no saturar
-    toFetch.forEach((t, i) => {
-      setTimeout(() => {
-        enrichWithMl(t.section, t.category, t.query)
-      }, i * 120)
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sections.length])
 
   if (loading) {
     return (

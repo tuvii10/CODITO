@@ -1,193 +1,167 @@
+/**
+ * Mercado Libre — cliente server-side usando OAuth app token.
+ *
+ * Como ML deprecó `/sites/MLA/search`, no podemos hacer búsquedas
+ * por query libre. En su lugar usamos:
+ *   1) /highlights/MLA/category/{CAT_ID}  → IDs de productos best sellers
+ *   2) /products/{PRODUCT_ID}             → nombre, imagen, info
+ *   3) /products/{PRODUCT_ID}/items       → listings con precios
+ *
+ * Con esto podemos poblar la sección de Destacados por categoría.
+ * Para búsquedas de texto libre del usuario, ML devuelve array vacío
+ * (la función searchMercadoLibre queda stub).
+ */
 import { SearchResult } from './types'
+import { getMLAccessToken } from './ml-auth'
 
 const ML_LOGO = 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/favicon.svg'
+const ML_API = 'https://api.mercadolibre.com'
 
-/**
- * Búsqueda en Mercado Libre con dos caminos:
- * 1) API oficial pública: api.mercadolibre.com/sites/MLA/search
- *    (rápida, estructurada, pero a veces bloquea IPs sospechosas)
- * 2) HTML scraping: listado.mercadolibre.com.ar (a veces redirige a challenge)
- *
- * Probamos la API primero; si falla o viene vacía, caemos al scraping.
- */
+// ─── Tipos de respuesta de ML ──────────────────────────────────────────────
 
-type MLApiItem = {
+type MLHighlightContent = {
   id: string
-  title: string
-  price: number
-  original_price?: number | null
-  permalink: string
-  thumbnail?: string
-  available_quantity?: number
-  seller?: { nickname?: string }
+  position: number
+  type: 'PRODUCT' | 'ITEM'
 }
 
-async function searchViaApi(query: string, limit: number): Promise<SearchResult[]> {
-  try {
-    const url = `https://api.mercadolibre.com/sites/MLA/search?q=${encodeURIComponent(query)}&limit=${Math.min(limit, 50)}&condition=new`
-
-    const res = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        'Accept-Language': 'es-AR,es;q=0.9',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      },
-      next: { revalidate: 300 },
-      signal: AbortSignal.timeout(7000),
-    })
-
-    if (!res.ok) {
-      console.warn('[ML] API non-OK', res.status, 'query:', query)
-      return []
-    }
-
-    const data = await res.json()
-    if (!Array.isArray(data?.results)) return []
-
-    const items: MLApiItem[] = data.results
-    return items
-      .filter(it => it.price > 0 && (it.available_quantity ?? 1) > 0)
-      .map(it => {
-        const original = it.original_price ?? null
-        const validRatio = original && original > it.price ? it.price / original : 1
-        const hasDiscount = !!original && original > it.price && validRatio >= 0.30
-        const discPct = hasDiscount ? Math.round((1 - it.price / original!) * 100) : 0
-        return {
-          id: `ml-${it.id}`,
-          name: it.title,
-          brand: null,
-          ean: null,
-          store_name: 'Mercado Libre',
-          store_logo: ML_LOGO,
-          price: it.price,
-          price_per_unit: null,
-          unit: null,
-          url: it.permalink,
-          in_stock: true,
-          source: 'mercadolibre' as const,
-          image: it.thumbnail?.replace('http://', 'https://') ?? null,
-          seller: it.seller?.nickname,
-          promo_label: hasDiscount && discPct >= 3 ? `-${discPct}%` : null,
-          original_price: hasDiscount ? original : null,
-        } as SearchResult
-      })
-  } catch (err) {
-    console.warn('[ML] API error', String(err), 'query:', query)
-    return []
-  }
+type MLHighlightResponse = {
+  query_data?: unknown
+  content?: MLHighlightContent[]
 }
 
-type MLProductItem = {
+type MLPicture = {
+  id: string
+  url: string
+  max_width?: number
+  max_height?: number
+}
+
+type MLProductResponse = {
   id: string
   name: string
-  image?: string
-  brand_attribute?: { name: string }
-  item_offered: {
-    price: number
-    original_price?: number
-    price_currency: string
-    url: string
+  family_name?: string
+  permalink?: string
+  pictures?: MLPicture[]
+}
+
+type MLListingItem = {
+  item_id: string
+  price: number
+  original_price?: number | null
+  currency_id: string
+  condition: string
+  category_id?: string
+  shipping?: {
+    free_shipping?: boolean
   }
 }
 
-async function searchViaScraping(query: string, limit: number): Promise<SearchResult[]> {
+type MLProductItemsResponse = {
+  paging?: { total: number; offset: number; limit: number }
+  results: MLListingItem[]
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+async function mlFetch<T>(path: string): Promise<T | null> {
+  const token = await getMLAccessToken()
+  if (!token) return null
   try {
-    const slug = query.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-áéíóúüñ]/g, '')
-    const url = `https://listado.mercadolibre.com.ar/${encodeURIComponent(slug)}`
-
-    const res = await fetch(url, {
+    const res = await fetch(`${ML_API}${path}`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
-        'Accept-Language': 'es-AR,es;q=0.9,en;q=0.8',
-        'Referer': 'https://www.google.com.ar/',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'cross-site',
-        'Upgrade-Insecure-Requests': '1',
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
       },
-      next: { revalidate: 300 },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(8000),
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(7000),
     })
-
     if (!res.ok) {
-      console.warn('[ML] Scrape non-OK', res.status, 'query:', query)
-      return []
+      console.warn('[ML] API', path, 'non-OK', res.status)
+      return null
     }
-
-    const html = await res.text()
-
-    // Detectar si nos mandaron a challenge/captcha
-    if (html.length < 5000 || html.includes('account-verification') || html.includes('captcha')) {
-      console.warn('[ML] Scrape challenged (length:', html.length, ') query:', query)
-      return []
-    }
-
-    const startStr = '"product_list":['
-    const start = html.indexOf(startStr)
-    if (start === -1) {
-      console.warn('[ML] Scrape: product_list not found, query:', query)
-      return []
-    }
-
-    const dataStart = start + startStr.length
-    let depth = 1, i = dataStart
-    while (i < html.length && depth > 0) {
-      if (html[i] === '[') depth++
-      else if (html[i] === ']') depth--
-      i++
-    }
-
-    const raw = html
-      .slice(dataStart, i - 1)
-      .replace(/\\u002F/g, '/')
-      .replace(/\\u0026/g, '&')
-      .replace(/\\u003C/g, '<')
-      .replace(/\\u003E/g, '>')
-
-    const items: MLProductItem[] = JSON.parse('[' + raw + ']')
-
-    return items
-      .filter(item => item.item_offered?.price > 0)
-      .slice(0, limit)
-      .map(item => {
-        const price = item.item_offered.price
-        const original = item.item_offered.original_price ?? null
-        const validRatio = original && original > price ? price / original : 1
-        const hasDiscount = !!original && original > price && validRatio >= 0.30
-        const discPct = hasDiscount ? Math.round((1 - price / original!) * 100) : 0
-        return {
-          id: `ml-${item.id}`,
-          name: item.name,
-          brand: item.brand_attribute?.name ?? null,
-          ean: null,
-          store_name: 'Mercado Libre',
-          store_logo: ML_LOGO,
-          price,
-          price_per_unit: null,
-          unit: null,
-          url: item.item_offered.url,
-          in_stock: true,
-          source: 'mercadolibre' as const,
-          image: item.image?.replace('http://', 'https://') ?? null,
-          seller: undefined,
-          promo_label: hasDiscount && discPct >= 3 ? `-${discPct}%` : null,
-          original_price: hasDiscount ? original : null,
-        }
-      })
+    return (await res.json()) as T
   } catch (err) {
-    console.warn('[ML] Scrape error', String(err), 'query:', query)
-    return []
+    console.warn('[ML] API', path, 'error', err)
+    return null
   }
 }
 
-export async function searchMercadoLibre(query: string, limit = 24): Promise<SearchResult[]> {
-  // 1) Probar la API oficial primero
-  const apiResults = await searchViaApi(query, limit)
-  if (apiResults.length > 0) return apiResults.slice(0, limit)
+// ─── Public API ────────────────────────────────────────────────────────────
 
-  // 2) Fallback: scraping HTML
-  const scrapedResults = await searchViaScraping(query, limit)
-  return scrapedResults.slice(0, limit)
+/**
+ * Busca productos destacados (best sellers) de una categoría de ML.
+ * @param categoryId ID de categoría ML, ej: MLA1403 (Alimentos)
+ * @param limit cuántos productos devolver
+ */
+export async function fetchMLHighlightsByCategory(
+  categoryId: string,
+  limit = 15
+): Promise<SearchResult[]> {
+  const highlights = await mlFetch<MLHighlightResponse>(
+    `/highlights/MLA/category/${categoryId}`
+  )
+  if (!highlights?.content || highlights.content.length === 0) return []
+
+  const productIds = highlights.content
+    .filter(h => h.type === 'PRODUCT')
+    .slice(0, limit)
+    .map(h => h.id)
+
+  if (productIds.length === 0) return []
+
+  // Para cada producto, traer detalles + primer listing en paralelo
+  const results = await Promise.allSettled(
+    productIds.map(async pid => {
+      const [product, items] = await Promise.all([
+        mlFetch<MLProductResponse>(`/products/${pid}`),
+        mlFetch<MLProductItemsResponse>(`/products/${pid}/items?limit=1`),
+      ])
+
+      if (!product || !items?.results?.[0]) return null
+
+      const listing = items.results[0]
+      const price = listing.price
+      if (!price || price <= 0) return null
+
+      const original = listing.original_price ?? null
+      const validRatio = original && original > price ? price / original : 1
+      const hasDiscount = !!original && original > price && validRatio >= 0.30
+      const discPct = hasDiscount ? Math.round((1 - price / original!) * 100) : 0
+
+      const image = product.pictures?.[0]?.url?.replace('http://', 'https://') ?? null
+
+      return {
+        id: `ml-${product.id}`,
+        name: product.name,
+        brand: null,
+        ean: null,
+        store_name: 'Mercado Libre',
+        store_logo: ML_LOGO,
+        price,
+        price_per_unit: null,
+        unit: null,
+        url: `https://www.mercadolibre.com.ar/p/${product.id}`,
+        in_stock: true,
+        source: 'mercadolibre' as const,
+        image,
+        promo_label: hasDiscount && discPct >= 3 ? `-${discPct}%` : null,
+        original_price: hasDiscount ? original : null,
+      } as SearchResult
+    })
+  )
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<SearchResult | null> => r.status === 'fulfilled')
+    .map(r => r.value)
+    .filter((r): r is SearchResult => r !== null)
+}
+
+/**
+ * Legacy: antes hacía búsqueda por query libre.
+ * ML deprecó ese endpoint — ahora devuelve vacío y los resultados de ML
+ * vienen por `fetchMLHighlightsByCategory` en la sección de destacados.
+ */
+export async function searchMercadoLibre(_query: string, _limit = 24): Promise<SearchResult[]> {
+  return []
 }
