@@ -209,13 +209,17 @@ export async function fetchAllDeals(): Promise<Deal[]> {
     return savings >= 300 && p.price >= 500 && p.price <= 500000
   })
 
-  // Paso 5: ordenar por ahorro absoluto en pesos (no por %)
+  // Paso 5: tomar los 30 con mayor ahorro absoluto primero (para que
+  // el top sea de los que más valor ofrecen)
   withRealSavings.sort((a, b) =>
     ((b.original_price ?? 0) - b.price) - ((a.original_price ?? 0) - a.price)
   )
+  const top = withRealSavings.slice(0, 30)
 
-  // Paso 6: top 30
-  return withRealSavings.slice(0, 30).map((p): Deal => {
+  // Paso 6: re-ordenar el top por precio de menor a mayor (como pide el usuario)
+  top.sort((a, b) => a.price - b.price)
+
+  return top.map((p): Deal => {
     const orig = p.original_price ?? p.price
     const discPct = Math.round((1 - p.price / orig) * 100)
     const category = inferCategory(p.name, (p as Candidate).__category)
