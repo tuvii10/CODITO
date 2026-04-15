@@ -1,80 +1,210 @@
+/**
+ * Mercado Libre — cliente server-side usando OAuth app token.
+ *
+ * Como ML deprecó `/sites/MLA/search`, no podemos hacer búsquedas
+ * por query libre. En su lugar usamos:
+ *   1) /highlights/MLA/category/{CAT_ID}  → IDs de productos best sellers
+ *   2) /products/{PRODUCT_ID}             → nombre, imagen, info
+ *   3) /products/{PRODUCT_ID}/items       → listings con precios
+ *
+ * Con esto podemos poblar la sección de Destacados por categoría.
+ * Para búsquedas de texto libre del usuario, ML devuelve array vacío
+ * (la función searchMercadoLibre queda stub).
+ */
 import { SearchResult } from './types'
+import { getMLAccessToken } from './ml-auth'
 
-export async function searchMercadoLibre(query: string, limit = 24): Promise<SearchResult[]> {
-  try {
-    // Convert query to ML URL slug
-    const slug = query.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-áéíóúüñ]/g, '')
-    const url = `https://listado.mercadolibre.com.ar/${encodeURIComponent(slug)}`
+const ML_LOGO = 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/favicon.svg'
+const ML_API = 'https://api.mercadolibre.com'
 
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'es-AR,es;q=0.9',
-      },
-      next: { revalidate: 300 },
-    })
+// ─── Tipos de respuesta de ML ──────────────────────────────────────────────
 
-    if (!res.ok) return []
+type MLHighlightContent = {
+  id: string
+  position: number
+  type: 'PRODUCT' | 'ITEM'
+}
 
-    const html = await res.text()
+type MLHighlightResponse = {
+  query_data?: unknown
+  content?: MLHighlightContent[]
+}
 
-    // ML embeds product_list as JSON inside the HTML
-    const startStr = '"product_list":['
-    const start = html.indexOf(startStr)
-    if (start === -1) return []
+type MLPicture = {
+  id: string
+  url: string
+  max_width?: number
+  max_height?: number
+}
 
-    const dataStart = start + startStr.length
+type MLProductResponse = {
+  id: string
+  name: string
+  family_name?: string
+  permalink?: string
+  pictures?: MLPicture[]
+}
 
-    // Walk to find the closing bracket
-    let depth = 1, i = dataStart
-    while (i < html.length && depth > 0) {
-      if (html[i] === '[') depth++
-      else if (html[i] === ']') depth--
-      i++
-    }
-
-    const raw = html
-      .slice(dataStart, i - 1)
-      .replace(/\\u002F/g, '/')
-      .replace(/\\u0026/g, '&')
-      .replace(/\\u003C/g, '<')
-      .replace(/\\u003E/g, '>')
-
-    const items: MLProductItem[] = JSON.parse('[' + raw + ']')
-
-    return items
-      .filter(item => item.item_offered?.price > 0)
-      .slice(0, limit)
-      .map(item => ({
-        id: `ml-${item.id}`,
-        name: item.name,
-        brand: item.brand_attribute?.name ?? null,
-        ean: null,
-        store_name: 'Mercado Libre',
-        store_logo: 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/favicon.svg',
-        price: item.item_offered.price,
-        price_per_unit: null,
-        unit: null,
-        url: item.item_offered.url,
-        in_stock: true,
-        source: 'mercadolibre' as const,
-        image: item.image?.replace('http://', 'https://') ?? null,
-        seller: undefined,
-      }))
-  } catch {
-    return []
+type MLListingItem = {
+  item_id: string
+  price: number
+  original_price?: number | null
+  currency_id: string
+  condition: string
+  category_id?: string
+  shipping?: {
+    free_shipping?: boolean
   }
 }
 
-type MLProductItem = {
-  id: string
-  name: string
-  image?: string
-  brand_attribute?: { name: string }
-  item_offered: {
-    price: number
-    price_currency: string
-    url: string
+type MLProductItemsResponse = {
+  paging?: { total: number; offset: number; limit: number }
+  results: MLListingItem[]
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+async function mlFetch<T>(path: string): Promise<T | null> {
+  const token = await getMLAccessToken()
+  if (!token) return null
+  try {
+    const res = await fetch(`${ML_API}${path}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(7000),
+    })
+    if (!res.ok) {
+      console.warn('[ML] API', path, 'non-OK', res.status)
+      return null
+    }
+    return (await res.json()) as T
+  } catch (err) {
+    console.warn('[ML] API', path, 'error', err)
+    return null
   }
+}
+
+// ─── Public API ────────────────────────────────────────────────────────────
+
+/**
+ * Lista de category IDs que sabemos tienen highlights (las demás no
+ * devuelven data o tiran 404). Si se pide una categoría no soportada,
+ * caemos al parent más cercano.
+ */
+const HIGHLIGHTS_FALLBACK: Record<string, string> = {
+  // Bebidas → Alimentos (parent que sí tiene highlights)
+  MLA178700: 'MLA1403',
+  // Belleza tiene el suyo propio
+  MLA1246: 'MLA1246',
+  // Electro grandes → top level
+  MLA5726: 'MLA5726',
+  // Electrónica AV (tvs, audio)
+  MLA1000: 'MLA1000',
+  // Celulares
+  MLA1051: 'MLA1051',
+  // Computación
+  MLA1648: 'MLA1648',
+  // Ropa
+  MLA1430: 'MLA1430',
+  // Deportes
+  MLA1276: 'MLA1276',
+  // Hogar
+  MLA1574: 'MLA1574',
+  // Herramientas
+  MLA407134: 'MLA407134',
+  // Alimentos (default)
+  MLA1403: 'MLA1403',
+}
+
+/**
+ * Busca productos destacados (best sellers) de una categoría de ML.
+ * Si la categoría específica no tiene highlights, prueba con el parent.
+ * @param categoryId ID de categoría ML, ej: MLA1403 (Alimentos)
+ * @param limit cuántos productos devolver
+ */
+export async function fetchMLHighlightsByCategory(
+  categoryId: string,
+  limit = 15
+): Promise<SearchResult[]> {
+  // Probar el category ID pedido, y si no devuelve data, probar el fallback
+  const idsToTry = [categoryId]
+  const fallback = HIGHLIGHTS_FALLBACK[categoryId]
+  if (fallback && fallback !== categoryId) idsToTry.push(fallback)
+  // Si nada funciona, siempre cae a Alimentos como último recurso
+  if (!idsToTry.includes('MLA1403')) idsToTry.push('MLA1403')
+
+  let highlights: MLHighlightResponse | null = null
+  for (const id of idsToTry) {
+    highlights = await mlFetch<MLHighlightResponse>(`/highlights/MLA/category/${id}`)
+    if (highlights?.content && highlights.content.length > 0) break
+  }
+
+  if (!highlights?.content || highlights.content.length === 0) return []
+
+  const productIds = highlights.content
+    .filter(h => h.type === 'PRODUCT')
+    .slice(0, limit)
+    .map(h => h.id)
+
+  if (productIds.length === 0) return []
+
+  // Para cada producto, traer detalles + primer listing en paralelo
+  const results = await Promise.allSettled(
+    productIds.map(async pid => {
+      const [product, items] = await Promise.all([
+        mlFetch<MLProductResponse>(`/products/${pid}`),
+        mlFetch<MLProductItemsResponse>(`/products/${pid}/items?limit=1`),
+      ])
+
+      if (!product || !items?.results?.[0]) return null
+
+      const listing = items.results[0]
+      const price = listing.price
+      if (!price || price <= 0) return null
+
+      const original = listing.original_price ?? null
+      const validRatio = original && original > price ? price / original : 1
+      const hasDiscount = !!original && original > price && validRatio >= 0.30
+      const discPct = hasDiscount ? Math.round((1 - price / original!) * 100) : 0
+
+      const image = product.pictures?.[0]?.url?.replace('http://', 'https://') ?? null
+
+      return {
+        id: `ml-${product.id}`,
+        name: product.name,
+        brand: null,
+        ean: null,
+        store_name: 'Mercado Libre',
+        store_logo: ML_LOGO,
+        price,
+        price_per_unit: null,
+        unit: null,
+        url: `https://www.mercadolibre.com.ar/p/${product.id}`,
+        in_stock: true,
+        source: 'mercadolibre' as const,
+        image,
+        promo_label: hasDiscount && discPct >= 3 ? `-${discPct}%` : null,
+        original_price: hasDiscount ? original : null,
+        // ML devuelve original_price solo cuando hay descuento real del vendedor
+        is_real_promo: hasDiscount && discPct >= 3,
+      } as SearchResult
+    })
+  )
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<SearchResult | null> => r.status === 'fulfilled')
+    .map(r => r.value)
+    .filter((r): r is SearchResult => r !== null)
+}
+
+/**
+ * Legacy: antes hacía búsqueda por query libre.
+ * ML deprecó ese endpoint — ahora devuelve vacío y los resultados de ML
+ * vienen por `fetchMLHighlightsByCategory` en la sección de destacados.
+ */
+export async function searchMercadoLibre(_query: string, _limit = 24): Promise<SearchResult[]> {
+  return []
 }

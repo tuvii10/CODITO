@@ -1,54 +1,62 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import './globals.css'
 
-const BASE_URL = 'https://codito.com.ar'
-
 export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
+  metadataBase: new URL('https://codito-rho.vercel.app'),
   title: {
-    default: 'Codito — Comparador de Precios Argentina',
-    template: '%s | Codito',
+    default: 'Codito — El precio más bajo de Argentina',
+    template: '%s · Codito',
   },
-  description: 'Compará precios de supermercados y Mercado Libre en tiempo real. Encontrá el precio más barato en Carrefour, Disco, Jumbo, Coto, Vea y más tiendas de Argentina.',
-  keywords: ['comparador de precios argentina', 'precios supermercados', 'mercado libre precios', 'ofertas argentina', 'precio más barato', 'codito'],
+  description: 'Buscá cualquier producto y te mostramos dónde está más barato. Comparamos supermercados, electro y moda al instante.',
+  keywords: ['comparador de precios', 'Argentina', 'supermercados', 'ofertas', 'precio más bajo'],
+  authors: [{ name: 'Codito' }],
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
   openGraph: {
     type: 'website',
-    url: BASE_URL,
-    title: 'Codito — Comparador de Precios Argentina',
-    description: 'Compará precios de supermercados y Mercado Libre en tiempo real. Encontrá el precio más barato al instante.',
-    siteName: 'Codito',
     locale: 'es_AR',
-    images: [{
-      url: '/og-image.png',
-      width: 1200,
-      height: 630,
-      alt: 'Codito — Comparador de precios Argentina',
-    }],
+    url: 'https://codito-rho.vercel.app',
+    siteName: 'Codito',
+    title: 'Codito — El precio más bajo de Argentina',
+    description: 'Buscá cualquier producto y te mostramos dónde está más barato. Sin vueltas, sin perder guita.',
+    images: [
+      {
+        url: '/logo.png',
+        width: 500,
+        height: 500,
+        alt: 'Codito',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Codito — Comparador de Precios Argentina',
-    description: 'Compará precios de supermercados y Mercado Libre en tiempo real.',
-    images: ['/og-image.png'],
-  },
-  alternates: {
-    canonical: BASE_URL,
+    title: 'Codito — El precio más bajo de Argentina',
+    description: 'Buscá cualquier producto y te mostramos dónde está más barato.',
+    images: ['/logo.png'],
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true, 'max-snippet': -1 },
   },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body style={{ minHeight: '100vh' }}>
+      <head>
+        <meta name="color-scheme" content="light" />
+      </head>
+      <body style={{ minHeight: '100vh', background: '#fafafa' }}>
+        {/* Header minimal */}
         <header style={{
-          background: '#ffffff',
-          borderBottom: '1px solid var(--border)',
-          boxShadow: '0 1px 0 #e2e8f0',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(14px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(14px) saturate(150%)',
+          borderBottom: '1px solid #e4e4e7',
           position: 'sticky',
           top: 0,
           zIndex: 50,
@@ -56,50 +64,72 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div style={{
             maxWidth: 960,
             margin: '0 auto',
-            padding: '10px 16px',
+            padding: '8px 14px',
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            justifyContent: 'space-between',
+            gap: 10,
           }}>
-            <LogoMark />
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: '#0284c7', letterSpacing: '-0.5px' }}>
-                codito
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                Comparador de precios · Argentina
-              </div>
-            </div>
+            {/* Logo */}
+            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Codito"
+                style={{
+                  height: 'clamp(44px, 11vw, 58px)',
+                  width: 'auto',
+                  objectFit: 'contain',
+                }}
+              />
+            </Link>
+
+            {/* Botón Ofertas — negro minimal */}
+            <Link href="/ofertas" className="ofertas-header-btn" style={{
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: '#18181b',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 13,
+              padding: '9px 16px',
+              borderRadius: 10,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              letterSpacing: '-0.01em',
+              transition: 'background 0.15s',
+            }}>
+              Ofertas
+            </Link>
           </div>
         </header>
 
-        <main style={{ maxWidth: 960, margin: '0 auto', padding: '24px 16px' }}>
+        {/* Contenido */}
+        <main style={{
+          maxWidth: 960,
+          margin: '0 auto',
+          padding: 'clamp(18px, 5vw, 32px) clamp(12px, 4vw, 24px) 60px',
+        }}>
           {children}
         </main>
 
-        <footer style={{ textAlign: 'center', padding: '24px 16px', fontSize: 12, color: 'var(--muted)' }}>
-          Precios orientativos. Verificá siempre en el sitio oficial de cada tienda.
+        {/* Footer minimal */}
+        <footer style={{
+          background: '#ffffff',
+          borderTop: '1px solid #e4e4e7',
+          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}>
+          <span style={{ fontSize: 11, color: '#71717a', fontWeight: 500 }}>
+            Precios orientativos · Verificá siempre en la tienda
+          </span>
         </footer>
       </body>
     </html>
-  )
-}
-
-function LogoMark() {
-  return (
-    <div style={{
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      boxShadow: '0 4px 12px rgba(14,165,233,0.35)',
-      fontSize: 22,
-    }}>
-      🐭
-    </div>
   )
 }

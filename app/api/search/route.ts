@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchMercadoLibre } from '@/lib/mercadolibre'
 import { searchVtex } from '@/lib/vtex'
 import { searchCoto } from '@/lib/coto'
+import { searchSuperPrecio } from '@/lib/superprecio'
 import { searchWeb } from '@/lib/web-search'
+import { applyCrossSellerDiscounts } from '@/lib/compare'
 import { SearchResult } from '@/lib/types'
 
 export async function GET(req: NextRequest) {
@@ -15,48 +16,53 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Búsqueda demasiado larga' }, { status: 400 })
   }
 
-  // Todas las fuentes en paralelo
-  const [mlRes, vtexRes, cotoRes, webRes] = await Promise.allSettled([
-    searchMercadoLibre(query, 20),
+  // Fuentes en paralelo. ML no se incluye en búsqueda libre: su API search
+  // está deprecada (ver /api/featured para best sellers por categoría).
+  // SuperPrecio agrega cobertura de tiendas sin API propia (DIA, Cordiez, etc).
+  const [vtexRes, cotoRes, spRes, webRes] = await Promise.allSettled([
     searchVtex(query),
     searchCoto(query),
+    searchSuperPrecio(query, 30),
     searchWeb(query),
   ])
 
-  const ml    = mlRes.status    === 'fulfilled' ? mlRes.value    : []
-  const vtex  = vtexRes.status  === 'fulfilled' ? vtexRes.value  : []
-  const coto  = cotoRes.status  === 'fulfilled' ? cotoRes.value  : []
-  const web   = webRes.status   === 'fulfilled' ? webRes.value   : []
+  const vtex = vtexRes.status === 'fulfilled' ? vtexRes.value : []
+  const coto = cotoRes.status === 'fulfilled' ? cotoRes.value : []
+  const sp   = spRes.status   === 'fulfilled' ? spRes.value   : []
+  const web  = webRes.status  === 'fulfilled' ? webRes.value  : []
 
-  // Deduplicar web contra resultados directos
-  const directUrls = new Set([...ml, ...vtex, ...coto].map(r => r.url))
+  // Deduplicar web + superprecio contra resultados directos
+  const directUrls = new Set([...vtex, ...coto].map(r => r.url).filter(Boolean))
+  const spFiltered = sp.filter(r => !r.url || !directUrls.has(r.url))
   const webFiltered = web.filter(r => !r.url || !directUrls.has(r.url))
 
-  // Juntar resultados con precio
-  const allWithPrice    = [...ml, ...vtex, ...coto, ...webFiltered.filter(r => r.price > 0)]
+  // Juntar todo (con precio primero, sin precio al final)
+  const rawWithPrice = [...vtex, ...coto, ...spFiltered, ...webFiltered.filter(r => r.price > 0)]
   const allWithoutPrice = webFiltered.filter(r => r.price === 0)
 
-  // Filtrar por relevancia: al menos 1 token del query debe estar en el nombre
+  // Filtrar por relevancia: al menos 20% de los tokens del query deben estar en el nombre
   const queryTokens = tokenize(query)
   const relevant = queryTokens.length === 0
-    ? allWithPrice
-    : allWithPrice.filter(r => relevanceScore(r.name, queryTokens) >= 0.2)
+    ? rawWithPrice
+    : rawWithPrice.filter(r => relevanceScore(r.name, queryTokens) >= 0.2)
 
-  // Deduplicar por nombre normalizado: si dos resultados de distintas fuentes
-  // tienen el mismo nombre, quedarse con el de menor precio
+  // Deduplicar por tienda+nombre normalizado (evita duplicados del mismo producto)
   const deduped = deduplicateByName(relevant)
 
-  deduped.sort((a, b) => a.price - b.price)
+  // Descuentos reales: comparar entre sellers
+  const allWithPrice = applyCrossSellerDiscounts(deduped)
+  allWithPrice.sort((a, b) => a.price - b.price)
 
-  const results = [...deduped, ...allWithoutPrice]
+  const results = [...allWithPrice, ...allWithoutPrice]
 
   return NextResponse.json({
     results,
     total: results.length,
     query,
     sources: {
-      mercadolibre: ml.length,
-      tiendas: vtex.length + coto.length,
+      tiendas_vtex: vtex.length,
+      coto: coto.length,
+      superprecio: sp.length,
       web: webFiltered.length,
     },
   })
@@ -87,18 +93,12 @@ function relevanceScore(name: string, queryTokens: string[]): number {
   return matches.length / queryTokens.length
 }
 
-// ─── Dedup por nombre normalizado ─────────────────────────────────────────────
-
-function normalizeName(name: string): string {
-  return tokenize(name).slice(0, 5).join(' ')
-}
+// ─── Dedup por tienda + nombre normalizado ────────────────────────────────────
 
 function deduplicateByName(results: SearchResult[]): SearchResult[] {
-  // Para cada nombre normalizado, guardar el de menor precio
-  // pero mantener todos si son de distinta tienda (comparar precios es el punto)
   const byStoreAndName = new Map<string, SearchResult>()
   for (const r of results) {
-    const key = `${r.store_name}::${normalizeName(r.name)}`
+    const key = `${r.store_name}::${tokenize(r.name).slice(0, 5).join(' ')}`
     const existing = byStoreAndName.get(key)
     if (!existing || r.price < existing.price) {
       byStoreAndName.set(key, r)

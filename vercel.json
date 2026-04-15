@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "app/api/featured/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/deals/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}

@@ -42,4 +42,8 @@ export type SearchResult = {
   source: 'sepa' | 'mercadolibre' | 'vtex' | 'coto' | 'searxng'
   image?: string | null
   seller?: string
+  promo_label?: string | null
+  original_price?: number | null
+  /** true si el descuento/promo viene de una fuente confiable (teaser VTEX 2x1, 4x3, % OFF real, etc.) */
+  is_real_promo?: boolean
 }

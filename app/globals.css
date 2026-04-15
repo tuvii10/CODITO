@@ -1,22 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  /* Paleta mínima: blanco + grises (escala zinc) */
+  --bg: #fafafa;
   --surface: #ffffff;
-  --border: #e2e8f0;
-  --accent: #0ea5e9;
-  --accent-hover: #0284c7;
-  --foreground: #0f172a;
-  --muted: #64748b;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --text: #09090b;
+  --text-muted: #71717a;
+  --text-light: #a1a1aa;
+  --accent: #18181b;
+  --success: #16a34a;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  background: #ffffff;
-  color: var(--foreground);
-  font-family: 'Segoe UI', Arial, sans-serif;
+html, body {
+  color-scheme: light !important;
+  background: #fafafa !important;
+  color: var(--text);
+  font-family: -apple-system, 'SF Pro Display', 'Inter', 'Segoe UI', system-ui, sans-serif;
   min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+.mono-price {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
 }
 
 .line-clamp-2 {
@@ -24,4 +36,43 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.ofertas-header-text-short { display: none; }
+.ofertas-header-text-long { display: inline; }
+
+@media (max-width: 560px) {
+  .ofertas-header-text-long { display: none; }
+  .ofertas-header-text-short { display: inline; }
+}
+
+@media (max-width: 640px) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+.live-dot { animation: pulse-live 1.8s ease-in-out infinite; }
+
+/* Banner Ofertas — shimmer continuo + hover lift */
+@keyframes banner-shimmer-anim {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+.banner-shimmer {
+  animation: banner-shimmer-anim 3.5s ease-in-out infinite;
+}
+.ofertas-banner:hover > div {
+  transform: translateY(-3px);
+  box-shadow: 0 28px 50px -15px rgba(0, 0, 0, 0.45);
+}
+.ofertas-banner:hover .ofertas-arrow {
+  transform: translateX(4px);
 }
