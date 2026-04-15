@@ -210,27 +210,6 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
           <StoreBadge name={result.store_name} logo={result.store_logo} />
-          {result.brand && result.brand !== result.store_name && (
-            <span style={{
-              fontSize: 11,
-              padding: '2px 6px',
-              borderRadius: 999,
-              background: '#e0f2fe',
-              color: '#4d7fa8',
-            }}>{result.brand}</span>
-          )}
-          {result.seller && (
-            <span style={{ fontSize: 11, color: '#4d7fa8' }}>por {result.seller}</span>
-          )}
-          <span style={{
-            fontSize: 11,
-            padding: '2px 6px',
-            borderRadius: 999,
-            background: '#e0f2fe',
-            color: '#4d7fa8',
-          }}>
-            {result.source === 'mercadolibre' ? 'ML' : result.source === 'searxng' ? '🌐 Web' : 'Oficial'}
-          </span>
         </div>
       </div>
 
@@ -316,31 +295,19 @@ function ProductImage({ result, size }: { result: SearchResult; size: number }) 
   return <span style={{ fontSize: 28, opacity: 0.2 }}>🛒</span>
 }
 
-function StoreBadge({ name, logo }: { name: string; logo: string | null }) {
+function StoreBadge({ name }: { name: string; logo?: string | null }) {
   const cfg = getStoreConfig(name)
   return (
     <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 4,
+      display: 'inline-block',
       fontSize: 11,
       fontWeight: 700,
-      padding: '2px 8px',
+      padding: '3px 10px',
       borderRadius: 999,
       background: cfg.color,
       color: cfg.textColor,
+      letterSpacing: '-0.01em',
     }}>
-      {(logo || cfg.logo) && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={logo || cfg.logo}
-          alt=""
-          width={12}
-          height={12}
-          style={{ width: 12, height: 12, objectFit: 'contain', borderRadius: 2 }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-        />
-      )}
       {cfg.displayName}
     </span>
   )
