@@ -11,39 +11,64 @@ type VtexStore = {
 }
 
 const VTEX_STORES: VtexStore[] = [
-  // Supermercados
-  { name: 'Carrefour',    domain: 'www.carrefour.com.ar',     category: 'supermercado' },
-  { name: 'Disco',        domain: 'www.disco.com.ar',         category: 'supermercado' },
-  { name: 'Vea',          domain: 'www.vea.com.ar',           category: 'supermercado' },
-  { name: 'Jumbo',        domain: 'www.jumbo.com.ar',         category: 'supermercado' },
-  { name: 'Chango Más',   domain: 'www.masonline.com.ar',     category: 'supermercado' },
+  // ── Supermercados ───────────────────────────────────────
+  { name: 'Carrefour',      domain: 'www.carrefour.com.ar',      category: 'supermercado' },
+  { name: 'Disco',          domain: 'www.disco.com.ar',          category: 'supermercado' },
+  { name: 'Vea',            domain: 'www.vea.com.ar',            category: 'supermercado' },
+  { name: 'Jumbo',          domain: 'www.jumbo.com.ar',          category: 'supermercado' },
+  { name: 'Chango Más',     domain: 'www.masonline.com.ar',      category: 'supermercado' },
+  { name: 'Libertad',       domain: 'www.hiperlibertad.com.ar',  category: 'supermercado' },
+  { name: 'Toledo',         domain: 'www.toledodigital.com.ar',  category: 'supermercado' },
+  { name: 'Josimar',        domain: 'www.josimar.com.ar',        category: 'supermercado' },
 
-  // Electrónica / tecnología
-  { name: 'Frávega',      domain: 'www.fravega.com',          category: 'electro' },
-  { name: 'Naldo',        domain: 'www.naldo.com.ar',         category: 'electro' },
-  { name: 'Motorola',     domain: 'www.motorola.com.ar',      category: 'electro' },
-  { name: 'BGH',          domain: 'www.bgh.com.ar',           category: 'electro' },
+  // ── Electro / tecnología ────────────────────────────────
+  { name: 'Frávega',        domain: 'www.fravega.com',           category: 'electro' },
+  { name: 'Naldo',          domain: 'www.naldo.com.ar',          category: 'electro' },
+  { name: 'Motorola',       domain: 'www.motorola.com.ar',       category: 'electro' },
+  { name: 'BGH',            domain: 'www.bgh.com.ar',            category: 'electro' },
+  { name: 'Samsung',        domain: 'shop.samsung.com.ar',       category: 'electro' },
+  { name: 'Whirlpool',      domain: 'www.whirlpool.com.ar',      category: 'electro' },
+  { name: 'KitchenAid',     domain: 'www.kitchenaid.com.ar',     category: 'electro' },
 
-  // Hogar / construcción
-  { name: 'Easy',         domain: 'www.easy.com.ar',          category: 'hogar' },
-  { name: 'Pardo Hogar',  domain: 'www.pardo.com.ar',         category: 'hogar' },
+  // ── Hogar / construcción ────────────────────────────────
+  { name: 'Easy',           domain: 'www.easy.com.ar',           category: 'hogar' },
+  { name: 'Pardo Hogar',    domain: 'www.pardo.com.ar',          category: 'hogar' },
+  { name: 'Tramontina',     domain: 'www.tramontina.com.ar',     category: 'hogar' },
+  { name: 'Arredo',         domain: 'www.arredo.com.ar',         category: 'hogar' },
+  { name: 'Blaisten',       domain: 'www.blaisten.com.ar',       category: 'hogar' },
 
-  // Farmacia / mascotas / belleza
-  { name: 'Farmacity',    domain: 'www.farmacity.com',        category: 'farmacia' },
-  { name: 'Farmaonline',  domain: 'www.farmaonline.com',      category: 'farmacia' },
-  { name: 'Puppis',       domain: 'www.puppis.com.ar',        category: 'mascotas' },
+  // ── Farmacia / belleza / mascotas ───────────────────────
+  { name: 'Farmacity',      domain: 'www.farmacity.com',         category: 'farmacia' },
+  { name: 'Farmaonline',    domain: 'www.farmaonline.com',       category: 'farmacia' },
+  { name: 'Farmalife',      domain: 'www.farmalife.com.ar',      category: 'farmacia' },
+  { name: 'Farmaplus',      domain: 'www.farmaplus.com.ar',      category: 'farmacia' },
+  { name: 'Get The Look',   domain: 'www.getthelook.com.ar',     category: 'belleza' },
+  { name: 'Puppis',         domain: 'www.puppis.com.ar',         category: 'mascotas' },
 
-  // Indumentaria / moda
-  { name: 'Topper',       domain: 'www.topper.com.ar',        category: 'moda' },
-  { name: 'Mimo',         domain: 'www.mimo.com.ar',          category: 'moda' },
-  { name: 'Taverniti',    domain: 'www.taverniti.com.ar',     category: 'moda' },
-  { name: '47 Street',    domain: 'www.47street.com.ar',      category: 'moda' },
+  // ── Moda / indumentaria ────────────────────────────────
+  { name: 'Topper',         domain: 'www.topper.com.ar',         category: 'moda' },
+  { name: 'Mimo',           domain: 'www.mimo.com.ar',           category: 'moda' },
+  { name: 'Taverniti',      domain: 'www.taverniti.com.ar',      category: 'moda' },
+  { name: '47 Street',      domain: 'www.47street.com.ar',       category: 'moda' },
+  { name: 'Portsaid',       domain: 'www.portsaid.com.ar',       category: 'moda' },
+  { name: 'Ricky Sarkany',  domain: 'www.rickysarkany.com',      category: 'moda' },
+  { name: 'Viamo',          domain: 'www.viamo.com',             category: 'moda' },
+  { name: 'Tienda River',   domain: 'www.tiendariver.com',       category: 'moda' },
+  { name: 'Equus',          domain: 'www.equus.com.ar',          category: 'moda' },
+  { name: 'GRID',           domain: 'www.grid.com.ar',           category: 'moda' },
 
-  // Alimentos / deli
-  { name: 'Josimar',      domain: 'www.josimar.com.ar',       category: 'supermercado' },
+  // ── Deportes ────────────────────────────────────────────
+  { name: 'Sporting',       domain: 'www.sporting.com.ar',       category: 'deportes' },
+  { name: 'Sportotal',      domain: 'www.sportotal.com.ar',      category: 'deportes' },
+  { name: 'XL Shop',        domain: 'www.xlshop.com.ar',         category: 'deportes' },
+  { name: 'Rossetti',       domain: 'www.rossettideportes.com',  category: 'deportes' },
+  { name: 'Marathon',       domain: 'www.marathon.com.ar',       category: 'deportes' },
+  { name: 'Batistella',     domain: 'www.calzadosbatistella.com.ar', category: 'deportes' },
+  { name: 'Woker',          domain: 'www.wokerbysporting.com.ar', category: 'deportes' },
+  { name: 'Las Margaritas', domain: 'www.lasmargaritas.com.ar',  category: 'moda' },
 
-  // Multimarca
-  { name: 'Coppel',       domain: 'www.coppel.com.ar',        category: 'multi' },
+  // ── Multimarca ──────────────────────────────────────────
+  { name: 'Coppel',         domain: 'www.coppel.com.ar',         category: 'multi' },
 ]
 
 // ── Promo / Teaser parsing ──────────────────────────────────────────────────
