@@ -16,6 +16,8 @@ function tokenize(name: string): string[] {
   return name
     .toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    // unir decimales: "2.25l" → "225l", "1,5 lt" → "15 lt"
+    .replace(/(\d)[.,](\d)/g, '$1$2')
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
     .filter(w => w.length > 1 && !STOP_WORDS.has(w))
@@ -30,9 +32,9 @@ function similarity(a: Set<string>, b: Set<string>): number {
 
 /**
  * Agrupa productos similares por nombre tokenizado.
- * Usa similitud Jaccard con umbral 0.55.
+ * @param threshold — umbral de similitud Jaccard (default 0.45)
  */
-function groupSimilarProducts(results: SearchResult[]): SearchResult[][] {
+function groupSimilarProducts(results: SearchResult[], threshold = 0.45): SearchResult[][] {
   const groups: { items: SearchResult[]; tokens: Set<string> }[] = []
 
   for (const r of results) {
@@ -44,7 +46,7 @@ function groupSimilarProducts(results: SearchResult[]): SearchResult[][] {
 
     let placed = false
     for (const g of groups) {
-      if (similarity(tokens, g.tokens) >= 0.45) {
+      if (similarity(tokens, g.tokens) >= threshold) {
         g.items.push(r)
         // Achicar el set a la intersección para que el grupo no "crezca"
         // incluyendo productos cada vez más distintos
@@ -138,4 +140,18 @@ export function applyCrossSellerDiscounts(results: SearchResult[]): SearchResult
   }
 
   return output
+}
+
+/**
+ * Deduplica productos similares y deja solo el más barato de cada grupo.
+ * Usa un umbral de similitud más estricto (0.60) para evitar agrupar
+ * productos que no son realmente el mismo (ej: Coca 2.25L vs Coca 1.5L).
+ */
+export function deduplicateToCheapest(results: SearchResult[]): SearchResult[] {
+  const groups = groupSimilarProducts(results, 0.60)
+  return groups.map(group =>
+    group.reduce((cheapest, current) =>
+      current.price < cheapest.price ? current : cheapest
+    )
+  )
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { searchVtex } from '@/lib/vtex'
 import { searchMercadoLibre } from '@/lib/mercadolibre'
-import { applyCrossSellerDiscounts } from '@/lib/compare'
+import { applyCrossSellerDiscounts, deduplicateToCheapest } from '@/lib/compare'
 import { SearchResult } from '@/lib/types'
 
 // 1 hora de cache
@@ -238,6 +238,10 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
   // Calcular descuentos reales comparando entre sellers del mismo producto
   const withRealDiscounts = applyCrossSellerDiscounts(filtered)
 
+  // Deduplicar: si el mismo producto aparece en varias tiendas, dejar solo
+  // el más barato (para que la vista no se llene de repetidos)
+  const deduplicated = deduplicateToCheapest(withRealDiscounts)
+
   // Ordenar cada fuente por su mejor propuesta (descuento absoluto → precio)
   const sortFn = (a: SearchResult, b: SearchResult) => {
     const savingsA = a.original_price && a.original_price > a.price ? a.original_price - a.price : 0
@@ -246,8 +250,8 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
     return a.price - b.price
   }
 
-  const vtexSorted = withRealDiscounts.filter(r => r.source === 'vtex').sort(sortFn)
-  const mlSorted = withRealDiscounts.filter(r => r.source === 'mercadolibre').sort(sortFn)
+  const vtexSorted = deduplicated.filter(r => r.source === 'vtex').sort(sortFn)
+  const mlSorted = deduplicated.filter(r => r.source === 'mercadolibre').sort(sortFn)
 
   // Interleave 1:1 para garantizar presencia de Mercado Libre
   const result: SearchResult[] = []
