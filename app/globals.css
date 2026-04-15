@@ -32,14 +32,13 @@ html, body {
 
 /* ── Responsive tweaks ───────────────────────────────────────────────── */
 
-/* Mobile pequeño (<480px): ocultar texto del botón Ofertas del header */
-@media (max-width: 480px) {
-  .ofertas-header-text {
-    display: none;
-  }
-  .ofertas-header-btn {
-    padding: 8px 12px !important;
-  }
+/* Header: versión corta del botón Ofertas en mobile */
+.ofertas-header-text-short { display: none; }
+.ofertas-header-text-long { display: inline; }
+
+@media (max-width: 560px) {
+  .ofertas-header-text-long { display: none; }
+  .ofertas-header-text-short { display: inline; }
 }
 
 /* Mejorar toque en mobile: touch-target mínimo 44px */

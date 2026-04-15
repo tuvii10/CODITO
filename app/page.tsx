@@ -33,21 +33,21 @@ export default function Home() {
     <div>
       {/* Hero */}
       {!searched && (
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Codito"
             style={{
-              height: 'clamp(140px, 22vw, 200px)',
+              height: 'clamp(110px, 20vw, 180px)',
               width: 'auto',
-              margin: '0 auto 8px',
+              margin: '0 auto 4px',
               display: 'block',
               filter: 'drop-shadow(0 6px 20px rgba(2,132,199,0.25))',
             }}
           />
           <p style={{
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 800,
             color: '#c2410c',
             textTransform: 'uppercase',
@@ -57,44 +57,42 @@ export default function Home() {
             ¿Cuánto sale hoy?
           </p>
           <h2 style={{
-            fontSize: 'clamp(24px, 5.5vw, 40px)',
+            fontSize: 'clamp(22px, 5.5vw, 38px)',
             fontWeight: 800,
-            marginBottom: 12,
+            marginBottom: 10,
             color: '#0c4a6e',
             lineHeight: 1.15,
             maxWidth: 620,
-            margin: '0 auto 12px',
-            padding: '0 8px',
+            margin: '0 auto 10px',
+            padding: '0 4px',
           }}>
             Encontrá el <span style={{ color: '#0284c7' }}>precio más bajo</span> de Argentina
           </h2>
           <p style={{
             color: '#1e3a5f',
-            fontSize: 'clamp(13px, 3.5vw, 15px)',
-            maxWidth: 480,
+            fontSize: 'clamp(12px, 3.2vw, 15px)',
+            maxWidth: 460,
             margin: '0 auto',
-            lineHeight: 1.5,
+            lineHeight: 1.45,
             padding: '0 12px',
           }}>
-            Buscá cualquier producto y te mostramos al instante dónde está más barato.
-            Sin vueltas, sin cuentas, sin perder guita.
+            Buscá cualquier producto y te mostramos dónde está más barato.
           </p>
 
-          {/* Indicador de frecuencia */}
+          {/* Indicador de frecuencia — compacto en mobile */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 8,
-            marginTop: 14,
-            padding: '7px 16px',
+            gap: 6,
+            marginTop: 12,
+            padding: '6px 14px',
             borderRadius: 999,
-            background: 'rgba(255,255,255,0.7)',
+            background: 'rgba(255,255,255,0.8)',
             border: '1px solid #60a5fa',
             fontSize: 11,
             color: '#0c4a6e',
-            fontWeight: 600,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
+            fontWeight: 700,
+            boxShadow: '0 2px 8px rgba(2,132,199,0.10)',
           }}>
             <span style={{
               width: 8,
@@ -102,12 +100,9 @@ export default function Home() {
               borderRadius: '50%',
               background: '#16a34a',
               boxShadow: '0 0 0 3px rgba(22,163,74,0.25)',
+              flexShrink: 0,
             }} />
-            <span>Búsquedas al instante</span>
-            <span style={{ color: '#60a5fa' }}>·</span>
-            <span>Destacados cada 1 hora</span>
-            <span style={{ color: '#60a5fa' }}>·</span>
-            <span>Ofertas cada 24 hs</span>
+            <span>En vivo · datos en tiempo real</span>
           </div>
         </div>
       )}
@@ -116,7 +111,7 @@ export default function Home() {
       <div style={{
         background: '#ffffff',
         borderRadius: 20,
-        padding: 22,
+        padding: 'clamp(14px, 4vw, 22px)',
         boxShadow: '0 8px 32px rgba(2,132,199,0.12)',
         border: '2px solid #bfdbfe',
       }}>

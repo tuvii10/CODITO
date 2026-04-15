@@ -64,16 +64,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               gap: 6,
               background: 'linear-gradient(135deg, #f97316, #ef4444)',
               color: '#fff',
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: 13,
-              padding: '8px 14px',
+              padding: '9px 15px',
               borderRadius: 12,
               boxShadow: '0 4px 14px rgba(239,68,68,0.30)',
               whiteSpace: 'nowrap',
               flexShrink: 0,
             }}>
               <span style={{ fontSize: 15 }}>🏷️</span>
-              <span className="ofertas-header-text">Ofertas del día</span>
+              <span className="ofertas-header-text-long">Ofertas del día</span>
+              <span className="ofertas-header-text-short">Ofertas</span>
             </Link>
           </div>
         </header>
