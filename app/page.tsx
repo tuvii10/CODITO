@@ -112,35 +112,100 @@ export default function Home() {
         <SearchBar onSearch={handleSearch} loading={loading} />
       </div>
 
-      {/* Banner Ofertas — negro minimal */}
+      {/* Banner Ofertas — protagonista de la home */}
       {!searched && (
-        <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginTop: 14 }}>
+        <Link
+          href="/ofertas"
+          className="ofertas-banner"
+          style={{ textDecoration: 'none', display: 'block', marginTop: 18 }}
+        >
           <div style={{
-            borderRadius: 14,
-            padding: '14px 20px',
-            background: '#18181b',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 10,
-            transition: 'background 0.15s',
+            position: 'relative',
+            borderRadius: 20,
+            padding: 'clamp(20px, 5vw, 28px) clamp(20px, 5vw, 32px)',
+            background: 'linear-gradient(135deg, #09090b 0%, #1c1c1f 50%, #09090b 100%)',
+            overflow: 'hidden',
+            cursor: 'pointer',
+            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.35)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s',
           }}>
-            <div>
-              <p style={{ color: '#fff', fontWeight: 800, fontSize: 15, lineHeight: 1.15, letterSpacing: '-0.01em' }}>
-                Ofertas del día
-              </p>
-              <p style={{ color: '#a1a1aa', fontSize: 11, marginTop: 2, fontWeight: 500 }}>
-                Precios verificados entre tiendas
-              </p>
-            </div>
-            <div style={{
-              flexShrink: 0,
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: 18,
-              whiteSpace: 'nowrap',
-            }}>
-              →
+            {/* Shimmer effect — linea diagonal sutil */}
+            <div className="banner-shimmer" style={{
+              position: 'absolute',
+              top: 0, left: '-100%',
+              width: '50%', height: '100%',
+              background: 'linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)',
+              transform: 'skewX(-20deg)',
+              pointerEvents: 'none',
+            }} />
+
+            {/* Contenido */}
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Eyebrow con pulse */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  padding: '4px 10px',
+                  borderRadius: 999,
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.35)',
+                  marginBottom: 10,
+                }}>
+                  <span className="live-dot" style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: '#ef4444',
+                  }} />
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: '#fca5a5',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                  }}>
+                    HOY · en vivo
+                  </span>
+                </div>
+
+                <h3 style={{
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: 'clamp(20px, 5vw, 28px)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.03em',
+                  marginBottom: 6,
+                }}>
+                  Ofertas del día
+                </h3>
+                <p style={{
+                  color: '#a1a1aa',
+                  fontSize: 'clamp(12px, 3vw, 13px)',
+                  fontWeight: 500,
+                  lineHeight: 1.4,
+                }}>
+                  Los precios más bajos verificados entre{' '}
+                  <strong style={{ color: '#e4e4e7' }}>60+ tiendas</strong>.
+                </p>
+              </div>
+
+              {/* CTA arrow */}
+              <div className="ofertas-arrow" style={{
+                flexShrink: 0,
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                background: '#ffffff',
+                color: '#09090b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 22,
+                fontWeight: 900,
+                transition: 'transform 0.2s',
+              }}>
+                →
+              </div>
             </div>
           </div>
         </Link>

@@ -56,7 +56,23 @@ html, body {
 }
 
 @keyframes pulse-live {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
-  50% { opacity: 0.85; box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
 }
-.live-dot { animation: pulse-live 2s ease-in-out infinite; }
+.live-dot { animation: pulse-live 1.8s ease-in-out infinite; }
+
+/* Banner Ofertas — shimmer continuo + hover lift */
+@keyframes banner-shimmer-anim {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+.banner-shimmer {
+  animation: banner-shimmer-anim 3.5s ease-in-out infinite;
+}
+.ofertas-banner:hover > div {
+  transform: translateY(-3px);
+  box-shadow: 0 28px 50px -15px rgba(0, 0, 0, 0.45);
+}
+.ofertas-banner:hover .ofertas-arrow {
+  transform: translateX(4px);
+}
