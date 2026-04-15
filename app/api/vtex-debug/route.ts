@@ -44,21 +44,40 @@ async function testSearchApi(domain: string, query: string) {
 
 async function testIntelligentSearch(domain: string, query: string) {
   try {
-    const url = `https://${domain}/api/io/_v/api/intelligent-search/product_search/?query=${encodeURIComponent(query)}&count=2`
+    const url = `https://${domain}/api/io/_v/api/intelligent-search/product_search/?query=${encodeURIComponent(query)}&count=1`
     const res = await fetch(url, {
       headers: { Accept: 'application/json', 'User-Agent': UA },
       cache: 'no-store',
       signal: AbortSignal.timeout(8000),
     })
     const text = await res.text()
+    let parsed: unknown = null
+    try { parsed = JSON.parse(text) } catch {}
+
+    // Extraer el primer producto y su commertialOffer
+    let teaserStructure: unknown = null
+    let offerKeys: string[] = []
+    let installmentsSample: unknown = null
+
+    if (parsed && typeof parsed === 'object') {
+      const p = parsed as { products?: Array<{ items?: Array<{ sellers?: Array<{ commertialOffer?: Record<string, unknown> }> }> }> }
+      const offer = p.products?.[0]?.items?.[0]?.sellers?.[0]?.commertialOffer
+      if (offer) {
+        offerKeys = Object.keys(offer)
+        teaserStructure = (offer as Record<string, unknown>).Teasers ?? (offer as Record<string, unknown>).teasers
+        installmentsSample = (offer as Record<string, unknown>).Installments
+      }
+    }
+
     return {
       endpoint: 'intelligent-search',
       url,
       status: res.status,
       has_teasers: /"teasers":\s*\[/i.test(text),
-      has_promo_mention: /2do|3x|llevando|\bpromo/i.test(text),
       length: text.length,
-      sample: text.slice(0, 400),
+      offer_keys: offerKeys,
+      teasers: teaserStructure,
+      installments_sample: Array.isArray(installmentsSample) ? (installmentsSample as unknown[]).slice(0, 1) : null,
     }
   } catch (err) {
     return { endpoint: 'intelligent-search', error: String(err) }
