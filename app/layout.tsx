@@ -84,26 +84,46 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
             </Link>
 
-            {/* Botón Ofertas — naranja llamativo */}
-            <Link href="/ofertas" className="ofertas-header-btn" style={{
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 14,
-              padding: '10px 18px',
-              borderRadius: 12,
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              letterSpacing: '-0.01em',
-              boxShadow: '0 4px 14px rgba(249,115,22,0.45)',
-              transition: 'transform 0.15s, box-shadow 0.15s',
-            }}>
-              🔥 Ofertas
-            </Link>
+            {/* Navegación */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <Link href="/calculadora" style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                background: '#f4f4f5',
+                color: '#09090b',
+                fontWeight: 700,
+                fontSize: 13,
+                padding: '9px 14px',
+                borderRadius: 12,
+                whiteSpace: 'nowrap',
+                letterSpacing: '-0.01em',
+                border: '1px solid #e4e4e7',
+                transition: 'background 0.15s',
+              }}>
+                🧮 <span className="ofertas-header-text-long">Calculadora</span>
+              </Link>
+
+              <Link href="/ofertas" className="ofertas-header-btn" style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: 14,
+                padding: '10px 18px',
+                borderRadius: 12,
+                whiteSpace: 'nowrap',
+                letterSpacing: '-0.01em',
+                boxShadow: '0 4px 14px rgba(249,115,22,0.45)',
+                transition: 'transform 0.15s, box-shadow 0.15s',
+              }}>
+                🔥 <span className="ofertas-header-text-long">Ofertas</span><span className="ofertas-header-text-short">Ofertas</span>
+              </Link>
+            </div>
           </div>
         </header>
 
