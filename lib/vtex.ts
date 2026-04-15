@@ -152,17 +152,39 @@ async function searchOneStore(store: VtexStore, query: string): Promise<SearchRe
     if (!Array.isArray(products)) return []
 
     return products.flatMap(p => {
-      const item = p.items?.[0]
-      if (!item) return []
-      const offer = item.sellers?.[0]?.commertialOffer
-      if (!offer || offer.AvailableQuantity <= 0 || !offer.Price) return []
+      // Buscar la combinación item+seller con el precio más bajo
+      // (productos VTEX pueden tener varios items/variantes y sellers/vendedores)
+      let bestItem: VtexProduct['items'][0] | null = null
+      let bestOffer: VtexProduct['items'][0]['sellers'][0]['commertialOffer'] | null = null
+      let lowestPrice = Infinity
+
+      for (const item of p.items ?? []) {
+        for (const seller of item.sellers ?? []) {
+          const o = seller.commertialOffer
+          if (!o || o.AvailableQuantity <= 0 || !o.Price) continue
+
+          // Calcular precio efectivo (con promo teaser si hay)
+          const promoHere = parseBestPromo(o.Teasers ?? [], o.Price)
+          const effective = promoHere ? promoHere.effectivePrice : o.Price
+
+          if (effective < lowestPrice) {
+            lowestPrice = effective
+            bestItem = item
+            bestOffer = o
+          }
+        }
+      }
+
+      if (!bestItem || !bestOffer) return []
+      const item = bestItem
+      const offer = bestOffer
 
       const productUrl = p.link?.startsWith('http')
         ? p.link
         : `https://${store.domain}${p.link ?? ''}`
       const image = item.images?.[0]?.imageUrl?.replace('http://', 'https://') ?? null
 
-      // Detectar promo en Teasers
+      // Detectar promo en Teasers del mejor seller
       const promo = parseBestPromo(offer.Teasers ?? [], offer.Price)
 
       // Detectar descuento tradicional (ListPrice vs Price)

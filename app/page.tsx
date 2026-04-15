@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import SearchBar from '@/components/SearchBar'
 import ResultsTable from '@/components/ResultsTable'
+import FeaturedProducts from '@/components/FeaturedProducts'
 import { SearchResult } from '@/lib/types'
 
 export default function Home() {
@@ -133,6 +134,9 @@ export default function Home() {
           )}
         </div>
       )}
+
+      {/* Productos destacados — solo en estado inicial */}
+      {!searched && <FeaturedProducts />}
     </div>
   )
 }

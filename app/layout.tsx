@@ -22,8 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Header */}
         <header style={{
           background: '#ffffff',
-          borderBottom: '2px solid #bfdbfe',
-          boxShadow: '0 2px 12px rgba(2,132,199,0.08)',
+          borderBottom: '2px solid transparent',
+          borderImage: 'linear-gradient(90deg, #0284c7, #38bdf8, #fbbf24, #f59e0b) 1',
+          boxShadow: '0 2px 14px rgba(2,132,199,0.10)',
           position: 'sticky',
           top: 0,
           zIndex: 50,
