@@ -129,11 +129,11 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
           {fmt(deal.original_price)}
         </p>
         <p className="mono-price" style={{
-          fontSize: 11, fontWeight: 800, marginTop: 4,
+          fontSize: 10, fontWeight: 800, marginTop: 4,
           color: '#10b981',
           whiteSpace: 'nowrap',
         }}>
-          Ahorrás {fmt(saving)}
+          −{fmt(saving)} vs mercado
         </p>
       </div>
     </a>
@@ -179,8 +179,8 @@ export default async function OfertasPage() {
             del día
           </span>
         </h1>
-        <p style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>
-          {deals.length} ofertas verificadas · Se renuevan cada día
+        <p style={{ fontSize: 13, color: '#64748b', fontWeight: 500, lineHeight: 1.5 }}>
+          {deals.length} productos donde Codito encontró el precio más bajo comparando entre todas las tiendas.
         </p>
       </div>
 
