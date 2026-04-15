@@ -15,11 +15,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body style={{ minHeight: '100vh' }}>
+      <head>
+        <meta name="color-scheme" content="light" />
+      </head>
+      <body style={{ minHeight: '100vh', background: '#f0f7ff' }}>
+        {/* Header */}
         <header style={{
           background: '#ffffff',
-          borderBottom: '1px solid var(--border)',
-          boxShadow: '0 1px 0 #e2e8f0',
+          borderBottom: '2px solid #bfdbfe',
+          boxShadow: '0 2px 12px rgba(2,132,199,0.08)',
           position: 'sticky',
           top: 0,
           zIndex: 50,
@@ -27,57 +31,54 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div style={{
             maxWidth: 960,
             margin: '0 auto',
-            padding: '8px 16px',
+            padding: '10px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
             {/* Logo */}
-            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0 }}>
+            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/logo.png"
-                alt="Codito"
-                style={{ height: 54, width: 'auto', objectFit: 'contain' }}
-              />
+              <img src="/logo.png" alt="Codito" style={{ height: 52, width: 'auto', objectFit: 'contain' }} />
             </Link>
 
-            {/* Link a ofertas en el header */}
+            {/* Botón Ofertas en header */}
             <Link href="/ofertas" style={{
               textDecoration: 'none',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
               background: 'linear-gradient(135deg, #f97316, #ef4444)',
               color: '#fff',
               fontWeight: 700,
-              fontSize: 13,
-              padding: '7px 16px',
-              borderRadius: 10,
-              boxShadow: '0 3px 10px rgba(239,68,68,0.30)',
-              transition: 'opacity 0.15s',
+              fontSize: 14,
+              padding: '8px 18px',
+              borderRadius: 12,
+              boxShadow: '0 4px 14px rgba(239,68,68,0.30)',
             }}>
               🏷️ Ofertas del día
             </Link>
           </div>
         </header>
 
-        <main style={{ maxWidth: 960, margin: '0 auto', padding: '24px 16px' }}>
+        {/* Contenido */}
+        <main style={{ maxWidth: 960, margin: '0 auto', padding: '28px 20px 60px' }}>
           {children}
         </main>
 
+        {/* Footer */}
         <footer style={{
-          borderTop: '1px solid var(--border)',
-          marginTop: 48,
-          padding: '20px 16px',
+          background: '#ffffff',
+          borderTop: '2px solid #bfdbfe',
+          padding: '18px 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 10,
         }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/favicon.png" alt="" style={{ height: 22, width: 'auto', opacity: 0.6 }} />
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+          <img src="/favicon.png" alt="" style={{ height: 20, width: 'auto', opacity: 0.7 }} />
+          <span style={{ fontSize: 12, color: '#4d7fa8' }}>
             Precios orientativos. Verificá siempre en el sitio oficial de cada tienda.
           </span>
         </footer>

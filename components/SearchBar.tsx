@@ -8,18 +8,39 @@ type Props = {
 }
 
 const SUGGESTIONS = [
-  { producto: 'Leche',   modelo: 'Entera' },
-  { producto: 'Fideos',  modelo: 'Spaghetti' },
-  { producto: 'Aceite',  modelo: 'Girasol' },
-  { producto: 'Arroz',   modelo: 'Largo fino' },
-  { producto: 'Yerba',   modelo: 'Mate' },
+  { producto: 'Leche',      modelo: 'Entera' },
+  { producto: 'Fideos',     modelo: 'Spaghetti' },
+  { producto: 'Aceite',     modelo: 'Girasol' },
+  { producto: 'Arroz',      modelo: 'Largo fino' },
+  { producto: 'Yerba',      modelo: 'Mate' },
   { producto: 'Detergente', modelo: '' },
-  { producto: 'Shampoo', modelo: '' },
+  { producto: 'Shampoo',    modelo: '' },
 ]
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1.5px solid #bfdbfe',
+  borderRadius: 12,
+  padding: '11px 14px',
+  fontSize: 15,
+  fontWeight: 500,
+  background: '#f0f7ff',
+  color: '#0c1a2e',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const labelStyle: React.CSSProperties = {
+  position: 'absolute', top: -9, left: 12,
+  fontSize: 11, fontWeight: 700, color: '#0284c7',
+  background: '#ffffff', padding: '0 4px',
+  letterSpacing: '0.05em', textTransform: 'uppercase',
+  zIndex: 1,
+}
 
 export default function SearchBar({ onSearch, loading }: Props) {
   const [producto, setProducto] = useState('')
-  const [modelo, setModelo] = useState('')
+  const [modelo, setModelo]   = useState('')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -30,28 +51,19 @@ export default function SearchBar({ onSearch, loading }: Props) {
   function applySuggestion(s: { producto: string; modelo: string }) {
     setProducto(s.producto)
     setModelo(s.modelo)
-    const query = [s.producto, s.modelo].filter(Boolean).join(' ')
-    onSearch(query)
+    onSearch([s.producto, s.modelo].filter(Boolean).join(' '))
   }
 
   const canSearch = producto.trim().length > 0
 
   return (
     <div>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {/* Fila de campos */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {/* Campo Producto */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+
+          {/* Producto */}
           <div style={{ flex: '2 1 180px', position: 'relative' }}>
-            <label style={{
-              position: 'absolute', top: -9, left: 12,
-              fontSize: 11, fontWeight: 700, color: 'var(--accent)',
-              background: 'var(--background)', padding: '0 4px',
-              letterSpacing: '0.05em', textTransform: 'uppercase',
-              zIndex: 1,
-            }}>
-              Producto
-            </label>
+            <label style={labelStyle}>Producto</label>
             <input
               type="text"
               value={producto}
@@ -59,32 +71,15 @@ export default function SearchBar({ onSearch, loading }: Props) {
               placeholder="Ej: Leche, Aceite, Fideos..."
               disabled={loading}
               autoFocus
-              style={{
-                width: '100%',
-                border: '1.5px solid var(--border)',
-                borderRadius: 14,
-                padding: '12px 14px',
-                fontSize: 15,
-                fontWeight: 500,
-                background: '#fff',
-                color: 'var(--foreground)',
-                outline: 'none',
-                boxSizing: 'border-box',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-              }}
+              style={inputStyle}
             />
           </div>
 
-          {/* Campo Modelo */}
+          {/* Modelo */}
           <div style={{ flex: '1.5 1 140px', position: 'relative' }}>
-            <label style={{
-              position: 'absolute', top: -9, left: 12,
-              fontSize: 11, fontWeight: 700, color: 'var(--muted)',
-              background: 'var(--background)', padding: '0 4px',
-              letterSpacing: '0.05em', textTransform: 'uppercase',
-              zIndex: 1,
-            }}>
-              Modelo / Marca <span style={{ fontWeight: 400 }}>(opcional)</span>
+            <label style={{ ...labelStyle, color: '#4d7fa8' }}>
+              Modelo / Marca{' '}
+              <span style={{ fontWeight: 400, textTransform: 'none' }}>(opcional)</span>
             </label>
             <input
               type="text"
@@ -92,18 +87,7 @@ export default function SearchBar({ onSearch, loading }: Props) {
               onChange={e => setModelo(e.target.value)}
               placeholder="Ej: Entera, Girasol, 1L..."
               disabled={loading}
-              style={{
-                width: '100%',
-                border: '1.5px solid var(--border)',
-                borderRadius: 14,
-                padding: '12px 14px',
-                fontSize: 15,
-                background: '#fff',
-                color: 'var(--foreground)',
-                outline: 'none',
-                boxSizing: 'border-box',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-              }}
+              style={inputStyle}
             />
           </div>
 
@@ -115,22 +99,22 @@ export default function SearchBar({ onSearch, loading }: Props) {
               flex: '0 0 auto',
               alignSelf: 'stretch',
               background: loading || !canSearch
-                ? '#bae6fd'
+                ? '#bfdbfe'
                 : 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)',
               color: '#fff',
               border: 'none',
-              borderRadius: 14,
-              padding: '0 24px',
+              borderRadius: 12,
+              padding: '0 26px',
               fontWeight: 700,
               fontSize: 15,
               cursor: loading || !canSearch ? 'not-allowed' : 'pointer',
-              boxShadow: loading || !canSearch ? 'none' : '0 4px 16px rgba(14,165,233,0.35)',
+              boxShadow: loading || !canSearch ? 'none' : '0 4px 16px rgba(2,132,199,0.35)',
               whiteSpace: 'nowrap',
+              minHeight: 46,
               transition: 'all 0.2s',
-              minHeight: 48,
             }}
           >
-            {loading ? '...' : 'Buscar'}
+            {loading ? 'Buscando...' : '🔍 Buscar'}
           </button>
         </div>
       </form>
@@ -142,22 +126,23 @@ export default function SearchBar({ onSearch, loading }: Props) {
             key={s.producto + s.modelo}
             onClick={() => applySuggestion(s)}
             style={{
-              background: '#f8fafc',
-              border: '1px solid var(--border)',
-              color: 'var(--muted)',
+              background: '#e0f2fe',
+              border: '1px solid #bfdbfe',
+              color: '#0369a1',
               borderRadius: 999,
               padding: '4px 14px',
               fontSize: 12,
+              fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.15s',
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = '#e0f2fe'
-              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--accent)'
+              (e.currentTarget as HTMLButtonElement).style.background = '#0284c7'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#fff'
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'
-              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--muted)'
+              (e.currentTarget as HTMLButtonElement).style.background = '#e0f2fe'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#0369a1'
             }}
           >
             {s.producto}{s.modelo ? ` · ${s.modelo}` : ''}

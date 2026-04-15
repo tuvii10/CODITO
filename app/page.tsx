@@ -30,46 +30,35 @@ export default function Home() {
 
   return (
     <div>
-      {/* Banner de Ofertas — siempre visible arriba */}
-      <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginBottom: 24 }}>
+      {/* Banner Ofertas */}
+      <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginBottom: 28 }}>
         <div style={{
-          borderRadius: 20,
-          padding: '14px 20px',
+          borderRadius: 18,
+          padding: '16px 22px',
           background: 'linear-gradient(135deg, #f97316 0%, #ef4444 60%, #dc2626 100%)',
-          boxShadow: '0 6px 24px rgba(239,68,68,0.40)',
+          boxShadow: '0 6px 24px rgba(239,68,68,0.30)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 12,
-          cursor: 'pointer',
-          transition: 'transform 0.15s, box-shadow 0.15s',
-        }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
-            ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 10px 32px rgba(239,68,68,0.50)'
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
-            ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 24px rgba(239,68,68,0.40)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 32, flexShrink: 0 }}>🏷️</span>
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ fontSize: 36, flexShrink: 0 }}>🏷️</span>
             <div>
-              <p style={{ color: '#fff', fontWeight: 800, fontSize: 16, lineHeight: 1.2 }}>
+              <p style={{ color: '#fff', fontWeight: 800, fontSize: 17, lineHeight: 1.2 }}>
                 Ofertas del día
               </p>
-              <p style={{ color: 'rgba(255,255,255,0.80)', fontSize: 12, marginTop: 2 }}>
+              <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 3 }}>
                 30 productos con descuento real · se renuevan cada 24 hs
               </p>
             </div>
           </div>
           <div style={{
             flexShrink: 0,
-            background: 'rgba(255,255,255,0.20)',
-            border: '1.5px solid rgba(255,255,255,0.40)',
+            background: 'rgba(255,255,255,0.22)',
+            border: '1.5px solid rgba(255,255,255,0.45)',
             borderRadius: 10,
-            padding: '6px 14px',
+            padding: '7px 16px',
             color: '#fff',
             fontWeight: 700,
             fontSize: 13,
@@ -80,46 +69,64 @@ export default function Home() {
         </div>
       </Link>
 
-      {/* Hero — solo cuando no buscó nada */}
+      {/* Hero */}
       {!searched && (
-        <div style={{ textAlign: 'center', marginBottom: 32, padding: '0 8px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Codito"
-            style={{ height: 120, width: 'auto', margin: '0 auto 8px', display: 'block' }}
+            style={{ height: 130, width: 'auto', margin: '0 auto 4px', display: 'block' }}
           />
           <h2 style={{
-            fontSize: 'clamp(22px, 5vw, 34px)', fontWeight: 800, marginBottom: 10,
-            background: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            fontSize: 'clamp(24px, 5vw, 36px)',
+            fontWeight: 800,
+            marginBottom: 10,
+            color: '#0284c7',
           }}>
             ¿Cuánto sale hoy?
           </h2>
-          <p style={{ color: 'var(--muted)', fontSize: 14, maxWidth: 380, margin: '0 auto' }}>
+          <p style={{ color: '#4d7fa8', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
             Buscá por producto y modelo para comparar precios en supermercados y Mercado Libre.
           </p>
         </div>
       )}
 
       {/* Buscador */}
-      <SearchBar onSearch={handleSearch} loading={loading} />
+      <div style={{
+        background: '#ffffff',
+        borderRadius: 20,
+        padding: 20,
+        boxShadow: '0 2px 20px rgba(2,132,199,0.10)',
+        border: '1.5px solid #bfdbfe',
+      }}>
+        <SearchBar onSearch={handleSearch} loading={loading} />
+      </div>
 
       {/* Resultados */}
       {searched && (
         <div style={{ marginTop: 28 }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
-              <div style={{ fontSize: 40, marginBottom: 16 }}>⏳</div>
-              <p>Buscando en supermercados y Mercado Libre...</p>
+            <div style={{
+              textAlign: 'center', padding: '60px 0',
+              background: '#fff', borderRadius: 16,
+              border: '1.5px solid #bfdbfe',
+              boxShadow: '0 2px 12px rgba(2,132,199,0.07)',
+            }}>
+              <div style={{ fontSize: 40, marginBottom: 14 }}>⏳</div>
+              <p style={{ color: '#4d7fa8', fontWeight: 600 }}>Buscando en supermercados y Mercado Libre...</p>
             </div>
           ) : results.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
-              <div style={{ fontSize: 40, marginBottom: 16 }}>😕</div>
-              <p style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
+            <div style={{
+              textAlign: 'center', padding: '60px 0',
+              background: '#fff', borderRadius: 16,
+              border: '1.5px solid #bfdbfe',
+            }}>
+              <div style={{ fontSize: 40, marginBottom: 14 }}>😕</div>
+              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: '#0c1a2e' }}>
                 Sin resultados para &quot;{lastQuery}&quot;
               </p>
-              <p style={{ fontSize: 13 }}>Probá con otro nombre o una búsqueda más corta.</p>
+              <p style={{ fontSize: 13, color: '#4d7fa8' }}>Probá con otro nombre o una búsqueda más corta.</p>
             </div>
           ) : (
             <ResultsTable results={results} query={lastQuery} />

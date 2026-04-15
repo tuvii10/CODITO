@@ -23,9 +23,9 @@ export default function ResultsTable({ results, query }: Props) {
     <div>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
-        <p style={{ fontSize: 13, color: 'var(--muted)' }}>
+        <p style={{ fontSize: 13, color: '#4d7fa8' }}>
           {results.length} resultado{results.length !== 1 ? 's' : ''} para{' '}
-          <strong style={{ color: 'var(--accent)' }}>&quot;{query}&quot;</strong>
+          <strong style={{ color: '#0284c7' }}>&quot;{query}&quot;</strong>
         </p>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           {(['all', 'vtex', 'mercadolibre', 'searxng'] as const).map(f => (
@@ -35,7 +35,7 @@ export default function ResultsTable({ results, query }: Props) {
                   ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
                   : 'rgba(255,255,255,0.8)',
                 color: filter === f ? '#fff' : 'var(--muted)',
-                border: '1px solid var(--border)',
+                border: '1px solid #bfdbfe',
                 borderRadius: 999,
                 padding: '4px 14px',
                 fontSize: 12,
@@ -49,9 +49,9 @@ export default function ResultsTable({ results, query }: Props) {
           ))}
           <select value={sortBy} onChange={e => setSortBy(e.target.value as 'price' | 'store')}
             style={{
-              background: 'rgba(255,255,255,0.8)',
-              color: 'var(--muted)',
-              border: '1px solid var(--border)',
+              background: '#f0f7ff',
+              color: '#4d7fa8',
+              border: '1px solid #bfdbfe',
               borderRadius: 999,
               padding: '4px 14px',
               fontSize: 12,
@@ -86,10 +86,10 @@ export default function ResultsTable({ results, query }: Props) {
         >
           <ProductImage result={cheapest} size={56} />
           <div style={{ flex: 1, minWidth: 120 }}>
-            <p style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>
+            <p style={{ color: '#0284c7', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>
               🏆 Más barato
             </p>
-            <p style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3, color: 'var(--foreground)' }}>{cheapest.name}</p>
+            <p style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3, color: '#0c1a2e' }}>{cheapest.name}</p>
             <StoreBadge name={cheapest.store_name} logo={cheapest.store_logo} />
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -102,9 +102,9 @@ export default function ResultsTable({ results, query }: Props) {
               backgroundClip: 'text',
             }}>{fmt(cheapest.price)}</p>
             {cheapest.price_per_unit && cheapest.unit && (
-              <p style={{ fontSize: 11, color: 'var(--muted)' }}>{fmt(cheapest.price_per_unit)} / {cheapest.unit}</p>
+              <p style={{ fontSize: 11, color: '#4d7fa8' }}>{fmt(cheapest.price_per_unit)} / {cheapest.unit}</p>
             )}
-            <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontWeight: 600 }}>Ver producto →</p>
+            <p style={{ fontSize: 12, color: '#0284c7', marginTop: 4, fontWeight: 600 }}>Ver producto →</p>
           </div>
         </a>
       )}
@@ -130,7 +130,7 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
         alignItems: 'center',
         overflow: 'hidden',
         background: '#ffffff',
-        border: `1.5px solid ${isCheapest ? 'var(--accent)' : 'var(--border)'}`,
+        border: `1.5px solid ${isCheapest ? '#0284c7' : '#bfdbfe'}`,
         borderRadius: 16,
         textDecoration: 'none',
         color: 'inherit',
@@ -158,7 +158,7 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: result.source === 'mercadolibre' ? '#fff' : '#f0f9ff',
+        background: '#f0f7ff',
         borderRight: '1px solid var(--border)',
         alignSelf: 'stretch',
       }}>
@@ -185,18 +185,18 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
               padding: '2px 6px',
               borderRadius: 999,
               background: '#e0f2fe',
-              color: 'var(--muted)',
+              color: '#4d7fa8',
             }}>{result.brand}</span>
           )}
           {result.seller && (
-            <span style={{ fontSize: 11, color: 'var(--muted)' }}>por {result.seller}</span>
+            <span style={{ fontSize: 11, color: '#4d7fa8' }}>por {result.seller}</span>
           )}
           <span style={{
             fontSize: 11,
             padding: '2px 6px',
             borderRadius: 999,
             background: '#e0f2fe',
-            color: 'var(--muted)',
+            color: '#4d7fa8',
           }}>
             {result.source === 'mercadolibre' ? 'ML' : result.source === 'searxng' ? '🌐 Web' : 'Oficial'}
           </span>
@@ -227,21 +227,21 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
             ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
             : 'none',
           WebkitBackgroundClip: isCheapest ? 'text' : undefined,
-          WebkitTextFillColor: isCheapest ? 'transparent' : 'var(--foreground)',
+          WebkitTextFillColor: isCheapest ? 'transparent' : '#0c1a2e',
           backgroundClip: isCheapest ? 'text' : undefined,
           whiteSpace: 'nowrap',
         }}>{fmt(result.price)}</p>
         {result.original_price && (
-          <p style={{ fontSize: 10, color: 'var(--muted)', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
+          <p style={{ fontSize: 10, color: '#4d7fa8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
             {fmt(result.original_price)}
           </p>
         )}
         {result.price_per_unit && result.unit && (
-          <p style={{ fontSize: 10, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+          <p style={{ fontSize: 10, color: '#4d7fa8', whiteSpace: 'nowrap' }}>
             {fmt(result.price_per_unit)} / {result.unit}
           </p>
         )}
-        <p style={{ fontSize: 11, marginTop: 2, fontWeight: 600, color: 'var(--accent)' }}>Ver →</p>
+        <p style={{ fontSize: 11, marginTop: 2, fontWeight: 600, color: '#0284c7' }}>Ver →</p>
       </div>
     </a>
   )
