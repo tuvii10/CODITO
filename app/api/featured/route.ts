@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { searchVtex } from '@/lib/vtex'
 import { searchMercadoLibre } from '@/lib/mercadolibre'
+import { applyCrossSellerDiscounts } from '@/lib/compare'
 import { SearchResult } from '@/lib/types'
 
 // 1 hora de cache
@@ -172,13 +173,16 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
   // Filtrar con require/exclude y precio > 0
   const filtered = combined.filter(r => r.price > 0 && passesFilter(r.name, category))
 
-  // Orden inteligente: primero los que tienen descuento, ordenados por ahorro absoluto;
-  // después el resto por precio de menor a mayor
-  const withDiscount = filtered
+  // Calcular descuentos reales comparando entre sellers del mismo producto
+  const withRealDiscounts = applyCrossSellerDiscounts(filtered)
+
+  // Orden inteligente: primero los que tienen descuento real, ordenados por
+  // ahorro absoluto; después el resto por precio de menor a mayor
+  const withDiscount = withRealDiscounts
     .filter(r => r.original_price && r.original_price > r.price)
     .sort((a, b) => (b.original_price! - b.price) - (a.original_price! - a.price))
 
-  const withoutDiscount = filtered
+  const withoutDiscount = withRealDiscounts
     .filter(r => !r.original_price || r.original_price <= r.price)
     .sort((a, b) => a.price - b.price)
 
