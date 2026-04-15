@@ -17,6 +17,7 @@
 import { SearchResult } from './types'
 import { searchVtex } from './vtex'
 import { searchCoto } from './coto'
+import { searchSuperPrecio } from './superprecio'
 import { fetchMLHighlightsByCategory } from './mercadolibre'
 import { applyCrossSellerDiscounts, deduplicateToCheapest } from './compare'
 
@@ -80,77 +81,25 @@ const ML_DEAL_CATEGORIES = [
   { id: 'MLA1574', cat: 'Hogar' },      // Hogar
 ]
 
-// ─── Scraping de tiendas sin API (best-effort) ─────────────────────────────
-
-/**
- * Intenta obtener precios de La Anónima (no tiene API pública).
- * Busca el producto en su HTML y parsea los precios.
- */
-async function scrapeLaAnonima(query: string): Promise<SearchResult[]> {
-  try {
-    const url = `https://supermercado.laanonimaonline.com/buscar?clave=${encodeURIComponent(query)}`
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html',
-      },
-      signal: AbortSignal.timeout(6000),
-      next: { revalidate: 3600 },
-    })
-    if (!res.ok) return []
-    const html = await res.text()
-
-    // Buscar patrones de precio + nombre en el HTML
-    const results: SearchResult[] = []
-    const productRegex = /<a[^>]*class="[^"]*item[^"]*"[^>]*href="([^"]*)"[^>]*>[\s\S]{0,500}?<span[^>]*class="[^"]*titulo[^"]*"[^>]*>([^<]+)<\/span>[\s\S]{0,500}?\$\s*([\d.,]+)/gi
-    let m: RegExpExecArray | null
-    let count = 0
-    while ((m = productRegex.exec(html)) !== null && count < 10) {
-      const href = m[1]
-      const name = m[2].trim()
-      const priceStr = m[3].replace(/\./g, '').replace(',', '.')
-      const price = parseFloat(priceStr)
-      if (!price || price < 100) continue
-      results.push({
-        id: `lanonima-${count}-${name.slice(0, 20)}`,
-        name,
-        brand: null,
-        ean: null,
-        store_name: 'La Anónima',
-        store_logo: 'https://supermercado.laanonimaonline.com/favicon.ico',
-        price,
-        price_per_unit: null,
-        unit: null,
-        url: href.startsWith('http') ? href : `https://supermercado.laanonimaonline.com${href}`,
-        in_stock: true,
-        source: 'vtex' as const, // usamos vtex como placeholder porque el tipo no incluye 'externo'
-        image: null,
-      })
-      count++
-    }
-    return results
-  } catch {
-    return []
-  }
-}
-
 // ─── Gather candidates ─────────────────────────────────────────────────────
 
 type Candidate = SearchResult & { __category?: string }
 
 async function gatherCandidates(): Promise<Candidate[]> {
-  // 1. Buscar cada query en VTEX + Coto + La Anónima en paralelo
+  // 1. Buscar cada query en VTEX + Coto + SuperPrecio en paralelo.
+  // SuperPrecio aporta cobertura extra: DIA, Cordiez, y confirma precios
+  // contra los VTEX que nosotros ya cubrimos.
   const queryBatches = await Promise.all(
     DEAL_QUERIES.map(async ({ q, cat }) => {
-      const [vtex, coto, lanon] = await Promise.allSettled([
+      const [vtex, coto, sp] = await Promise.allSettled([
         searchVtex(q),
         searchCoto(q),
-        scrapeLaAnonima(q),
+        searchSuperPrecio(q, 25),
       ])
       const vtexRes = vtex.status === 'fulfilled' ? vtex.value : []
       const cotoRes = coto.status === 'fulfilled' ? coto.value : []
-      const lanonRes = lanon.status === 'fulfilled' ? lanon.value : []
-      return [...vtexRes, ...cotoRes, ...lanonRes].map(r => ({ ...r, __category: cat }))
+      const spRes = sp.status === 'fulfilled' ? sp.value : []
+      return [...vtexRes, ...cotoRes, ...spRes].map(r => ({ ...r, __category: cat }))
     })
   )
 

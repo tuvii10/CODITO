@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { searchVtex } from '@/lib/vtex'
 import { searchCoto } from '@/lib/coto'
+import { searchSuperPrecio } from '@/lib/superprecio'
 import { searchWeb } from '@/lib/web-search'
 import { applyCrossSellerDiscounts } from '@/lib/compare'
 
@@ -14,24 +15,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Búsqueda demasiado larga' }, { status: 400 })
   }
 
-  // ML no se incluye en la búsqueda libre: su API search está deprecada.
-  // Ver /api/featured donde sí traemos best sellers de ML por categoría.
-  const [vtexRes, cotoRes, webRes] = await Promise.allSettled([
+  // Fuentes en paralelo. ML no se incluye en búsqueda libre: su API search
+  // está deprecada (ver /api/featured para best sellers por categoría).
+  // SuperPrecio agrega cobertura de tiendas sin API propia (DIA, Cordiez, etc).
+  const [vtexRes, cotoRes, spRes, webRes] = await Promise.allSettled([
     searchVtex(query),
     searchCoto(query),
+    searchSuperPrecio(query, 30),
     searchWeb(query),
   ])
 
   const vtex = vtexRes.status === 'fulfilled' ? vtexRes.value : []
   const coto = cotoRes.status === 'fulfilled' ? cotoRes.value : []
+  const sp   = spRes.status   === 'fulfilled' ? spRes.value   : []
   const web  = webRes.status  === 'fulfilled' ? webRes.value  : []
 
-  // Deduplicar web contra resultados directos
+  // Deduplicar web + superprecio contra resultados directos
   const directUrls = new Set([...vtex, ...coto].map(r => r.url).filter(Boolean))
+  const spFiltered = sp.filter(r => !r.url || !directUrls.has(r.url))
   const webFiltered = web.filter(r => !r.url || !directUrls.has(r.url))
 
   // Juntar todo (con precio primero, sin precio al final)
-  const rawWithPrice = [...vtex, ...coto, ...webFiltered.filter(r => r.price > 0)]
+  const rawWithPrice = [...vtex, ...coto, ...spFiltered, ...webFiltered.filter(r => r.price > 0)]
   const allWithoutPrice = webFiltered.filter(r => r.price === 0)
 
   // Descuentos reales: comparar entre sellers para calcular cuánto es más
@@ -48,6 +53,7 @@ export async function GET(req: NextRequest) {
     sources: {
       tiendas_vtex: vtex.length,
       coto: coto.length,
+      superprecio: sp.length,
       web: webFiltered.length,
     },
   })
