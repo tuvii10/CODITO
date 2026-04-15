@@ -99,12 +99,11 @@ const SECTIONS: Section[] = [
     emoji: '📱',
     categories: [
       { key: 'tv',        label: 'Televisores',  emoji: '📺', query: 'smart tv 50 pulgadas',
-        require: ['smart tv', 'television', 'tv led', 'tv oled', 'tv qled', 'tv uhd', 'tv 4k', 'smart-tv'],
-        exclude: ['soporte', 'cable', 'antena', 'control remoto', 'rack', 'mueble', 'funda', 'mesa'] },
+        require: ['televisor', 'televisión', 'smart tv', 'smart-tv', 'tv led', 'tv oled', 'tv qled', 'tv uhd', 'tv 4k', 'tv samsung', 'tv lg', 'tv noblex', 'tv philco', 'tv ken brown', 'tv rca'],
+        exclude: ['soporte', 'cable hdmi', 'antena', 'control remoto', 'rack', 'mueble', 'funda tv', 'mesa', 'decodificador'] },
       { key: 'celular',   label: 'Celulares',    emoji: '📱', query: 'celular samsung galaxy',
-        require: ['celular', 'smartphone', 'galaxy', 'moto g', 'xiaomi redmi', 'iphone'],
-        exclude: ['funda', 'vidrio', 'cargador', 'cable', 'protector', 'soporte',
-                  'cargador', 'auricular', 'case', 'carcasa', 'holder'] },
+        require: ['celular', 'smartphone', 'galaxy', 'motorola', 'xiaomi', 'iphone', 'samsung a', 'moto g', 'moto e', 'redmi', 'huawei'],
+        exclude: ['funda', 'vidrio', 'cargador', 'cable', 'protector', 'soporte', 'case', 'carcasa', 'holder', 'silicona', 'templado', 'adaptador'] },
       { key: 'notebook',  label: 'Notebooks',    emoji: '💻', query: 'notebook 14 pulgadas',
         require: ['notebook', 'laptop'],
         exclude: ['mochila', 'funda', 'soporte', 'base', 'cooler', 'mesa', 'bolso'] },
@@ -218,17 +217,26 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
   // Calcular descuentos reales comparando entre sellers del mismo producto
   const withRealDiscounts = applyCrossSellerDiscounts(filtered)
 
-  // Orden inteligente: primero los que tienen descuento real, ordenados por
-  // ahorro absoluto; después el resto por precio de menor a mayor
-  const withDiscount = withRealDiscounts
-    .filter(r => r.original_price && r.original_price > r.price)
-    .sort((a, b) => (b.original_price! - b.price) - (a.original_price! - a.price))
+  // Ordenar cada fuente por su mejor propuesta (descuento absoluto → precio)
+  const sortFn = (a: SearchResult, b: SearchResult) => {
+    const savingsA = a.original_price && a.original_price > a.price ? a.original_price - a.price : 0
+    const savingsB = b.original_price && b.original_price > b.price ? b.original_price - b.price : 0
+    if (savingsA !== savingsB) return savingsB - savingsA
+    return a.price - b.price
+  }
 
-  const withoutDiscount = withRealDiscounts
-    .filter(r => !r.original_price || r.original_price <= r.price)
-    .sort((a, b) => a.price - b.price)
+  const vtexSorted = withRealDiscounts.filter(r => r.source === 'vtex').sort(sortFn)
+  const mlSorted = withRealDiscounts.filter(r => r.source === 'mercadolibre').sort(sortFn)
 
-  return [...withDiscount, ...withoutDiscount].slice(0, 24)
+  // Interleave 1:1 para garantizar presencia de Mercado Libre
+  const result: SearchResult[] = []
+  const maxLen = Math.max(vtexSorted.length, mlSorted.length)
+  for (let i = 0; i < maxLen && result.length < 24; i++) {
+    if (i < vtexSorted.length && result.length < 24) result.push(vtexSorted[i])
+    if (i < mlSorted.length && result.length < 24) result.push(mlSorted[i])
+  }
+
+  return result
 }
 
 export async function GET() {

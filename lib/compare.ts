@@ -44,7 +44,7 @@ function groupSimilarProducts(results: SearchResult[]): SearchResult[][] {
 
     let placed = false
     for (const g of groups) {
-      if (similarity(tokens, g.tokens) >= 0.55) {
+      if (similarity(tokens, g.tokens) >= 0.45) {
         g.items.push(r)
         // Achicar el set a la intersección para que el grupo no "crezca"
         // incluyendo productos cada vez más distintos
