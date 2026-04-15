@@ -56,8 +56,8 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
       <div style={{
         flexShrink: 0, width: 64, height: 64,
         borderRadius: 10,
-        background: '#f8fafc',
-        border: '1px solid var(--border)',
+        background: '#ffffff',
+        border: '1px solid #bfdbfe',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
       }}>

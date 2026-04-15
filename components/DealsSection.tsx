@@ -159,12 +159,12 @@ function DealCard({ deal }: { deal: Deal }) {
       <div style={{
         width: '100%',
         height: 140,
-        background: '#f8fafc',
+        background: '#ffffff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        borderBottom: '1px solid var(--border)',
+        borderBottom: '1px solid #bfdbfe',
       }}>
         {deal.image ? (
           // eslint-disable-next-line @next/next/no-img-element

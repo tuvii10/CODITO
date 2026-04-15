@@ -193,6 +193,10 @@ const VTEX_SUPERMARKETS = [
   { name: 'Disco',     domain: 'www.disco.com.ar' },
   { name: 'Vea',       domain: 'www.vea.com.ar' },
   { name: 'Jumbo',     domain: 'www.jumbo.com.ar' },
+  { name: 'Libertad',  domain: 'www.hiperlibertad.com.ar' },
+  { name: 'Frávega',   domain: 'www.fravega.com' },
+  { name: 'Easy',      domain: 'www.easy.com.ar' },
+  { name: 'Farmacity', domain: 'www.farmacity.com' },
 ]
 
 async function vtexSearch(domain: string, query: string): Promise<{ name: string; price: number }[]> {
@@ -294,8 +298,8 @@ async function fetchVtexDeals(query: string, category: string): Promise<Deal[]> 
     VTEX_SUPERMARKETS.map(async store => {
       try {
         const res = await fetch(
-          `https://${store.domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=9`,
-          { headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(7000) }
+          `https://${store.domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=24`,
+          { headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) }
         )
         if (!res.ok) return []
         const products: VtexProduct[] = await res.json()
@@ -429,9 +433,9 @@ export async function fetchAllDeals(): Promise<Deal[]> {
   }
 
   const deduped = Array.from(byName.values())
-    .filter(d => d.discount_pct >= 5)
+    .filter(d => d.discount_pct >= 3)
     .sort((a, b) => b.discount_pct - a.discount_pct)
-    .slice(0, 60) // verificar top 60 para asegurar 30 finales
+    .slice(0, 100) // verificar top 100 para asegurar 30 finales
 
   // Paso 2: verificar cada deal contra el mercado en paralelo
   const verified = await Promise.allSettled(deduped.map(verifyDeal))

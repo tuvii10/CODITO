@@ -158,8 +158,8 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#f0f7ff',
-        borderRight: '1px solid var(--border)',
+        background: '#ffffff',
+        borderRight: '1px solid #bfdbfe',
         alignSelf: 'stretch',
       }}>
         <ProductImage result={result} size={56} />
