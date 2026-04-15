@@ -82,9 +82,11 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5 }}>
           <span style={{
+            display: 'inline-block',
             fontSize: 10, fontWeight: 700,
-            padding: '2px 7px', borderRadius: 999,
+            padding: '3px 9px', borderRadius: 999,
             background: cfg.color, color: cfg.textColor,
+            letterSpacing: '-0.01em',
           }}>{cfg.displayName}</span>
         </div>
       </div>

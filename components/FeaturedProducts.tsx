@@ -249,11 +249,12 @@ function ProductCard({ result }: { result: SearchResult }) {
         }}>{result.name}</p>
 
         <span style={{
-          display: 'inline-flex', alignItems: 'center',
-          fontSize: 9, fontWeight: 700,
-          padding: '2px 7px', borderRadius: 999,
+          display: 'inline-block',
+          fontSize: 10, fontWeight: 700,
+          padding: '3px 9px', borderRadius: 999,
           background: cfg.color, color: cfg.textColor,
           alignSelf: 'flex-start',
+          letterSpacing: '-0.01em',
         }}>{cfg.displayName}</span>
 
         <div style={{ marginTop: 'auto' }}>
