@@ -138,14 +138,67 @@ async function runDebug(): Promise<Step[]> {
   return steps
 }
 
+// Testea cada categoría que usamos en featured para ver cuáles tienen highlights
+async function testCategoryHighlights(token: string) {
+  const categories = [
+    { id: 'MLA1403',   name: 'Alimentos' },
+    { id: 'MLA178700', name: 'Bebidas' },
+    { id: 'MLA1246',   name: 'Belleza' },
+    { id: 'MLA5726',   name: 'Electro grandes' },
+    { id: 'MLA1000',   name: 'Electrónica AV' },
+    { id: 'MLA1051',   name: 'Celulares' },
+    { id: 'MLA1648',   name: 'Computación' },
+    { id: 'MLA1430',   name: 'Ropa' },
+    { id: 'MLA1276',   name: 'Deportes' },
+    { id: 'MLA1574',   name: 'Hogar' },
+    { id: 'MLA407134', name: 'Herramientas' },
+  ]
+
+  const results = await Promise.all(categories.map(async cat => {
+    try {
+      const res = await fetch(`https://api.mercadolibre.com/highlights/MLA/category/${cat.id}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000),
+      })
+      const data = await res.json().catch(() => ({}))
+      const count = Array.isArray(data?.content) ? data.content.length : 0
+      return {
+        id: cat.id,
+        name: cat.name,
+        status: res.status,
+        ok: res.ok && count > 0,
+        product_count: count,
+      }
+    } catch (err) {
+      return { id: cat.id, name: cat.name, error: String(err), ok: false }
+    }
+  }))
+
+  return results
+}
+
 export async function GET() {
   const steps = await runDebug()
   const allOk = steps.every(s => s.ok)
+
+  // Extraer token del paso 2 si salió bien
+  let token: string | null = null
+  const tokenStep = steps.find(s => s.step === '2. OAuth token')
+  if (tokenStep?.ok) {
+    const det = tokenStep.details as { response_sample?: string }
+    const match = det.response_sample?.match(/"access_token":"([^"]+)"/)
+    token = match?.[1] ?? null
+  }
+
+  const categoriesTest = token ? await testCategoryHighlights(token) : null
+
   return NextResponse.json({
-    version: 'ml-debug-v1',
+    version: 'ml-debug-v2',
     timestamp: new Date().toISOString(),
     overall: allOk ? 'OK' : 'FAIL',
     hint: 'Busca el primer step con "ok: false" para saber dónde falla',
     steps,
+    category_highlights_test: categoriesTest,
   }, { headers: { 'Cache-Control': 'no-store' } })
 }
