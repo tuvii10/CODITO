@@ -133,6 +133,7 @@ export async function GET(req: NextRequest) {
   ])
 
   return NextResponse.json({
+    version: 'v3-teaser-structure',
     store,
     query,
     slug,
