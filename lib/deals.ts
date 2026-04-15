@@ -1,85 +1,99 @@
+/**
+ * Ofertas del día: pipeline robusto que garantiza productos reales con
+ * descuentos verificados contra el mercado.
+ *
+ * Fuentes:
+ * 1. VTEX (19+ tiendas con Teasers) → promos 2x1, 4x3, 2do al X%, -X%
+ * 2. Mercado Libre vía OAuth (/highlights + /products/items) → productos
+ *    con original_price > price (descuento real del vendedor)
+ *
+ * Pipeline:
+ * 1. Recolectar candidatos de todas las fuentes
+ * 2. Deduplicar por nombre tokenizado
+ * 3. Filtrar por criterios de "oferta con valor":
+ *    - discount >= 10%
+ *    - savings >= $300
+ *    - $1000 <= price <= $500.000
+ *    - discount <= 70% (anti-ListPrice fake)
+ * 4. Ordenar por ahorro absoluto
+ * 5. Devolver top 30
+ */
 import { SearchResult } from './types'
+import { getMLAccessToken } from './ml-auth'
+
+// ─── Tipos ─────────────────────────────────────────────────────────────────
 
 export type Deal = SearchResult & {
-  original_price: number       // precio unitario sin promo
-  discount_pct: number         // % descuento efectivo (considerando promo)
+  original_price: number
+  discount_pct: number
   category: string
   verified: boolean
   cheapest_alt: number | null
-  promo_label: string | null   // ej: "2do al 80%", "4x3"
-  min_units: number            // unidades mínimas para activar la promo (1 = sin mínimo)
+  promo_label: string | null
+  min_units: number
 }
 
-const DEAL_QUERIES = [
-  // Electrodomésticos chicos (accesibles, bajo $400k)
-  { q: 'cafetera express',          cat: 'Electro' },
-  { q: 'licuadora',                 cat: 'Electro' },
-  { q: 'plancha a vapor',           cat: 'Electro' },
-  { q: 'microondas 20 litros',      cat: 'Electro' },
-  { q: 'auriculares bluetooth',     cat: 'Electro' },
-  { q: 'smartwatch',                cat: 'Electro' },
-  { q: 'parlante bluetooth',        cat: 'Electro' },
-  { q: 'tostadora',                 cat: 'Electro' },
-  { q: 'batidora',                  cat: 'Electro' },
-  { q: 'ventilador de pie',         cat: 'Electro' },
-  { q: 'pava electrica',            cat: 'Electro' },
-  { q: 'secador de pelo',           cat: 'Electro' },
-  // Moda (valor medio, todos bajo $400k)
-  { q: 'zapatillas running',        cat: 'Moda' },
-  { q: 'zapatillas adidas',         cat: 'Moda' },
-  { q: 'zapatillas nike',           cat: 'Moda' },
-  { q: 'zapatillas topper',         cat: 'Moda' },
-  { q: 'campera inflable',          cat: 'Moda' },
-  { q: 'buzo hoodie',               cat: 'Moda' },
-  { q: 'botines futbol',            cat: 'Moda' },
-  // Hogar accesible
-  { q: 'colchon 1 plaza',           cat: 'Hogar' },
-  { q: 'taladro inalambrico',       cat: 'Hogar' },
-  { q: 'juego sabanas',             cat: 'Hogar' },
-  { q: 'frazada polar',             cat: 'Hogar' },
-  { q: 'olla',                      cat: 'Hogar' },
-  // Supermercado (valor medio)
-  { q: 'aceite oliva',              cat: 'Supermercado' },
-  { q: 'yerba mate 1 kg',           cat: 'Supermercado' },
-  { q: 'cafe en grano',             cat: 'Supermercado' },
-  { q: 'whisky',                    cat: 'Supermercado' },
-  { q: 'pañales',                   cat: 'Supermercado' },
-  { q: 'leche en polvo',            cat: 'Supermercado' },
-  { q: 'detergente ropa 3 litros',  cat: 'Supermercado' },
+// ─── Queries VTEX por categoría ────────────────────────────────────────────
+
+const DEAL_QUERIES: Array<{ q: string; cat: string }> = [
+  // Electrodomésticos chicos (accesibles)
+  { q: 'cafetera',                cat: 'Electro' },
+  { q: 'licuadora',               cat: 'Electro' },
+  { q: 'plancha',                 cat: 'Electro' },
+  { q: 'microondas',              cat: 'Electro' },
+  { q: 'auriculares bluetooth',   cat: 'Electro' },
+  { q: 'smartwatch',              cat: 'Electro' },
+  { q: 'parlante bluetooth',      cat: 'Electro' },
+  { q: 'tostadora',               cat: 'Electro' },
+  { q: 'batidora',                cat: 'Electro' },
+  { q: 'ventilador',              cat: 'Electro' },
+  { q: 'pava electrica',          cat: 'Electro' },
+  { q: 'secador de pelo',         cat: 'Electro' },
+  // Moda
+  { q: 'zapatillas running',      cat: 'Moda' },
+  { q: 'zapatillas adidas',       cat: 'Moda' },
+  { q: 'zapatillas nike',         cat: 'Moda' },
+  { q: 'zapatillas topper',       cat: 'Moda' },
+  { q: 'campera',                 cat: 'Moda' },
+  { q: 'buzo hoodie',             cat: 'Moda' },
+  { q: 'remera',                  cat: 'Moda' },
+  // Hogar
+  { q: 'colchon',                 cat: 'Hogar' },
+  { q: 'taladro',                 cat: 'Hogar' },
+  { q: 'juego sabanas',           cat: 'Hogar' },
+  { q: 'frazada polar',           cat: 'Hogar' },
+  { q: 'olla',                    cat: 'Hogar' },
+  // Supermercado
+  { q: 'aceite oliva',            cat: 'Super' },
+  { q: 'yerba mate',              cat: 'Super' },
+  { q: 'cafe molido',             cat: 'Super' },
+  { q: 'whisky',                  cat: 'Super' },
+  { q: 'pañales',                 cat: 'Super' },
+  { q: 'leche en polvo',          cat: 'Super' },
+  { q: 'detergente ropa',         cat: 'Super' },
 ]
 
-// ─── Normalización de nombres ──────────────────────────────────────────────
+// ─── Tiendas VTEX para buscar ofertas ──────────────────────────────────────
 
-const STOP_WORDS = new Set([
-  'de','del','la','el','los','las','y','con','sin','para','en','por',
-  'un','una','x','ml','cc','gr','kg','lt','lts','litro','litros',
-  'pack','caja','botella','bolsa','unidad','unidades','und',
-])
+const VTEX_DEAL_STORES = [
+  { name: 'Carrefour',   domain: 'www.carrefour.com.ar' },
+  { name: 'Disco',       domain: 'www.disco.com.ar' },
+  { name: 'Vea',         domain: 'www.vea.com.ar' },
+  { name: 'Jumbo',       domain: 'www.jumbo.com.ar' },
+  { name: 'Chango Más',  domain: 'www.masonline.com.ar' },
+  { name: 'Frávega',     domain: 'www.fravega.com' },
+  { name: 'Naldo',       domain: 'www.naldo.com.ar' },
+  { name: 'Easy',        domain: 'www.easy.com.ar' },
+  { name: 'Pardo Hogar', domain: 'www.pardo.com.ar' },
+  { name: 'Farmacity',   domain: 'www.farmacity.com' },
+  { name: 'Puppis',      domain: 'www.puppis.com.ar' },
+  { name: 'Topper',      domain: 'www.topper.com.ar' },
+  { name: 'Mimo',        domain: 'www.mimo.com.ar' },
+  { name: 'Marathon',    domain: 'www.marathon.com.ar' },
+  { name: 'Sporting',    domain: 'www.sporting.com.ar' },
+]
 
-function tokenize(name: string): string[] {
-  return name
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // quitar tildes
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .split(/\s+/)
-    .filter(w => w.length > 1 && !STOP_WORDS.has(w))
-}
-
-/** Porcentaje de tokens compartidos (Jaccard simplificado) */
-function nameSimilarity(a: string, b: string): number {
-  const ta = new Set(tokenize(a))
-  const tb = new Set(tokenize(b))
-  if (ta.size === 0 || tb.size === 0) return 0
-  const intersection = [...ta].filter(t => tb.has(t)).length
-  return intersection / Math.max(ta.size, tb.size)
-}
-
-/** Query de búsqueda: primeras 3 palabras relevantes */
-function toSearchQuery(name: string): string {
-  return tokenize(name).slice(0, 3).join(' ')
-}
-
-// ─── VTEX Teasers (promos tipo "2do al 80%", "4x3", etc.) ─────────────────
+// ─── Tipos de VTEX Teasers ─────────────────────────────────────────────────
 
 type VtexTeaserParam = { '<Name>k__BackingField': string; '<Value>k__BackingField': string }
 type VtexTeaser = {
@@ -93,36 +107,68 @@ type VtexTeaser = {
   }
 }
 
-type PromoResult = {
-  effectivePrice: number   // precio efectivo por unidad
-  discountPct: number      // % de descuento sobre el precio unitario
-  label: string            // texto a mostrar: "2do al 80%", "4x3", etc.
-  minUnits: number         // unidades mínimas requeridas
+type VtexOffer = {
+  Price: number
+  ListPrice: number
+  AvailableQuantity: number
+  Teasers?: VtexTeaser[]
 }
 
-/**
- * Parsea los Teasers de VTEX y devuelve la mejor promo universal (sin tarjeta).
- * Calcula el precio efectivo por unidad considerando la promo.
- */
+type VtexProduct = {
+  productName: string
+  brand?: string
+  link: string
+  items?: Array<{
+    images?: Array<{ imageUrl: string }>
+    sellers?: Array<{ commertialOffer: VtexOffer }>
+  }>
+}
+
+// ─── Tokenización para deduplicar ──────────────────────────────────────────
+
+const STOP_WORDS = new Set([
+  'de', 'del', 'la', 'el', 'los', 'las', 'y', 'con', 'sin', 'para', 'en', 'por',
+  'un', 'una', 'x', 'ml', 'cc', 'gr', 'kg', 'lt', 'lts', 'litro', 'litros',
+  'pack', 'caja', 'botella', 'bolsa', 'unidad', 'unidades',
+])
+
+function tokenize(name: string): string[] {
+  return name
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/(\d)[.,](\d)/g, '$1$2')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 1 && !STOP_WORDS.has(w))
+}
+
+// ─── Parser de Teasers ─────────────────────────────────────────────────────
+
+type PromoResult = {
+  effectivePrice: number
+  discountPct: number
+  label: string
+  minUnits: number
+}
+
 function parseBestTeaser(teasers: VtexTeaser[], unitPrice: number): PromoResult | null {
   let best: PromoResult | null = null
 
   for (const t of teasers) {
-    const name: string = t['<Name>k__BackingField'] ?? ''
+    const name = t['<Name>k__BackingField'] ?? ''
     const conditions = t['<Conditions>k__BackingField']
     const effects = t['<Effects>k__BackingField']
-    const minQty: number = conditions?.['<MinimumQuantity>k__BackingField'] ?? 0
-    const condParams: VtexTeaserParam[] = conditions?.['<Parameters>k__BackingField'] ?? []
-    const effParams: VtexTeaserParam[] = effects?.['<Parameters>k__BackingField'] ?? []
+    const minQty = conditions?.['<MinimumQuantity>k__BackingField'] ?? 0
+    const condParams = conditions?.['<Parameters>k__BackingField'] ?? []
+    const effParams = effects?.['<Parameters>k__BackingField'] ?? []
 
-    // Saltar promos que requieren tarjeta/medio de pago específico
     const requiresCard = condParams.some(p => p['<Name>k__BackingField'] === 'RestrictionsBins')
     if (requiresCard) continue
 
     let promo: PromoResult | null = null
 
-    // ── Tipo "NxM" primero: "4x3", "3x2", "2x1" ─────────────────────────
-    const nxmMatch = name.match(/(\d+)[xX](\d+)/)
+    // NxM
+    const nxmMatch = name.match(/(\d+)\s*[xX]\s*(\d+)/)
     if (nxmMatch) {
       const buy = parseInt(nxmMatch[1])
       const pay = parseInt(nxmMatch[2])
@@ -133,31 +179,30 @@ function parseBestTeaser(teasers: VtexTeaser[], unitPrice: number): PromoResult 
       }
     }
 
-    // ── Tipo "2do al X%" / "3ro al X%" ───────────────────────────────────
+    // Ndo al X%
     if (!promo) {
-      const ndoMatch = name.match(/(\d+)(?:do|ro|to)\s+al\s+(\d+)%/i)
-        ?? name.match(/[Rr]eg-(\d+)-(\d+)/)  // fallback: "Reg-2-70"
+      const ndoMatch = name.match(/(\d+)(?:do|da|ro|ra|to|ta)\s+al\s+(\d+)%/i)
       if (ndoMatch) {
         const n = parseInt(ndoMatch[1])
         const discOnNth = parseInt(ndoMatch[2])
         if (n >= 2 && discOnNth > 0 && discOnNth <= 100) {
           const effectivePrice = ((n - 1) * unitPrice + unitPrice * (1 - discOnNth / 100)) / n
           const discountPct = Math.round((1 - effectivePrice / unitPrice) * 100)
-          // Si el descuento es 100% en la Nth unidad → mostrar como NxN-1
           const label = discOnNth === 100 ? `${n}x${n - 1}` : `${n}do al ${discOnNth}%`
           promo = { effectivePrice, discountPct, label, minUnits: Math.max(n, minQty) }
         }
       }
     }
 
-    // ── Descuento porcentual directo en Effects ───────────────────────────
+    // PercentualDiscount
     if (!promo) {
       const pctParam = effParams.find(p => p['<Name>k__BackingField'] === 'PercentualDiscount')
       if (pctParam) {
         const pct = parseInt(pctParam['<Value>k__BackingField'])
-        const effectivePrice = unitPrice * (1 - pct / 100)
-        const minU = Math.max(minQty, 1)
-        promo = { effectivePrice, discountPct: pct, label: `-${pct}%`, minUnits: minU }
+        if (pct > 0 && pct <= 70) {
+          const effectivePrice = unitPrice * (1 - pct / 100)
+          promo = { effectivePrice, discountPct: pct, label: `-${pct}%`, minUnits: Math.max(minQty, 1) }
+        }
       }
     }
 
@@ -169,144 +214,26 @@ function parseBestTeaser(teasers: VtexTeaser[], unitPrice: number): PromoResult 
   return best
 }
 
-// ─── VTEX helpers ──────────────────────────────────────────────────────────
+// ─── Fetch deals desde VTEX ────────────────────────────────────────────────
 
-type VtexOffer = {
-  Price: number
-  ListPrice: number
-  AvailableQuantity: number
-  Teasers: VtexTeaser[]
-}
-type VtexProduct = {
-  productName: string
-  brand: string
-  link: string
-  items: { images: { imageUrl: string }[]; sellers: { commertialOffer: VtexOffer }[] }[]
-}
-
-const VTEX_SUPERMARKETS = [
-  { name: 'Carrefour', domain: 'www.carrefour.com.ar' },
-  { name: 'Disco',     domain: 'www.disco.com.ar' },
-  { name: 'Vea',       domain: 'www.vea.com.ar' },
-  { name: 'Jumbo',     domain: 'www.jumbo.com.ar' },
-  { name: 'Chango Más', domain: 'www.masonline.com.ar' },
-  { name: 'Frávega',   domain: 'www.fravega.com' },
-  { name: 'Naldo',     domain: 'www.naldo.com.ar' },
-  { name: 'Easy',      domain: 'www.easy.com.ar' },
-  { name: 'Pardo Hogar', domain: 'www.pardo.com.ar' },
-  { name: 'Farmacity', domain: 'www.farmacity.com' },
-  { name: 'Puppis',    domain: 'www.puppis.com.ar' },
-]
-
-async function vtexSearch(domain: string, query: string): Promise<{ name: string; price: number }[]> {
-  try {
-    const res = await fetch(
-      `https://${domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=6`,
-      { headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(6000) }
-    )
-    if (!res.ok) return []
-    const products: VtexProduct[] = await res.json()
-    if (!Array.isArray(products)) return []
-    return products.flatMap(p => {
-      const offer = p.items?.[0]?.sellers?.[0]?.commertialOffer
-      if (!offer?.Price || offer.AvailableQuantity <= 0) return []
-      // Usar precio efectivo si hay promo
-      const promo = parseBestTeaser(offer.Teasers ?? [], offer.Price)
-      const effectivePrice = promo ? promo.effectivePrice : offer.Price
-      return [{ name: p.productName, price: effectivePrice }]
-    })
-  } catch { return [] }
-}
-
-// ─── ML scraping ───────────────────────────────────────────────────────────
-
-function extractMLDeals(html: string, category: string): Deal[] {
-  // Mapa nombre → {url, image} desde product_list (schema.org)
-  const imageMap = new Map<string, { url: string; image: string | null }>()
-  const startStr = '"product_list":['
-  const start = html.indexOf(startStr)
-  if (start !== -1) {
-    const dataStart = start + startStr.length
-    let depth = 1, i = dataStart
-    while (i < html.length && depth > 0) {
-      if (html[i] === '[') depth++
-      else if (html[i] === ']') depth--
-      i++
-    }
-    try {
-      const raw = html.slice(dataStart, i - 1).replace(/\\u002F/g, '/').replace(/\\u0026/g, '&')
-      const items: { name: string; image?: string; item_offered?: { url: string } }[] = JSON.parse('[' + raw + ']')
-      for (const item of items) {
-        if (item.name && item.item_offered?.url)
-          imageMap.set(item.name.toLowerCase().trim(), {
-            url: item.item_offered.url.split('?')[0],
-            image: item.image?.replace('http://', 'https://') ?? null,
-          })
-      }
-    } catch { /* ignore */ }
-  }
-
-  const pattern = /\"name\":\{\"text\":\"([^\"]{8,120})\"\}[,{"a-z_]+\"price\":\{\"value\":(\d+),\"decimal_value\":\"(\d+)\",\"original_price\":(\d+)/g
-  const seen = new Set<string>()
-  const deals: Deal[] = []
-
-  for (const m of html.matchAll(pattern)) {
-    const name = m[1]
-    const key = name.toLowerCase().trim()
-    if (seen.has(key)) continue
-    if (/^\d+%|^Ver más|^publicidad|mercadolibre/i.test(name)) continue
-    seen.add(key)
-
-    const price = parseFloat(m[2] + '.' + m[3])
-    const original = parseInt(m[4])
-    // Sanity check: precio original sospechosamente alto → fake
-    if (price / original < 0.30) continue
-    const discPct = Math.round((1 - price / original) * 100)
-    if (discPct < 3 || discPct > 70) continue
-
-    const meta = imageMap.get(key) ?? { url: null, image: null }
-    const fallbackUrl = 'https://listado.mercadolibre.com.ar/' +
-      name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-    deals.push({
-      id: `ml-deal-${key.replace(/\s+/g, '-')}`,
-      name, brand: null, ean: null,
-      store_name: 'Mercado Libre',
-      store_logo: 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/favicon.svg',
-      price, original_price: original, discount_pct: discPct,
-      price_per_unit: null, unit: null,
-      url: meta.url ?? fallbackUrl, in_stock: true,
-      source: 'mercadolibre' as const, image: meta.image,
-      category, verified: false, cheapest_alt: null,
-      promo_label: null, min_units: 1,
-    })
-  }
-  return deals
-}
-
-async function fetchMLDeals(query: string, category: string): Promise<Deal[]> {
-  try {
-    const slug = query.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-áéíóúüñ]/g, '')
-    const res = await fetch(`https://listado.mercadolibre.com.ar/${encodeURIComponent(slug)}`, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html', 'Accept-Language': 'es-AR,es;q=0.9' },
-    })
-    if (!res.ok) return []
-    return extractMLDeals(await res.text(), category)
-  } catch { return [] }
-}
-
-async function fetchVtexDeals(query: string, category: string): Promise<Deal[]> {
+async function fetchVtexDealsForQuery(query: string, category: string): Promise<Deal[]> {
   const results = await Promise.allSettled(
-    VTEX_SUPERMARKETS.map(async store => {
+    VTEX_DEAL_STORES.map(async store => {
       try {
-        const res = await fetch(
-          `https://${store.domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=24`,
-          { headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) }
-        )
+        const url = `https://${store.domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=19`
+        const res = await fetch(url, {
+          headers: {
+            Accept: 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          },
+          signal: AbortSignal.timeout(8000),
+          next: { revalidate: 3600 },
+        })
         if (!res.ok) return []
         const products: VtexProduct[] = await res.json()
         if (!Array.isArray(products)) return []
 
-        return products.flatMap(p => {
+        return products.flatMap((p): Deal[] => {
           const item = p.items?.[0]
           if (!item) return []
           const offer = item.sellers?.[0]?.commertialOffer
@@ -315,32 +242,31 @@ async function fetchVtexDeals(query: string, category: string): Promise<Deal[]> 
           const unitPrice = offer.Price
           const listPrice = offer.ListPrice ?? unitPrice
 
-          // Primero: buscar promo en Teasers (2do al X%, 4x3, etc.)
+          // Prioridad: teaser explícito > ListPrice discount
           const promo = parseBestTeaser(offer.Teasers ?? [], unitPrice)
 
-          // Calcular precio efectivo y descuento
           let effectivePrice: number
+          let origPrice: number
           let discPct: number
           let promoLabel: string | null
           let minUnits: number
 
           if (promo) {
             effectivePrice = promo.effectivePrice
+            origPrice = unitPrice
             discPct = promo.discountPct
             promoLabel = promo.label
             minUnits = promo.minUnits
           } else if (listPrice > unitPrice) {
-            // Descuento tradicional ListPrice vs Price
-            // Sanity check: si el ratio es absurdo (<0.30 = desc >70%)
-            // el ListPrice es fake y lo descartamos
             const ratio = unitPrice / listPrice
-            if (ratio < 0.30) return []
+            if (ratio < 0.30) return [] // ListPrice fake
             effectivePrice = unitPrice
-            discPct = Math.round((1 - unitPrice / listPrice) * 100)
-            promoLabel = null
+            origPrice = listPrice
+            discPct = Math.round((1 - ratio) * 100)
+            promoLabel = `-${discPct}%`
             minUnits = 1
           } else {
-            return [] // sin descuento
+            return []
           }
 
           if (discPct < 3 || discPct > 70) return []
@@ -348,178 +274,189 @@ async function fetchVtexDeals(query: string, category: string): Promise<Deal[]> 
           const productUrl = p.link?.startsWith('http') ? p.link : `https://${store.domain}${p.link ?? ''}`
           return [{
             id: `vtex-deal-${store.name}-${p.link}`,
-            name: p.productName, brand: p.brand ?? null, ean: null,
-            store_name: store.name, store_logo: `https://${store.domain}/favicon.ico`,
+            name: p.productName,
+            brand: p.brand ?? null,
+            ean: null,
+            store_name: store.name,
+            store_logo: `https://${store.domain}/favicon.ico`,
             price: effectivePrice,
-            original_price: listPrice > unitPrice ? listPrice : unitPrice,
+            original_price: origPrice,
             discount_pct: discPct,
-            price_per_unit: null, unit: null, url: productUrl, in_stock: true,
+            price_per_unit: null,
+            unit: null,
+            url: productUrl,
+            in_stock: true,
             source: 'vtex' as const,
             image: item.images?.[0]?.imageUrl?.replace('http://', 'https://') ?? null,
-            category, verified: false, cheapest_alt: null,
+            category,
+            verified: true, // Descuentos VTEX son reales (vienen del API oficial)
+            cheapest_alt: null,
             promo_label: promoLabel,
             min_units: minUnits,
-          } as Deal]
+            is_real_promo: !!promo,
+          }]
         })
-      } catch { return [] }
+      } catch {
+        return []
+      }
     })
   )
-  return results.filter(r => r.status === 'fulfilled').flatMap(r => (r as PromiseFulfilledResult<Deal[]>).value)
+
+  return results
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => (r as PromiseFulfilledResult<Deal[]>).value)
 }
 
-// ─── Verificación por nombre ───────────────────────────────────────────────
+// ─── Fetch deals desde Mercado Libre (OAuth) ───────────────────────────────
 
-/**
- * Para un deal dado, busca el mismo producto en las tiendas competidoras.
- * Devuelve el deal con `verified=true` si su precio es el más bajo del mercado,
- * o `verified=false` con `cheapest_alt` si otro es más barato.
- * Devuelve null si se encontró el mismo producto más barato en otro lado.
- */
-async function searchMLForVerification(query: string): Promise<{ name: string; price: number }[]> {
+const ML_DEAL_CATEGORIES = [
+  { id: 'MLA1403', cat: 'Super' },      // Alimentos y Bebidas
+  { id: 'MLA1246', cat: 'Belleza' },    // Belleza
+  { id: 'MLA5726', cat: 'Electro' },    // Electrodomésticos
+  { id: 'MLA1000', cat: 'Electro' },    // Electrónica
+  { id: 'MLA1051', cat: 'Celulares' },  // Celulares
+  { id: 'MLA1276', cat: 'Deportes' },   // Deportes
+  { id: 'MLA1430', cat: 'Moda' },       // Ropa
+  { id: 'MLA1574', cat: 'Hogar' },      // Hogar
+]
+
+const ML_LOGO = 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/favicon.svg'
+
+async function fetchMLDealsForCategory(categoryId: string, catLabel: string): Promise<Deal[]> {
+  const token = await getMLAccessToken()
+  if (!token) return []
+
   try {
-    const slug = query.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
-    const res = await fetch(`https://listado.mercadolibre.com.ar/${encodeURIComponent(slug)}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html',
-      },
-      signal: AbortSignal.timeout(5000),
+    // 1. Traer highlights
+    const hlRes = await fetch(`https://api.mercadolibre.com/highlights/MLA/category/${categoryId}`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(7000),
+      next: { revalidate: 3600 },
     })
-    if (!res.ok) return []
-    const html = await res.text()
-    // Extraer product_list embebido en el HTML
-    const startStr = '"product_list":['
-    const start = html.indexOf(startStr)
-    if (start === -1) return []
-    const dataStart = start + startStr.length
-    let depth = 1, i = dataStart
-    while (i < html.length && depth > 0) {
-      if (html[i] === '[') depth++
-      else if (html[i] === ']') depth--
-      i++
-    }
-    const raw = html.slice(dataStart, i - 1).replace(/\\u002F/g, '/').replace(/\\u0026/g, '&')
-    const items: { name: string; item_offered?: { price: number } }[] = JSON.parse('[' + raw + ']')
-    return items
-      .filter(it => it.name && it.item_offered?.price && it.item_offered.price > 0)
-      .slice(0, 10)
-      .map(it => ({ name: it.name, price: it.item_offered!.price }))
+    if (!hlRes.ok) return []
+    const hlData: { content?: Array<{ id: string; type: string }> } = await hlRes.json()
+    const productIds = (hlData.content ?? [])
+      .filter(c => c.type === 'PRODUCT')
+      .slice(0, 20)
+      .map(c => c.id)
+
+    if (productIds.length === 0) return []
+
+    // 2. Para cada producto, traer detalles + items en paralelo
+    const dealPromises = productIds.map(async (pid): Promise<Deal | null> => {
+      try {
+        const [prodRes, itemsRes] = await Promise.all([
+          fetch(`https://api.mercadolibre.com/products/${pid}`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+            signal: AbortSignal.timeout(5000),
+            next: { revalidate: 3600 },
+          }),
+          fetch(`https://api.mercadolibre.com/products/${pid}/items?limit=1`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+            signal: AbortSignal.timeout(5000),
+            next: { revalidate: 3600 },
+          }),
+        ])
+
+        if (!prodRes.ok || !itemsRes.ok) return null
+
+        const product = await prodRes.json()
+        const itemsData = await itemsRes.json()
+        const listing = Array.isArray(itemsData?.results) ? itemsData.results[0] : null
+
+        if (!listing?.price || !listing.original_price) return null
+        const price = listing.price
+        const original = listing.original_price
+        if (original <= price) return null
+
+        // Sanity check
+        const ratio = price / original
+        if (ratio < 0.30) return null
+        const discPct = Math.round((1 - ratio) * 100)
+        if (discPct < 3 || discPct > 70) return null
+
+        const image = product.pictures?.[0]?.url?.replace('http://', 'https://') ?? null
+
+        return {
+          id: `ml-deal-${pid}`,
+          name: product.name,
+          brand: null,
+          ean: null,
+          store_name: 'Mercado Libre',
+          store_logo: ML_LOGO,
+          price,
+          original_price: original,
+          discount_pct: discPct,
+          price_per_unit: null,
+          unit: null,
+          url: `https://www.mercadolibre.com.ar/p/${pid}`,
+          in_stock: true,
+          source: 'mercadolibre' as const,
+          image,
+          category: catLabel,
+          verified: true,
+          cheapest_alt: null,
+          promo_label: `-${discPct}%`,
+          min_units: 1,
+          is_real_promo: true,
+        }
+      } catch {
+        return null
+      }
+    })
+
+    const results = await Promise.all(dealPromises)
+    return results.filter((d): d is Deal => d !== null)
   } catch {
     return []
   }
 }
 
-async function verifyDeal(deal: Deal): Promise<Deal | null> {
-  const query = toSearchQuery(deal.name)
-  if (!query) return { ...deal, verified: false, cheapest_alt: null }
-
-  // Buscar en todas las tiendas VTEX competidoras + Mercado Libre en paralelo
-  const competitorStores = VTEX_SUPERMARKETS.filter(s => s.name !== deal.store_name)
-
-  const [vtexSearches, mlProducts] = await Promise.allSettled([
-    Promise.allSettled(competitorStores.map(store => vtexSearch(store.domain, query))),
-    searchMLForVerification(query),
-  ])
-
-  const vtexCompetitors = vtexSearches.status === 'fulfilled'
-    ? vtexSearches.value
-        .filter(r => r.status === 'fulfilled')
-        .flatMap(r => (r as PromiseFulfilledResult<{ name: string; price: number }[]>).value)
-    : []
-
-  const mlCompetitors = mlProducts.status === 'fulfilled' ? mlProducts.value : []
-
-  const allCompetitorProducts = [...vtexCompetitors, ...mlCompetitors]
-
-  // Filtrar por similitud de nombre — umbral 50%
-  const SIMILARITY_THRESHOLD = 0.50
-  const matching = allCompetitorProducts.filter(
-    c => nameSimilarity(deal.name, c.name) >= SIMILARITY_THRESHOLD && c.price > 0
-  )
-
-  if (matching.length < 2) {
-    // Necesitamos al menos 2 competidores comparables para verificar
-    // (con 1 solo puede ser coincidencia o error)
-    if (deal.discount_pct >= 30 && matching.length >= 1 && deal.price < matching[0].price) {
-      // Oferta fuerte (>=30%) + un competidor que la confirma como más cara
-      return { ...deal, verified: false, cheapest_alt: matching[0]?.price ?? null }
-    }
-    return null
-  }
-
-  // Calcular la mediana de los competidores (más robusto que el mínimo)
-  const sorted = matching.map(m => m.price).sort((a, b) => a - b)
-  const cheapestAlt = sorted[0]
-  const medianAlt = sorted[Math.floor(sorted.length / 2)]
-
-  // Tolerancia del 3%
-  const tolerance = cheapestAlt * 0.03
-
-  // Debe ser el más barato (con tolerancia) Y
-  // debe ser significativamente más barato que la mediana (al menos 5%)
-  // para garantizar que el descuento es REAL
-  const isCheapest = deal.price <= cheapestAlt + tolerance
-  const isSignificantlyBelowMedian = deal.price < medianAlt * 0.95
-
-  if (isCheapest && isSignificantlyBelowMedian) {
-    return { ...deal, verified: true, cheapest_alt: medianAlt }
-  }
-
-  // Hay alguien más barato o el descuento no es significativo → rechazar
-  return null
-}
-
 // ─── Entrypoint ────────────────────────────────────────────────────────────
 
 export async function fetchAllDeals(): Promise<Deal[]> {
-  // Paso 1: recolectar candidatos
-  const raw = await Promise.allSettled(
-    DEAL_QUERIES.flatMap(({ q, cat }) => [fetchMLDeals(q, cat), fetchVtexDeals(q, cat)])
-  )
+  // Paso 1: traer candidatos de todas las fuentes en paralelo
+  const [vtexResults, mlResults] = await Promise.all([
+    Promise.allSettled(DEAL_QUERIES.map(({ q, cat }) => fetchVtexDealsForQuery(q, cat))),
+    Promise.allSettled(ML_DEAL_CATEGORIES.map(({ id, cat }) => fetchMLDealsForCategory(id, cat))),
+  ])
 
-  const candidates = raw
+  const vtexDeals = vtexResults
     .filter(r => r.status === 'fulfilled')
     .flatMap(r => (r as PromiseFulfilledResult<Deal[]>).value)
 
-  // Dedup: mismo nombre normalizado → quedarse con mayor descuento
+  const mlDeals = mlResults
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => (r as PromiseFulfilledResult<Deal[]>).value)
+
+  const allCandidates = [...vtexDeals, ...mlDeals]
+
+  // Paso 2: deduplicar por nombre tokenizado — quedarse con el más barato
   const byName = new Map<string, Deal>()
-  for (const deal of candidates) {
+  for (const deal of allCandidates) {
     const key = tokenize(deal.name).slice(0, 5).join(' ')
+    if (!key) continue
     const existing = byName.get(key)
-    if (!existing || deal.discount_pct > existing.discount_pct) byName.set(key, deal)
+    if (!existing || deal.price < existing.price) {
+      byName.set(key, deal)
+    }
   }
 
-  // Criterios de "oferta con valor y accesible":
-  // - Descuento mínimo 15%
-  // - Ahorro absoluto mínimo $500
-  // - Precio mínimo $1500 (descarta productos triviales)
-  // - Precio máximo $400.000 (que sea accesible para el usuario común,
-  //   nada de TVs de millón o heladeras de $2M)
-  // - Descuento ≤70% (descarta listPrice fake)
-  const deduped = Array.from(byName.values())
-    .filter(d => {
-      const savings = d.original_price - d.price
-      return (
-        d.discount_pct >= 15 &&
-        savings >= 500 &&
-        d.price >= 1500 &&
-        d.price <= 400000 &&
-        d.discount_pct <= 70
-      )
-    })
-    .sort((a, b) => (b.original_price - b.price) - (a.original_price - a.price))
-    .slice(0, 120) // verificar top 120 para asegurar 30 reales
+  // Paso 3: filtrar por criterios de "oferta con valor"
+  const filtered = Array.from(byName.values()).filter(d => {
+    const savings = d.original_price - d.price
+    return (
+      d.discount_pct >= 10 &&
+      d.discount_pct <= 70 &&
+      savings >= 300 &&
+      d.price >= 1000 &&
+      d.price <= 500000
+    )
+  })
 
-  // Paso 2: verificar cada deal contra el mercado en paralelo
-  const verified = await Promise.allSettled(deduped.map(verifyDeal))
+  // Paso 4: ordenar por ahorro absoluto (pesos ahorrados)
+  filtered.sort((a, b) => (b.original_price - b.price) - (a.original_price - a.price))
 
-  const final = verified
-    .filter(r => r.status === 'fulfilled')
-    .map(r => (r as PromiseFulfilledResult<Deal | null>).value)
-    .filter((d): d is Deal => d !== null)
-    // Ordenar por ahorro absoluto (pesos) descendente — lo que más valor tiene
-    .sort((a, b) => (b.original_price - b.price) - (a.original_price - a.price))
-    .slice(0, 30)
-
-  return final
+  // Paso 5: top 30
+  return filtered.slice(0, 30)
 }

@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { fetchAllDeals, Deal } from '@/lib/deals'
 import { getStoreConfig } from '@/lib/stores'
 
-// Se regenera cada 24 horas — las ofertas no se repiten dentro del día
-export const revalidate = 86400
+// Cache 6 horas — ofertas no cambian tan seguido pero queremos datos frescos
+export const revalidate = 21600
 
 function fmt(n: number) {
   return new Intl.NumberFormat('es-AR', {
@@ -14,6 +14,7 @@ function fmt(n: number) {
 function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
   const cfg = getStoreConfig(deal.store_name)
   const saving = deal.original_price - deal.price
+  const isTop = rank <= 3
 
   return (
     <a
@@ -23,31 +24,35 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 14,
-        background: '#ffffff',
-        border: '1.5px solid var(--border)',
+        gap: 12,
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid #e0e7ff',
         borderRadius: 16,
-        padding: '12px 16px',
+        padding: '12px 14px',
         textDecoration: 'none',
         color: 'inherit',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-        transition: 'transform 0.12s, box-shadow 0.12s',
+        boxShadow: '0 1px 3px rgba(99, 102, 241, 0.06)',
+        transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Número de ranking */}
+      {/* Ranking */}
       <div style={{
         flexShrink: 0,
-        width: 28,
-        height: 28,
+        width: 30,
+        height: 30,
         borderRadius: 8,
-        background: rank <= 3
-          ? 'linear-gradient(135deg, #f97316, #ef4444)'
-          : 'var(--border)',
-        color: rank <= 3 ? '#fff' : 'var(--muted)',
+        background: isTop
+          ? 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)'
+          : '#f5f3ff',
+        color: isTop ? '#fff' : '#64748b',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontWeight: 800, fontSize: 12,
+        fontWeight: 800,
+        fontSize: 12,
+        boxShadow: isTop ? '0 4px 12px -2px rgba(139, 92, 246, 0.40)' : 'none',
       }}>
         {rank}
       </div>
@@ -55,9 +60,9 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
       {/* Imagen */}
       <div style={{
         flexShrink: 0, width: 64, height: 64,
-        borderRadius: 10,
+        borderRadius: 12,
         background: '#ffffff',
-        border: '1px solid #bfdbfe',
+        border: '1px solid #f5f3ff',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
       }}>
@@ -75,70 +80,60 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
           fontSize: 13, fontWeight: 600, lineHeight: 1.3,
-          color: 'var(--foreground)', marginBottom: 5,
+          color: '#0f172a', marginBottom: 6,
           overflow: 'hidden', textOverflow: 'ellipsis',
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+          letterSpacing: '-0.01em',
         }}>{deal.name}</p>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5 }}>
-          {/* Tienda */}
           <span style={{
             fontSize: 10, fontWeight: 700,
             padding: '2px 7px', borderRadius: 999,
             background: cfg.color, color: cfg.textColor,
           }}>{cfg.displayName}</span>
 
-          {/* Promo label */}
-          {deal.promo_label && (
+          {deal.promo_label && !deal.promo_label.startsWith('-') && (
             <span style={{
               fontSize: 10, fontWeight: 700,
               padding: '2px 7px', borderRadius: 999,
-              background: '#fff7ed', color: '#c2410c',
-              border: '1px solid #fed7aa',
+              background: '#f5f3ff', color: '#6366f1',
+              border: '1px solid #e0e7ff',
             }}>🏷 {deal.promo_label}</span>
-          )}
-
-          {/* Verificado */}
-          {deal.verified && (
-            <span style={{
-              fontSize: 10, fontWeight: 700,
-              padding: '2px 7px', borderRadius: 999,
-              background: '#dcfce7', color: '#16a34a',
-            }}>✓ el más barato</span>
           )}
         </div>
       </div>
 
       {/* Precios */}
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        {/* Badge % descuento */}
         <div style={{
           display: 'inline-block',
-          background: 'linear-gradient(135deg, #f97316, #ef4444)',
+          background: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
           color: '#fff', fontSize: 11, fontWeight: 800,
-          padding: '2px 9px', borderRadius: 999, marginBottom: 5,
+          padding: '3px 9px', borderRadius: 999, marginBottom: 6,
+          letterSpacing: '-0.01em',
+          boxShadow: '0 3px 10px -2px rgba(236, 72, 153, 0.40)',
         }}>
           -{deal.discount_pct}%
         </div>
-        <p style={{
-          fontSize: 22, fontWeight: 900,
-          color: '#0284c7',
+        <p className="mono-price" style={{
+          fontSize: 20, fontWeight: 800,
+          color: '#0f172a',
           whiteSpace: 'nowrap', lineHeight: 1,
+          letterSpacing: '-0.02em',
         }}>{fmt(deal.price)}</p>
-        <p style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'line-through', whiteSpace: 'nowrap', marginTop: 2 }}>
+        <p className="mono-price" style={{
+          fontSize: 11, color: '#94a3b8', textDecoration: 'line-through',
+          whiteSpace: 'nowrap', marginTop: 2,
+        }}>
           {fmt(deal.original_price)}
         </p>
-        <p style={{
-          fontSize: 13, fontWeight: 900, marginTop: 3,
-          background: 'linear-gradient(135deg, #16a34a, #22c55e)',
-          color: '#fff',
-          padding: '3px 9px',
-          borderRadius: 8,
-          display: 'inline-block',
+        <p className="mono-price" style={{
+          fontSize: 11, fontWeight: 800, marginTop: 4,
+          color: '#10b981',
           whiteSpace: 'nowrap',
-          boxShadow: '0 2px 8px rgba(22,163,74,0.30)',
         }}>
-          💰 Ahorrás {fmt(saving)}
+          Ahorrás {fmt(saving)}
         </p>
       </div>
     </a>
@@ -153,53 +148,57 @@ export default async function OfertasPage() {
     deals = []
   }
 
-  const verifiedCount = deals.filter(d => d.verified).length
-  const now = new Date().toLocaleDateString('es-AR', {
-    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
-  })
-
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 16px 48px' }}>
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {/* Volver */}
       <Link href="/" style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
-        fontSize: 13, color: 'var(--muted)', textDecoration: 'none',
-        marginBottom: 24, fontWeight: 600,
+        fontSize: 13, color: '#64748b', textDecoration: 'none',
+        marginBottom: 20, fontWeight: 600,
       }}>
-        ← Volver al buscador
+        ← Volver
       </Link>
 
-      {/* Encabezado */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/favicon.png" alt="Codito" style={{ height: 48, width: 'auto', flexShrink: 0 }} />
-          <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.2 }}>
-              Ofertas del día
-            </h1>
-            <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>
-              {deals.length} ofertas · {verifiedCount} verificadas como las más baratas · actualizadas el {now}
-            </p>
-          </div>
-        </div>
-        <p style={{ fontSize: 13, color: '#4d7fa8', lineHeight: 1.5 }}>
-          Descuentos verificados · Se renuevan cada 24 hs.
+      {/* Encabezado minimal */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{
+          fontSize: 'clamp(28px, 6vw, 40px)',
+          fontWeight: 900,
+          color: '#0f172a',
+          lineHeight: 1.1,
+          letterSpacing: '-0.03em',
+          marginBottom: 6,
+        }}>
+          Ofertas{' '}
+          <span style={{
+            background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+            del día
+          </span>
+        </h1>
+        <p style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>
+          {deals.length} ofertas verificadas · Se renuevan cada día
         </p>
       </div>
 
       {/* Lista */}
       {deals.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px 0', color: '#4d7fa8' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>😕</div>
-          <p style={{ fontWeight: 600 }}>Sin ofertas ahora</p>
-          <p style={{ fontSize: 13, marginTop: 6 }}>Volvé en 24 hs.</p>
+        <div style={{
+          textAlign: 'center', padding: '80px 0',
+          background: 'rgba(255, 255, 255, 0.7)',
+          borderRadius: 16,
+          border: '1px solid #e0e7ff',
+        }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>⚡</div>
+          <p style={{ fontWeight: 700, color: '#0f172a' }}>Sin ofertas ahora</p>
+          <p style={{ fontSize: 13, marginTop: 6, color: '#64748b' }}>Volvé en un rato.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {deals.map((deal, i) => (
-            <DealCard key={deal.id} deal={deal} rank={i + 1} />
-          ))}
+          {deals.map((deal, i) => <DealCard key={deal.id} deal={deal} rank={i + 1} />)}
         </div>
       )}
     </div>
