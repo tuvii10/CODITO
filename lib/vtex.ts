@@ -30,12 +30,20 @@ const VTEX_STORES: VtexStore[] = [
 
   // Farmacia / mascotas / belleza
   { name: 'Farmacity',    domain: 'www.farmacity.com',        category: 'farmacia' },
+  { name: 'Farmaonline',  domain: 'www.farmaonline.com',      category: 'farmacia' },
   { name: 'Puppis',       domain: 'www.puppis.com.ar',        category: 'mascotas' },
 
   // Indumentaria / moda
   { name: 'Topper',       domain: 'www.topper.com.ar',        category: 'moda' },
   { name: 'Mimo',         domain: 'www.mimo.com.ar',          category: 'moda' },
   { name: 'Taverniti',    domain: 'www.taverniti.com.ar',     category: 'moda' },
+  { name: '47 Street',    domain: 'www.47street.com.ar',      category: 'moda' },
+
+  // Alimentos / deli
+  { name: 'Josimar',      domain: 'www.josimar.com.ar',       category: 'supermercado' },
+
+  // Multimarca
+  { name: 'Coppel',       domain: 'www.coppel.com.ar',        category: 'multi' },
 ]
 
 // ── Promo / Teaser parsing ──────────────────────────────────────────────────
