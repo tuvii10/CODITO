@@ -165,13 +165,8 @@ export default async function OfertasPage() {
       {/* Encabezado */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 14,
-            background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 24, flexShrink: 0,
-            boxShadow: '0 4px 16px rgba(249,115,22,0.35)',
-          }}>🏷️</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/favicon.png" alt="Codito" style={{ height: 48, width: 'auto', flexShrink: 0 }} />
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.2 }}>
               Ofertas del día

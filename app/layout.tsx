@@ -1,9 +1,15 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Codito — Comparador de Precios Argentina',
   description: 'Compará precios de supermercados y Mercado Libre en un solo lugar',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,20 +27,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div style={{
             maxWidth: 960,
             margin: '0 auto',
-            padding: '10px 16px',
+            padding: '8px 16px',
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            justifyContent: 'space-between',
           }}>
-            <LogoMark />
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: '#0284c7', letterSpacing: '-0.5px' }}>
-                codito
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                Comparador de precios · Argentina
-              </div>
-            </div>
+            {/* Logo */}
+            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Codito"
+                style={{ height: 54, width: 'auto', objectFit: 'contain' }}
+              />
+            </Link>
+
+            {/* Link a ofertas en el header */}
+            <Link href="/ofertas" style={{
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'linear-gradient(135deg, #f97316, #ef4444)',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 13,
+              padding: '7px 16px',
+              borderRadius: 10,
+              boxShadow: '0 3px 10px rgba(239,68,68,0.30)',
+              transition: 'opacity 0.15s',
+            }}>
+              🏷️ Ofertas del día
+            </Link>
           </div>
         </header>
 
@@ -42,29 +66,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
 
-        <footer style={{ textAlign: 'center', padding: '24px 16px', fontSize: 12, color: 'var(--muted)' }}>
-          Precios orientativos. Verificá siempre en el sitio oficial de cada tienda.
+        <footer style={{
+          borderTop: '1px solid var(--border)',
+          marginTop: 48,
+          padding: '20px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+        }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/favicon.png" alt="" style={{ height: 22, width: 'auto', opacity: 0.6 }} />
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+            Precios orientativos. Verificá siempre en el sitio oficial de cada tienda.
+          </span>
         </footer>
       </body>
     </html>
-  )
-}
-
-function LogoMark() {
-  return (
-    <div style={{
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      boxShadow: '0 4px 12px rgba(14,165,233,0.35)',
-      fontSize: 22,
-    }}>
-      🐭
-    </div>
   )
 }

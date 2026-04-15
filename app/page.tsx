@@ -83,14 +83,12 @@ export default function Home() {
       {/* Hero — solo cuando no buscó nada */}
       {!searched && (
         <div style={{ textAlign: 'center', marginBottom: 32, padding: '0 8px' }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: 20,
-            background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 16px',
-            boxShadow: '0 8px 32px rgba(14,165,233,0.3)',
-            fontSize: 40,
-          }}>🐭</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Codito"
+            style={{ height: 120, width: 'auto', margin: '0 auto 8px', display: 'block' }}
+          />
           <h2 style={{
             fontSize: 'clamp(22px, 5vw, 34px)', fontWeight: 800, marginBottom: 10,
             background: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%)',
