@@ -31,7 +31,7 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero futurista */}
+      {/* Hero minimal blanco/gris */}
       {!searched && (
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -41,18 +41,15 @@ export default function Home() {
             style={{
               height: 'clamp(130px, 22vw, 200px)',
               width: 'auto',
-              margin: '0 auto 4px',
+              margin: '0 auto 6px',
               display: 'block',
-              filter: 'drop-shadow(0 10px 30px rgba(139, 92, 246, 0.25))',
+              filter: 'drop-shadow(0 8px 20px rgba(0, 0, 0, 0.08))',
             }}
           />
           <p style={{
             fontSize: 11,
             fontWeight: 700,
-            background: 'linear-gradient(135deg, #6366f1, #ec4899)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            color: '#71717a',
             textTransform: 'uppercase',
             letterSpacing: '0.18em',
             marginBottom: 8,
@@ -63,25 +60,17 @@ export default function Home() {
             fontSize: 'clamp(28px, 7vw, 48px)',
             fontWeight: 900,
             marginBottom: 8,
-            color: '#0f172a',
+            color: '#09090b',
             lineHeight: 1.05,
             maxWidth: 620,
             margin: '0 auto 8px',
             padding: '0 4px',
             letterSpacing: '-0.03em',
           }}>
-            Buscá.{' '}
-            <span style={{
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
-              Comprá barato.
-            </span>
+            Buscá. Comprá barato.
           </h2>
           <p style={{
-            color: '#64748b',
+            color: '#71717a',
             fontSize: 'clamp(12px, 3.2vw, 14px)',
             margin: '0 auto',
             fontWeight: 500,
@@ -97,69 +86,52 @@ export default function Home() {
             marginTop: 14,
             padding: '6px 13px',
             borderRadius: 999,
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid #c7d2fe',
+            background: '#ffffff',
+            border: '1px solid #e4e4e7',
             fontSize: 11,
-            color: '#0f172a',
+            color: '#09090b',
             fontWeight: 700,
-            letterSpacing: '0.02em',
           }}>
             <span className="live-dot" style={{
               width: 7, height: 7, borderRadius: '50%',
-              background: '#10b981',
+              background: '#16a34a',
             }} />
             En vivo
           </div>
         </div>
       )}
 
-      {/* Buscador — glass card */}
+      {/* Buscador — blanco minimal */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.75)',
-        backdropFilter: 'blur(20px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+        background: '#ffffff',
         borderRadius: 20,
         padding: 'clamp(14px, 4vw, 22px)',
-        boxShadow: '0 10px 40px -10px rgba(99, 102, 241, 0.20)',
-        border: '1px solid rgba(199, 210, 254, 0.6)',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 10px 30px -10px rgba(0, 0, 0, 0.06)',
+        border: '1px solid #e4e4e7',
       }}>
         <SearchBar onSearch={handleSearch} loading={loading} />
       </div>
 
-      {/* Banner Ofertas — futurista */}
+      {/* Banner Ofertas — negro minimal */}
       {!searched && (
         <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginTop: 14 }}>
           <div style={{
             borderRadius: 14,
-            padding: '13px 18px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
-            boxShadow: '0 8px 24px -6px rgba(139, 92, 246, 0.40)',
+            padding: '14px 20px',
+            background: '#18181b',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 10,
-            position: 'relative',
-            overflow: 'hidden',
+            transition: 'background 0.15s',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: 10,
-                background: 'rgba(255, 255, 255, 0.25)',
-                backdropFilter: 'blur(10px)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 16,
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-              }}>⚡</div>
-              <div>
-                <p style={{ color: '#fff', fontWeight: 800, fontSize: 15, lineHeight: 1.15, letterSpacing: '-0.01em' }}>
-                  Ofertas del día
-                </p>
-                <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: 11, marginTop: 2, fontWeight: 500 }}>
-                  Descuentos verificados
-                </p>
-              </div>
+            <div>
+              <p style={{ color: '#fff', fontWeight: 800, fontSize: 15, lineHeight: 1.15, letterSpacing: '-0.01em' }}>
+                Ofertas del día
+              </p>
+              <p style={{ color: '#a1a1aa', fontSize: 11, marginTop: 2, fontWeight: 500 }}>
+                Precios verificados entre tiendas
+              </p>
             </div>
             <div style={{
               flexShrink: 0,

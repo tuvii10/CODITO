@@ -74,18 +74,18 @@ export default function FeaturedProducts() {
 
   return (
     <section style={{ marginTop: 40 }}>
-      {/* Título futurista */}
+      {/* Título minimal */}
       <div style={{ marginBottom: 18 }}>
         <h2 style={{
           fontSize: 22,
           fontWeight: 900,
-          color: '#0f172a',
+          color: '#09090b',
           lineHeight: 1.1,
           letterSpacing: '-0.02em',
         }}>
           Destacados
         </h2>
-        <p style={{ fontSize: 12, color: '#64748b', marginTop: 4, fontWeight: 500 }}>
+        <p style={{ fontSize: 12, color: '#71717a', marginTop: 4, fontWeight: 500 }}>
           Actualizados cada hora
         </p>
       </div>
@@ -112,20 +112,16 @@ export default function FeaturedProducts() {
                 fontSize: 13,
                 fontWeight: 700,
                 cursor: sectionCount === 0 ? 'not-allowed' : 'pointer',
-                border: '1.5px solid',
-                borderColor: isActive ? 'transparent' : '#e0e7ff',
-                background: isActive
-                  ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
-                  : sectionCount === 0 ? '#f1f5f9' : 'rgba(255, 255, 255, 0.75)',
-                backdropFilter: isActive ? undefined : 'blur(10px)',
-                color: isActive ? '#fff' : sectionCount === 0 ? '#cbd5e1' : '#0f172a',
-                boxShadow: isActive ? '0 6px 18px -4px rgba(99, 102, 241, 0.40)' : 'none',
-                transition: 'all 0.2s',
+                border: '1px solid',
+                borderColor: isActive ? '#18181b' : '#e4e4e7',
+                background: isActive ? '#18181b' : sectionCount === 0 ? '#fafafa' : '#ffffff',
+                color: isActive ? '#ffffff' : sectionCount === 0 ? '#d4d4d8' : '#09090b',
+                transition: 'all 0.15s',
                 display: 'inline-flex', alignItems: 'center', gap: 7,
                 letterSpacing: '-0.01em',
               }}
             >
-              <span style={{ fontSize: 16 }}>{s.emoji}</span>
+              <span style={{ fontSize: 15 }}>{s.emoji}</span>
               {s.label}
             </button>
           )
@@ -135,7 +131,7 @@ export default function FeaturedProducts() {
       {/* Subcategorías (nivel 2) */}
       <div style={{
         display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18,
-        paddingBottom: 14, borderBottom: '1px solid #e0e7ff',
+        paddingBottom: 14, borderBottom: '1px solid #e4e4e7',
       }}>
         {section.categories.map(c => {
           const isActive = c.key === category?.key
@@ -151,9 +147,9 @@ export default function FeaturedProducts() {
                 fontWeight: 600,
                 cursor: c.products.length === 0 ? 'not-allowed' : 'pointer',
                 border: '1px solid',
-                borderColor: isActive ? '#6366f1' : '#e0e7ff',
-                background: isActive ? '#6366f1' : c.products.length === 0 ? '#f1f5f9' : 'transparent',
-                color: isActive ? '#fff' : c.products.length === 0 ? '#cbd5e1' : '#64748b',
+                borderColor: isActive ? '#09090b' : '#e4e4e7',
+                background: isActive ? '#09090b' : c.products.length === 0 ? '#fafafa' : 'transparent',
+                color: isActive ? '#fff' : c.products.length === 0 ? '#d4d4d8' : '#71717a',
                 transition: 'all 0.15s',
                 display: 'inline-flex', alignItems: 'center', gap: 5,
               }}
@@ -193,37 +189,34 @@ function ProductCard({ result }: { result: SearchResult }) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        background: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid #e0e7ff',
+        background: '#ffffff',
+        border: '1px solid #e4e4e7',
         borderRadius: 16,
         overflow: 'hidden',
         textDecoration: 'none',
         color: 'inherit',
-        boxShadow: '0 1px 3px rgba(99, 102, 241, 0.08)',
-        transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s, border-color 0.2s',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+        transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
         position: 'relative',
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-4px)'
-        ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 14px 32px -10px rgba(99, 102, 241, 0.30)'
-        ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#c7d2fe'
+        (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-3px)'
+        ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 12px 24px -8px rgba(0, 0, 0, 0.12)'
+        ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#d4d4d8'
       }}
       onMouseLeave={e => {
         (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'
-        ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 1px 3px rgba(99, 102, 241, 0.08)'
-        ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#e0e7ff'
+        ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.03)'
+        ;(e.currentTarget as HTMLAnchorElement).style.borderColor = '#e4e4e7'
       }}
     >
       {/* Badge promo */}
       {result.promo_label && (
         <div style={{
           position: 'absolute', top: 8, left: 8, zIndex: 1,
-          background: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+          background: '#09090b',
           color: '#fff', fontSize: 10, fontWeight: 800,
           padding: '3px 9px', borderRadius: 999,
-          boxShadow: '0 3px 10px -2px rgba(236, 72, 153, 0.40)',
           letterSpacing: '-0.01em',
         }}>
           {result.promo_label}
@@ -234,7 +227,7 @@ function ProductCard({ result }: { result: SearchResult }) {
       <div style={{
         height: 130, background: '#ffffff',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 12, borderBottom: '1px solid #f5f3ff',
+        padding: 12, borderBottom: '1px solid #f4f4f5',
       }}>
         {result.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -249,7 +242,7 @@ function ProductCard({ result }: { result: SearchResult }) {
       {/* Info */}
       <div style={{ padding: '12px 13px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
         <p style={{
-          fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: '#0f172a',
+          fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: '#09090b',
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
           overflow: 'hidden', minHeight: 32,
           letterSpacing: '-0.01em',
@@ -265,7 +258,7 @@ function ProductCard({ result }: { result: SearchResult }) {
 
         <div style={{ marginTop: 'auto' }}>
           {result.original_price && (
-            <p className="mono-price" style={{ fontSize: 10, color: '#94a3b8', textDecoration: 'line-through' }}>
+            <p className="mono-price" style={{ fontSize: 10, color: '#a1a1aa', textDecoration: 'line-through' }}>
               {fmt(result.original_price)}
             </p>
           )}
@@ -273,7 +266,7 @@ function ProductCard({ result }: { result: SearchResult }) {
             fontSize: 19,
             fontWeight: 800,
             lineHeight: 1.1,
-            color: '#0f172a',
+            color: '#09090b',
             letterSpacing: '-0.02em',
           }}>{fmt(result.price)}</p>
         </div>

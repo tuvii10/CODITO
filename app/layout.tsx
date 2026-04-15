@@ -50,13 +50,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="color-scheme" content="light" />
       </head>
-      <body style={{ minHeight: '100vh' }}>
-        {/* Header con glass effect */}
+      <body style={{ minHeight: '100vh', background: '#fafafa' }}>
+        {/* Header minimal */}
         <header style={{
-          background: 'rgba(255, 255, 255, 0.75)',
-          backdropFilter: 'blur(18px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-          borderBottom: '1px solid rgba(199, 210, 254, 0.6)',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(14px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(14px) saturate(150%)',
+          borderBottom: '1px solid #e4e4e7',
           position: 'sticky',
           top: 0,
           zIndex: 50,
@@ -84,25 +84,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
             </Link>
 
-            {/* Botón Ofertas — futurista */}
+            {/* Botón Ofertas — negro minimal */}
             <Link href="/ofertas" className="ofertas-header-btn" style={{
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 7,
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
+              gap: 6,
+              background: '#18181b',
               color: '#fff',
               fontWeight: 700,
               fontSize: 13,
               padding: '9px 16px',
               borderRadius: 10,
-              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.35)',
               whiteSpace: 'nowrap',
               flexShrink: 0,
               letterSpacing: '-0.01em',
+              transition: 'background 0.15s',
             }}>
-              <span className="ofertas-header-text-long">Ofertas</span>
-              <span className="ofertas-header-text-short">Ofertas</span>
+              Ofertas
             </Link>
           </div>
         </header>
@@ -118,17 +117,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Footer minimal */}
         <footer style={{
-          background: 'rgba(255, 255, 255, 0.6)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderTop: '1px solid rgba(199, 210, 254, 0.5)',
-          padding: '14px 20px',
+          background: '#ffffff',
+          borderTop: '1px solid #e4e4e7',
+          padding: '16px 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 8,
         }}>
-          <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>
+          <span style={{ fontSize: 11, color: '#71717a', fontWeight: 500 }}>
             Precios orientativos · Verificá siempre en la tienda
           </span>
         </footer>
