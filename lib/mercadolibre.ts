@@ -90,7 +90,38 @@ async function mlFetch<T>(path: string): Promise<T | null> {
 // ─── Public API ────────────────────────────────────────────────────────────
 
 /**
+ * Lista de category IDs que sabemos tienen highlights (las demás no
+ * devuelven data o tiran 404). Si se pide una categoría no soportada,
+ * caemos al parent más cercano.
+ */
+const HIGHLIGHTS_FALLBACK: Record<string, string> = {
+  // Bebidas → Alimentos (parent que sí tiene highlights)
+  MLA178700: 'MLA1403',
+  // Belleza tiene el suyo propio
+  MLA1246: 'MLA1246',
+  // Electro grandes → top level
+  MLA5726: 'MLA5726',
+  // Electrónica AV (tvs, audio)
+  MLA1000: 'MLA1000',
+  // Celulares
+  MLA1051: 'MLA1051',
+  // Computación
+  MLA1648: 'MLA1648',
+  // Ropa
+  MLA1430: 'MLA1430',
+  // Deportes
+  MLA1276: 'MLA1276',
+  // Hogar
+  MLA1574: 'MLA1574',
+  // Herramientas
+  MLA407134: 'MLA407134',
+  // Alimentos (default)
+  MLA1403: 'MLA1403',
+}
+
+/**
  * Busca productos destacados (best sellers) de una categoría de ML.
+ * Si la categoría específica no tiene highlights, prueba con el parent.
  * @param categoryId ID de categoría ML, ej: MLA1403 (Alimentos)
  * @param limit cuántos productos devolver
  */
@@ -98,9 +129,19 @@ export async function fetchMLHighlightsByCategory(
   categoryId: string,
   limit = 15
 ): Promise<SearchResult[]> {
-  const highlights = await mlFetch<MLHighlightResponse>(
-    `/highlights/MLA/category/${categoryId}`
-  )
+  // Probar el category ID pedido, y si no devuelve data, probar el fallback
+  const idsToTry = [categoryId]
+  const fallback = HIGHLIGHTS_FALLBACK[categoryId]
+  if (fallback && fallback !== categoryId) idsToTry.push(fallback)
+  // Si nada funciona, siempre cae a Alimentos como último recurso
+  if (!idsToTry.includes('MLA1403')) idsToTry.push('MLA1403')
+
+  let highlights: MLHighlightResponse | null = null
+  for (const id of idsToTry) {
+    highlights = await mlFetch<MLHighlightResponse>(`/highlights/MLA/category/${id}`)
+    if (highlights?.content && highlights.content.length > 0) break
+  }
+
   if (!highlights?.content || highlights.content.length === 0) return []
 
   const productIds = highlights.content
