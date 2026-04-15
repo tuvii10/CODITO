@@ -264,8 +264,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Productos destacados — solo en estado inicial */}
-      {!searched && <FeaturedProducts />}
+      {/* Productos destacados — temporalmente oculto */}
+      {/* {!searched && <FeaturedProducts />} */}
     </div>
   )
 }
