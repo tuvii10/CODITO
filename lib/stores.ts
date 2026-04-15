@@ -64,13 +64,6 @@ export const STORES: Record<string, StoreConfig> = {
     logo: 'https://www.cooperativaobrera.coop/favicon.ico',
     searchUrl: (q) => `https://www.cooperativaobrera.coop/busca/?fq=ft:${encodeURIComponent(q)}`,
   },
-  'Libertad': {
-    displayName: 'Libertad',
-    color: '#7c3aed',
-    textColor: '#fff',
-    logo: 'https://www.hiperlibertad.com.ar/favicon.ico',
-    searchUrl: (q) => `https://www.hiperlibertad.com.ar/${encodeURIComponent(q)}?_q=${encodeURIComponent(q)}&map=ft`,
-  },
   'Market': {
     displayName: 'Market',
     color: '#0891b2',

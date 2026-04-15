@@ -3,7 +3,10 @@
 import { useState } from 'react'
 import SearchBar from '@/components/SearchBar'
 import ResultsTable from '@/components/ResultsTable'
+import DealsSection from '@/components/DealsSection'
 import { SearchResult } from '@/lib/types'
+
+const STORES = ['Carrefour','Disco','Vea','Chango Más','Walmart','Coto','Frávega','Garbarino','Farmacity','Musimundo','Mercado Libre']
 
 export default function Home() {
   const [results, setResults] = useState<SearchResult[]>([])
@@ -16,7 +19,6 @@ export default function Home() {
     setLoading(true)
     setSearched(true)
     setLastQuery(query)
-
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
@@ -32,10 +34,33 @@ export default function Home() {
     <div>
       {/* Hero */}
       {!searched && (
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-3">¿Cuánto sale hoy?</h2>
-          <p style={{ color: 'var(--muted)' }} className="text-base">
-            Buscá cualquier producto y compará precios en todos los supermercados y Mercado Libre.
+        <div style={{ textAlign: 'center', marginBottom: 40, padding: '0 8px' }}>
+          <div style={{
+            width: 96,
+            height: 96,
+            borderRadius: 24,
+            background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            boxShadow: '0 8px 32px rgba(14,165,233,0.3)',
+            fontSize: 48,
+          }}>🐭</div>
+
+          <h2 style={{
+            fontSize: 'clamp(26px, 6vw, 40px)',
+            fontWeight: 800,
+            marginBottom: 12,
+            background: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+            ¿Cuánto sale hoy?
+          </h2>
+          <p style={{ color: 'var(--muted)', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
+            Buscá cualquier producto y compará precios en supermercados y Mercado Libre.
           </p>
         </div>
       )}
@@ -45,17 +70,19 @@ export default function Home() {
 
       {/* Resultados */}
       {searched && (
-        <div className="mt-8">
+        <div style={{ marginTop: 28 }}>
           {loading ? (
-            <div className="text-center py-16" style={{ color: 'var(--muted)' }}>
-              <div className="text-4xl mb-4 animate-pulse">🔍</div>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
+              <div style={{ fontSize: 40, marginBottom: 16 }}>⏳</div>
               <p>Buscando en supermercados y Mercado Libre...</p>
             </div>
           ) : results.length === 0 ? (
-            <div className="text-center py-16" style={{ color: 'var(--muted)' }}>
-              <div className="text-4xl mb-4">😕</div>
-              <p className="text-lg font-medium mb-1">Sin resultados para &quot;{lastQuery}&quot;</p>
-              <p className="text-sm">Probá con otro nombre o una búsqueda más corta.</p>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--muted)' }}>
+              <div style={{ fontSize: 40, marginBottom: 16 }}>😕</div>
+              <p style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
+                Sin resultados para &quot;{lastQuery}&quot;
+              </p>
+              <p style={{ fontSize: 13 }}>Probá con otro nombre o una búsqueda más corta.</p>
             </div>
           ) : (
             <ResultsTable results={results} query={lastQuery} />
@@ -63,17 +90,26 @@ export default function Home() {
         </div>
       )}
 
-      {/* Tiendas disponibles (solo en inicio) */}
+      {/* Ofertas del día */}
+      {!searched && <DealsSection />}
+
+      {/* Tiendas */}
       {!searched && (
-        <div className="mt-16">
-          <p className="text-center text-sm mb-6" style={{ color: 'var(--muted)' }}>Buscamos en</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {['Carrefour', 'Disco', 'Vea', 'Chango Más', 'Walmart', 'Coto', 'Frávega', 'Garbarino', 'Farmacity', 'Musimundo', 'Mercado Libre'].map(store => (
-              <span
-                key={store}
-                className="px-4 py-2 rounded-full text-sm font-medium"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-              >
+        <div style={{ marginTop: 48, padding: '0 4px' }}>
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>
+            Buscamos en
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+            {STORES.map(store => (
+              <span key={store} style={{
+                padding: '6px 14px',
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 500,
+                background: '#f8fafc',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+              }}>
                 {store}
               </span>
             ))}

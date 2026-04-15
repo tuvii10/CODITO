@@ -22,26 +22,42 @@ export default function ResultsTable({ results, query }: Props) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+        <p style={{ fontSize: 13, color: 'var(--muted)' }}>
           {results.length} resultado{results.length !== 1 ? 's' : ''} para{' '}
-          <strong style={{ color: 'var(--foreground)' }}>&quot;{query}&quot;</strong>
+          <strong style={{ color: 'var(--accent)' }}>&quot;{query}&quot;</strong>
         </p>
-        <div className="flex gap-2 flex-wrap">
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           {(['all', 'vtex', 'mercadolibre', 'searxng'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f as typeof filter)}
-              className="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+            <button key={f} onClick={() => setFilter(f)}
               style={{
-                background: filter === f ? 'var(--accent)' : 'var(--surface)',
+                background: filter === f
+                  ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
+                  : 'rgba(255,255,255,0.8)',
                 color: filter === f ? '#fff' : 'var(--muted)',
                 border: '1px solid var(--border)',
+                borderRadius: 999,
+                padding: '4px 14px',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: filter === f ? '0 2px 12px rgba(14,165,233,0.3)' : 'none',
+                transition: 'all 0.2s',
               }}>
               {f === 'all' ? 'Todos' : f === 'vtex' ? 'Tiendas' : f === 'mercadolibre' ? 'Mercado Libre' : '🌐 Web'}
             </button>
           ))}
           <select value={sortBy} onChange={e => setSortBy(e.target.value as 'price' | 'store')}
-            className="px-3 py-1 rounded-full text-xs"
-            style={{ background: 'var(--surface)', color: 'var(--muted)', border: '1px solid var(--border)' }}>
+            style={{
+              background: 'rgba(255,255,255,0.8)',
+              color: 'var(--muted)',
+              border: '1px solid var(--border)',
+              borderRadius: 999,
+              padding: '4px 14px',
+              fontSize: 12,
+              outline: 'none',
+              cursor: 'pointer',
+            }}>
             <option value="price">Menor precio</option>
             <option value="store">Por tienda</option>
           </select>
@@ -51,26 +67,50 @@ export default function ResultsTable({ results, query }: Props) {
       {/* Banner más barato */}
       {cheapest && (
         <a href={cheapest.url ?? '#'} target="_blank" rel="noopener noreferrer"
-          className="rounded-2xl p-4 mb-5 flex items-center gap-4 hover:opacity-90 transition-opacity cursor-pointer"
-          style={{ background: '#052e16', border: '2px solid var(--accent)', display: 'flex', textDecoration: 'none' }}>
-          <ProductImage result={cheapest} size={64} />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase mb-1" style={{ color: 'var(--accent)' }}>🏆 Más barato</p>
-            <p className="font-semibold text-sm leading-tight" style={{ color: '#fff' }}>{cheapest.name}</p>
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            background: '#f0f9ff',
+            border: '2px solid var(--accent)',
+            borderRadius: 20,
+            padding: '12px 16px',
+            marginBottom: 20,
+            textDecoration: 'none',
+            boxShadow: '0 4px 32px rgba(14,165,233,0.18)',
+            transition: 'transform 0.15s',
+            flexWrap: 'wrap',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
+          onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+        >
+          <ProductImage result={cheapest} size={56} />
+          <div style={{ flex: 1, minWidth: 120 }}>
+            <p style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>
+              🏆 Más barato
+            </p>
+            <p style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3, color: 'var(--foreground)' }}>{cheapest.name}</p>
             <StoreBadge name={cheapest.store_name} logo={cheapest.store_logo} />
           </div>
-          <div className="text-right shrink-0">
-            <p className="text-2xl font-bold" style={{ color: 'var(--accent)' }}>{fmt(cheapest.price)}</p>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <p style={{
+              fontSize: 'clamp(20px, 5vw, 26px)',
+              fontWeight: 800,
+              background: 'linear-gradient(135deg, #0284c7, #0ea5e9)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>{fmt(cheapest.price)}</p>
             {cheapest.price_per_unit && cheapest.unit && (
-              <p className="text-xs" style={{ color: 'var(--muted)' }}>{fmt(cheapest.price_per_unit)} / {cheapest.unit}</p>
+              <p style={{ fontSize: 11, color: 'var(--muted)' }}>{fmt(cheapest.price_per_unit)} / {cheapest.unit}</p>
             )}
-            <p className="text-xs mt-1" style={{ color: 'var(--accent)' }}>Ver producto →</p>
+            <p style={{ fontSize: 12, color: 'var(--accent)', marginTop: 4, fontWeight: 600 }}>Ver producto →</p>
           </div>
         </a>
       )}
 
       {/* Cards */}
-      <div className="grid gap-3">
+      <div style={{ display: 'grid', gap: 10 }}>
         {filtered.map((result, i) => (
           <ProductCard key={result.id} result={result} rank={i + 1} isCheapest={i === 0} />
         ))}
@@ -85,55 +125,103 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
       href={result.url ?? '#'}
       target="_blank"
       rel="noopener noreferrer"
-      className="rounded-2xl flex items-center overflow-hidden transition-all hover:opacity-90"
       style={{
-        background: 'var(--surface)',
-        border: `1px solid ${isCheapest ? 'var(--accent)' : 'var(--border)'}`,
+        display: 'flex',
+        alignItems: 'center',
+        overflow: 'hidden',
+        background: '#ffffff',
+        border: `1.5px solid ${isCheapest ? 'var(--accent)' : 'var(--border)'}`,
+        borderRadius: 16,
         textDecoration: 'none',
         color: 'inherit',
+        boxShadow: isCheapest
+          ? '0 2px 12px rgba(14,165,233,0.12)'
+          : '0 1px 4px rgba(0,0,0,0.05)',
+        transition: 'transform 0.15s, box-shadow 0.15s',
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'
+        ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.10)'
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'
+        ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = isCheapest
+          ? '0 2px 12px rgba(14,165,233,0.12)'
+          : '0 1px 4px rgba(0,0,0,0.05)'
       }}
     >
-      {/* Imagen cuadrada */}
-      <div className="w-24 h-24 shrink-0 flex items-center justify-center"
-        style={{ background: result.source === 'mercadolibre' ? '#fff' : '#1a1a1a' }}>
-        <ProductImage result={result} size={80} />
+      {/* Imagen */}
+      <div style={{
+        width: 72,
+        height: 72,
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: result.source === 'mercadolibre' ? '#fff' : '#f0f9ff',
+        borderRight: '1px solid var(--border)',
+        alignSelf: 'stretch',
+      }}>
+        <ProductImage result={result} size={56} />
       </div>
 
       {/* Info */}
-      <div className="flex-1 min-w-0 px-4 py-3">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-bold" style={{ color: isCheapest ? 'var(--accent)' : 'var(--muted)' }}>
-            #{rank}
-          </span>
-          <p className="font-semibold text-sm leading-snug line-clamp-2">{result.name}</p>
+      <div style={{ flex: 1, minWidth: 0, padding: '8px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+          <span style={{
+            fontSize: 11,
+            fontWeight: 800,
+            color: isCheapest ? 'var(--accent)' : 'var(--muted)',
+            flexShrink: 0,
+            marginTop: 1,
+          }}>#{rank}</span>
+          <p style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3 }} className="line-clamp-2">{result.name}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
           <StoreBadge name={result.store_name} logo={result.store_logo} />
           {result.brand && result.brand !== result.store_name && (
-            <span className="text-xs px-2 py-0.5 rounded-full"
-              style={{ background: 'var(--border)', color: 'var(--muted)' }}>
-              {result.brand}
-            </span>
+            <span style={{
+              fontSize: 11,
+              padding: '2px 6px',
+              borderRadius: 999,
+              background: '#e0f2fe',
+              color: 'var(--muted)',
+            }}>{result.brand}</span>
           )}
           {result.seller && (
-            <span className="text-xs" style={{ color: 'var(--muted)' }}>por {result.seller}</span>
+            <span style={{ fontSize: 11, color: 'var(--muted)' }}>por {result.seller}</span>
           )}
-          <span className="text-xs px-2 py-0.5 rounded-full"
-            style={{ background: 'var(--border)', color: 'var(--muted)' }}>
-            {result.source === 'mercadolibre' ? 'ML' : result.source === 'searxng' ? '🌐 Web' : 'Tienda oficial'}
+          <span style={{
+            fontSize: 11,
+            padding: '2px 6px',
+            borderRadius: 999,
+            background: '#e0f2fe',
+            color: 'var(--muted)',
+          }}>
+            {result.source === 'mercadolibre' ? 'ML' : result.source === 'searxng' ? '🌐 Web' : 'Oficial'}
           </span>
         </div>
       </div>
 
       {/* Precio */}
-      <div className="text-right pr-5 shrink-0">
-        <p className="text-xl font-bold">{fmt(result.price)}</p>
+      <div style={{ textAlign: 'right', padding: '8px 14px 8px 4px', flexShrink: 0 }}>
+        <p style={{
+          fontSize: 'clamp(16px, 4vw, 20px)',
+          fontWeight: 800,
+          background: isCheapest
+            ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
+            : 'none',
+          WebkitBackgroundClip: isCheapest ? 'text' : undefined,
+          WebkitTextFillColor: isCheapest ? 'transparent' : 'var(--foreground)',
+          backgroundClip: isCheapest ? 'text' : undefined,
+          whiteSpace: 'nowrap',
+        }}>{fmt(result.price)}</p>
         {result.price_per_unit && result.unit && (
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+          <p style={{ fontSize: 10, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
             {fmt(result.price_per_unit)} / {result.unit}
           </p>
         )}
-        <p className="text-xs mt-1 font-medium" style={{ color: 'var(--accent)' }}>Ver →</p>
+        <p style={{ fontSize: 11, marginTop: 2, fontWeight: 600, color: 'var(--accent)' }}>Ver →</p>
       </div>
     </a>
   )
@@ -154,7 +242,6 @@ function ProductImage({ result, size }: { result: SearchResult; size: number }) 
       />
     )
   }
-  // Sin imagen: mostrar logo de tienda grande
   const cfg = getStoreConfig(result.store_name)
   if (cfg.logo) {
     return (
@@ -170,14 +257,23 @@ function ProductImage({ result, size }: { result: SearchResult; size: number }) 
       />
     )
   }
-  return <span className="text-3xl opacity-20">🛒</span>
+  return <span style={{ fontSize: 28, opacity: 0.2 }}>🛒</span>
 }
 
 function StoreBadge({ name, logo }: { name: string; logo: string | null }) {
   const cfg = getStoreConfig(name)
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
-      style={{ background: cfg.color, color: cfg.textColor }}>
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      fontSize: 11,
+      fontWeight: 700,
+      padding: '2px 8px',
+      borderRadius: 999,
+      background: cfg.color,
+      color: cfg.textColor,
+    }}>
       {(logo || cfg.logo) && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -185,8 +281,7 @@ function StoreBadge({ name, logo }: { name: string; logo: string | null }) {
           alt=""
           width={12}
           height={12}
-          className="object-contain rounded-sm"
-          style={{ width: 12, height: 12 }}
+          style={{ width: 12, height: 12, objectFit: 'contain', borderRadius: 2 }}
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
       )}

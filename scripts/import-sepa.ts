@@ -30,7 +30,6 @@ const BANDERA_MAP: Record<string, string> = {
   'Vea':                  'Vea',
   'La Anonima':           'La Anónima',
   'Market':               'Market',
-  'Hipermercado Libertad':'Libertad',
   'Cooperativa Obrera Limitada de Consumo y Vivienda': 'Cooperativa Obrera',
 }
 
