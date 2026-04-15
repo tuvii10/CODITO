@@ -375,53 +375,98 @@ async function fetchVtexDeals(query: string, category: string): Promise<Deal[]> 
  * o `verified=false` con `cheapest_alt` si otro es más barato.
  * Devuelve null si se encontró el mismo producto más barato en otro lado.
  */
+async function searchMLForVerification(query: string): Promise<{ name: string; price: number }[]> {
+  try {
+    const slug = query.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')
+    const res = await fetch(`https://listado.mercadolibre.com.ar/${encodeURIComponent(slug)}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html',
+      },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) return []
+    const html = await res.text()
+    // Extraer product_list embebido en el HTML
+    const startStr = '"product_list":['
+    const start = html.indexOf(startStr)
+    if (start === -1) return []
+    const dataStart = start + startStr.length
+    let depth = 1, i = dataStart
+    while (i < html.length && depth > 0) {
+      if (html[i] === '[') depth++
+      else if (html[i] === ']') depth--
+      i++
+    }
+    const raw = html.slice(dataStart, i - 1).replace(/\\u002F/g, '/').replace(/\\u0026/g, '&')
+    const items: { name: string; item_offered?: { price: number } }[] = JSON.parse('[' + raw + ']')
+    return items
+      .filter(it => it.name && it.item_offered?.price && it.item_offered.price > 0)
+      .slice(0, 10)
+      .map(it => ({ name: it.name, price: it.item_offered!.price }))
+  } catch {
+    return []
+  }
+}
+
 async function verifyDeal(deal: Deal): Promise<Deal | null> {
   const query = toSearchQuery(deal.name)
   if (!query) return { ...deal, verified: false, cheapest_alt: null }
 
-  // Buscar en todas las tiendas excepto la propia
-  const storeNames = VTEX_SUPERMARKETS.map(s => s.name)
-  const competitorStores = storeNames.filter(s => s !== deal.store_name)
+  // Buscar en todas las tiendas VTEX competidoras + Mercado Libre en paralelo
+  const competitorStores = VTEX_SUPERMARKETS.filter(s => s.name !== deal.store_name)
 
-  const searches = await Promise.allSettled(
-    competitorStores.map(storeName => {
-      const store = VTEX_SUPERMARKETS.find(s => s.name === storeName)!
-      return vtexSearch(store.domain, query)
-    })
-  )
+  const [vtexSearches, mlProducts] = await Promise.allSettled([
+    Promise.allSettled(competitorStores.map(store => vtexSearch(store.domain, query))),
+    searchMLForVerification(query),
+  ])
 
-  const allCompetitorProducts = searches
-    .filter(r => r.status === 'fulfilled')
-    .flatMap(r => (r as PromiseFulfilledResult<{ name: string; price: number }[]>).value)
+  const vtexCompetitors = vtexSearches.status === 'fulfilled'
+    ? vtexSearches.value
+        .filter(r => r.status === 'fulfilled')
+        .flatMap(r => (r as PromiseFulfilledResult<{ name: string; price: number }[]>).value)
+    : []
 
-  // Filtrar por similitud de nombre (umbral: 50% para ser más estricto)
+  const mlCompetitors = mlProducts.status === 'fulfilled' ? mlProducts.value : []
+
+  const allCompetitorProducts = [...vtexCompetitors, ...mlCompetitors]
+
+  // Filtrar por similitud de nombre — umbral 50%
   const SIMILARITY_THRESHOLD = 0.50
   const matching = allCompetitorProducts.filter(
     c => nameSimilarity(deal.name, c.name) >= SIMILARITY_THRESHOLD && c.price > 0
   )
 
-  if (matching.length === 0) {
-    // No lo encontramos en otras tiendas → aceptamos solo si el descuento es muy fuerte
-    // (>=25%) y asumimos que es una oferta exclusiva legítima
-    if (deal.discount_pct >= 25) {
-      return { ...deal, verified: false, cheapest_alt: null }
+  if (matching.length < 2) {
+    // Necesitamos al menos 2 competidores comparables para verificar
+    // (con 1 solo puede ser coincidencia o error)
+    if (deal.discount_pct >= 30 && matching.length >= 1 && deal.price < matching[0].price) {
+      // Oferta fuerte (>=30%) + un competidor que la confirma como más cara
+      return { ...deal, verified: false, cheapest_alt: matching[0]?.price ?? null }
     }
-    // Descuento menor a 25% sin poder verificar → rechazar para no mentir
     return null
   }
 
-  const cheapestAlt = Math.min(...matching.map(m => m.price))
+  // Calcular la mediana de los competidores (más robusto que el mínimo)
+  const sorted = matching.map(m => m.price).sort((a, b) => a - b)
+  const cheapestAlt = sorted[0]
+  const medianAlt = sorted[Math.floor(sorted.length / 2)]
 
-  // Tolerancia de 3% — aceptamos diferencias mínimas por variaciones de stock/envío
+  // Tolerancia del 3%
   const tolerance = cheapestAlt * 0.03
 
-  if (deal.price <= cheapestAlt + tolerance) {
-    // El precio con descuento ES (prácticamente) el más barato del mercado
-    return { ...deal, verified: true, cheapest_alt: cheapestAlt }
-  } else {
-    // Hay alguien significativamente más barato → este "descuento" no es real
-    return null
+  // Debe ser el más barato (con tolerancia) Y
+  // debe ser significativamente más barato que la mediana (al menos 5%)
+  // para garantizar que el descuento es REAL
+  const isCheapest = deal.price <= cheapestAlt + tolerance
+  const isSignificantlyBelowMedian = deal.price < medianAlt * 0.95
+
+  if (isCheapest && isSignificantlyBelowMedian) {
+    return { ...deal, verified: true, cheapest_alt: medianAlt }
   }
+
+  // Hay alguien más barato o el descuento no es significativo → rechazar
+  return null
 }
 
 // ─── Entrypoint ────────────────────────────────────────────────────────────

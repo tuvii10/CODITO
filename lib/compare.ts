@@ -143,15 +143,26 @@ export function applyCrossSellerDiscounts(results: SearchResult[]): SearchResult
 }
 
 /**
- * Deduplica productos similares y deja solo el más barato de cada grupo.
- * Usa un umbral de similitud más estricto (0.60) para evitar agrupar
- * productos que no son realmente el mismo (ej: Coca 2.25L vs Coca 1.5L).
+ * Deduplica productos similares y deja solo el más barato POR FUENTE de cada grupo.
+ * Así, si Coca 2.25L está en 5 tiendas VTEX y 3 vendedores de ML,
+ * queda el más barato de VTEX + el más barato de ML (2 productos en total).
+ * Esto preserva la variedad entre fuentes en vez de colapsar todo a una.
  */
 export function deduplicateToCheapest(results: SearchResult[]): SearchResult[] {
   const groups = groupSimilarProducts(results, 0.60)
-  return groups.map(group =>
-    group.reduce((cheapest, current) =>
-      current.price < cheapest.price ? current : cheapest
-    )
-  )
+  const output: SearchResult[] = []
+
+  for (const group of groups) {
+    // Por cada grupo, quedarse con el más barato de cada fuente
+    const bySource = new Map<string, SearchResult>()
+    for (const r of group) {
+      const existing = bySource.get(r.source)
+      if (!existing || r.price < existing.price) {
+        bySource.set(r.source, r)
+      }
+    }
+    for (const r of bySource.values()) output.push(r)
+  }
+
+  return output
 }
