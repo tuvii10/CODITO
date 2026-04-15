@@ -22,20 +22,45 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 
 async function testSearchApi(domain: string, query: string) {
   try {
-    const url = `https://${domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=1`
+    const url = `https://${domain}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=0&_to=3`
     const res = await fetch(url, {
       headers: { Accept: 'application/json', 'User-Agent': UA },
       cache: 'no-store',
       signal: AbortSignal.timeout(8000),
     })
     const text = await res.text()
+    let parsed: unknown = null
+    try { parsed = JSON.parse(text) } catch {}
+
+    type SearchProduct = {
+      productName?: string
+      items?: Array<{
+        sellers?: Array<{
+          commertialOffer?: Record<string, unknown>
+        }>
+      }>
+    }
+
+    const products: Array<{ name: string; Price: unknown; Teasers: unknown }> = []
+    if (Array.isArray(parsed)) {
+      for (const prod of parsed as SearchProduct[]) {
+        const offer = prod.items?.[0]?.sellers?.[0]?.commertialOffer
+        if (offer) {
+          products.push({
+            name: prod.productName ?? '',
+            Price: offer.Price,
+            Teasers: offer.Teasers,
+          })
+        }
+      }
+    }
+
     return {
       endpoint: 'search',
       url,
       status: res.status,
-      has_teasers: /"Teasers":\s*\[\s*\{/.test(text),
-      has_promo_mention: /2do|3x|llevando|\bpromo/i.test(text),
       length: text.length,
+      products,
     }
   } catch (err) {
     return { endpoint: 'search', error: String(err) }
@@ -137,7 +162,7 @@ export async function GET(req: NextRequest) {
   ])
 
   return NextResponse.json({
-    version: 'v4-discount-highlights',
+    version: 'v5-teaser-structure',
     store,
     query,
     slug,
