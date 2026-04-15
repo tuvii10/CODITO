@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SearchResult } from '@/lib/types'
 import { getStoreConfig } from '@/lib/stores'
+import PriceSparkline from './PriceSparkline'
 
 type Props = {
   results: SearchResult[]
@@ -10,10 +11,29 @@ type Props = {
   onClear?: () => void
 }
 
+type DollarRates = { blue: number | null; oficial: number | null; mep: number | null }
+
 export default function ResultsTable({ results, query, onClear }: Props) {
   const [filter, setFilter] = useState<'all' | 'vtex' | 'mercadolibre' | 'searxng'>('all')
   const [sortBy, setSortBy] = useState<'price' | 'store'>('price')
   const [shared, setShared] = useState(false)
+  const [showUsd, setShowUsd] = useState(false)
+  const [dolarType, setDolarType] = useState<'blue' | 'oficial' | 'mep'>('blue')
+  const [rates, setRates] = useState<DollarRates>({ blue: null, oficial: null, mep: null })
+  const [ratesLoaded, setRatesLoaded] = useState(false)
+
+  useEffect(() => {
+    if (!showUsd || ratesLoaded) return
+    fetch('/api/dolares')
+      .then(r => r.json())
+      .then((data: DollarRates) => {
+        setRates(data)
+        setRatesLoaded(true)
+      })
+      .catch(() => setRatesLoaded(true))
+  }, [showUsd, ratesLoaded])
+
+  const rate = rates[dolarType]
 
   const filtered = results
     .filter(r => filter === 'all' || r.source === filter)
@@ -99,7 +119,63 @@ export default function ResultsTable({ results, query, onClear }: Props) {
           <option value="price">Menor precio</option>
           <option value="store">Por tienda</option>
         </select>
+
+        {/* Toggle USD */}
+        <button
+          onClick={() => setShowUsd(v => !v)}
+          style={{
+            background: showUsd ? 'linear-gradient(135deg, #16a34a, #22c55e)' : 'rgba(255,255,255,0.8)',
+            color: showUsd ? '#fff' : '#16a34a',
+            border: '1px solid #bbf7d0',
+            borderRadius: 999,
+            padding: '5px 14px',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            minHeight: 32,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+          }}>
+          💵 {showUsd ? 'Ocultar USD' : 'Ver en USD'}
+        </button>
       </div>
+
+      {/* Selector dólar (solo cuando showUsd) */}
+      {showUsd && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: 14,
+          padding: '10px 14px',
+          background: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: 12,
+          flexWrap: 'wrap',
+        }}>
+          <span style={{ fontSize: 12, color: '#15803d', fontWeight: 700 }}>Cotización:</span>
+          {(['blue', 'oficial', 'mep'] as const).map(t => (
+            <button key={t} onClick={() => setDolarType(t)} style={{
+              background: dolarType === t ? '#16a34a' : 'transparent',
+              color: dolarType === t ? '#fff' : '#15803d',
+              border: `1px solid ${dolarType === t ? '#16a34a' : '#86efac'}`,
+              borderRadius: 999,
+              padding: '3px 12px',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}>
+              {t === 'blue' ? 'Blue' : t === 'oficial' ? 'Oficial' : 'MEP'}
+              {rates[t] ? ` $${rates[t]}` : ''}
+            </button>
+          ))}
+          <span style={{ fontSize: 11, color: '#86efac', marginLeft: 'auto' }}>
+            Precios convertidos al tipo de cambio seleccionado
+          </span>
+        </div>
+      )}
 
       {/* Banner más barato — protagonista, dorado y llamativo */}
       {cheapest && (
@@ -159,6 +235,11 @@ export default function ResultsTable({ results, query, onClear }: Props) {
               color: '#0284c7',
               lineHeight: 1,
             }}>{fmt(cheapest.price)}</p>
+            {showUsd && rate && (
+              <p style={{ fontSize: 13, color: '#16a34a', fontWeight: 800, marginTop: 2 }}>
+                ≈ {fmtUsd(cheapest.price, rate)}
+              </p>
+            )}
             {cheapest.original_price && cheapest.original_price > cheapest.price && (
               <>
                 <p style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'line-through', marginTop: 2 }}>
@@ -177,17 +258,26 @@ export default function ResultsTable({ results, query, onClear }: Props) {
         </a>
       )}
 
+      {/* Sparkline de historial de precios */}
+      <PriceSparkline query={query} />
+
       {/* Cards */}
-      <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
         {filtered.map((result, i) => (
-          <ProductCard key={result.id} result={result} rank={i + 1} isCheapest={i === 0} />
+          <ProductCard key={result.id} result={result} rank={i + 1} isCheapest={i === 0} showUsd={showUsd} rate={rate} />
         ))}
       </div>
     </div>
   )
 }
 
-function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank: number; isCheapest: boolean }) {
+function ProductCard({ result, rank, isCheapest, showUsd, rate }: {
+  result: SearchResult
+  rank: number
+  isCheapest: boolean
+  showUsd: boolean
+  rate: number | null
+}) {
   return (
     <a
       href={result.url ?? '#'}
@@ -278,6 +368,11 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
           backgroundClip: isCheapest ? 'text' : undefined,
           whiteSpace: 'nowrap',
         }}>{fmt(result.price)}</p>
+        {showUsd && rate && (
+          <p style={{ fontSize: 11, color: '#16a34a', fontWeight: 700, whiteSpace: 'nowrap', marginTop: 1 }}>
+            💵 {fmtUsd(result.price, rate)}
+          </p>
+        )}
         {result.original_price && result.original_price > result.price && (
           <>
             <p style={{ fontSize: 10, color: '#94a3b8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
@@ -354,4 +449,11 @@ function fmt(n: number) {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency', currency: 'ARS', maximumFractionDigits: 0,
   }).format(n)
+}
+
+function fmtUsd(ars: number, rate: number) {
+  const usd = ars / rate
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD', maximumFractionDigits: 2,
+  }).format(usd)
 }

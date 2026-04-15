@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { searchVtex } from '@/lib/vtex'
 import { searchCoto } from '@/lib/coto'
 import { searchSuperPrecio } from '@/lib/superprecio'
@@ -55,6 +56,9 @@ export async function GET(req: NextRequest) {
 
   const results = [...allWithPrice, ...allWithoutPrice]
 
+  // Guardar historial (fire-and-forget, no bloqueamos la respuesta)
+  recordPriceHistory(query, allWithPrice).catch(() => {})
+
   return NextResponse.json({
     results,
     total: results.length,
@@ -65,7 +69,35 @@ export async function GET(req: NextRequest) {
       superprecio: sp.length,
       web: webFiltered.length,
     },
+  }, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
   })
+}
+
+// ─── Historial de precios ─────────────────────────────────────────────────────
+
+async function recordPriceHistory(query: string, results: SearchResult[]) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key || results.length === 0) return
+
+  const supabase = createClient(url, key)
+  const normalizedQuery = query.toLowerCase().trim()
+
+  // Solo guardamos los 5 más baratos para no llenar la tabla
+  const rows = results.slice(0, 5).map(r => ({
+    query: normalizedQuery,
+    store_name: r.store_name,
+    product_name: r.name.slice(0, 200),
+    price: r.price,
+    url: r.url ?? null,
+  }))
+
+  await supabase.from('price_history').insert(rows)
 }
 
 // ─── Relevancia ───────────────────────────────────────────────────────────────

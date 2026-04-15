@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codito</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fafafa;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-title {
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    .header-sub {
+      color: rgba(255,255,255,0.85);
+      font-size: 11px;
+      margin-top: 1px;
+    }
+
+    .search-area {
+      padding: 12px 14px;
+      background: #fff;
+      border-bottom: 1px solid #f4f4f5;
+      display: flex;
+      gap: 8px;
+    }
+    .search-input {
+      flex: 1;
+      border: 1.5px solid #e4e4e7;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      outline: none;
+      color: #09090b;
+    }
+    .search-input:focus { border-color: #0284c7; }
+    .search-btn {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #results {
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      text-decoration: none;
+      color: inherit;
+      border-bottom: 1px solid #f4f4f5;
+      background: #fff;
+      cursor: pointer;
+    }
+    .result-item:hover { background: #f8fafc; }
+    .rank {
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      width: 18px;
+      flex-shrink: 0;
+    }
+    .rank.best { color: #0284c7; }
+    .info { flex: 1; min-width: 0; }
+    .name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #09090b;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .store { font-size: 11px; color: #71717a; margin-top: 1px; }
+    .price {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0284c7;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #loading, #empty, #error {
+      padding: 28px 14px;
+      text-align: center;
+      color: #71717a;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    .footer {
+      padding: 8px 14px;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      background: #fafafa;
+      border-top: 1px solid #f4f4f5;
+    }
+    .footer a { color: #0284c7; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="header-title">🛒 Codito</div>
+      <div class="header-sub">El precio más bajo de Argentina</div>
+    </div>
+  </div>
+
+  <div class="search-area">
+    <input id="search-input" class="search-input" type="text" placeholder="Buscar producto..." />
+    <button id="search-btn" class="search-btn">Buscar</button>
+  </div>
+
+  <div id="results">
+    <div id="loading" style="display:none">Buscando precios...</div>
+    <div id="empty" style="display:none">No se encontraron resultados.</div>
+    <div id="error" style="display:none">Error al conectar con Codito.</div>
+  </div>
+
+  <div class="footer">
+    <a href="https://codito.com.ar" target="_blank">codito.com.ar</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

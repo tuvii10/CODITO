@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Codito — Comparador de precios",
+  "short_name": "Codito",
+  "version": "1.0.0",
+  "description": "Buscá cualquier producto que estés viendo y Codito te muestra dónde está más barato en Argentina.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    },
+    "default_title": "Codito — Comparar precio"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.mercadolibre.com.ar/*",
+        "*://*.fravega.com/*",
+        "*://*.garbarino.com/*",
+        "*://*.musimundo.com/*",
+        "*://*.carrefour.com.ar/*",
+        "*://*.coto.com.ar/*",
+        "*://*.jumbo.com.ar/*",
+        "*://*.disco.com.ar/*",
+        "*://*.vea.com.ar/*",
+        "*://*.walmart.com.ar/*",
+        "*://*.easy.com.ar/*",
+        "*://*.sodimac.com.ar/*",
+        "*://*.falabella.com.ar/*",
+        "*://*.tiendamia.com/*",
+        "*://*.amazon.com.ar/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://codito.com.ar/*"
+  ]
+}
