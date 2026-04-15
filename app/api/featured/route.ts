@@ -5,14 +5,14 @@ import { fetchMLHighlightsByCategory } from '@/lib/mercadolibre'
 import { applyCrossSellerDiscounts, deduplicateToCheapest } from '@/lib/compare'
 import { SearchResult } from '@/lib/types'
 
-// 12 horas de cache. El pipeline hace muchas requests a tiendas VTEX
-// y la regeneración es costosa, así que cacheamos agresivamente.
-// Next.js usa stale-while-revalidate, así que los usuarios siempre
-// ven algo (incluso cuando la regeneración está corriendo en background).
+// Runtime Node.js (no Edge) — necesitamos fetch normal sin limitaciones
+export const runtime = 'nodejs'
+
+// 12 horas de cache + stale-while-revalidate
 export const revalidate = 43200
 
-// Hasta 60 segundos para regenerar (requiere plan Pro de Vercel,
-// en Hobby el máximo es 10s, ver vercel.json si corresponde)
+// Hasta 60 segundos para regenerar (Vercel Pro). En Hobby el máximo
+// real es ~10s, pero el pipeline está optimizado para entrar en ese margen.
 export const maxDuration = 60
 
 type Category = {
@@ -313,30 +313,31 @@ function passesFilter(name: string, category: Category): boolean {
 }
 
 async function searchCategory(category: Category): Promise<SearchResult[]> {
-  // 1. Juntar pool de queries: solo la principal + 1 extra para no saturar
-  const queries = [category.query, ...(category.extraQueries ?? [])].slice(0, 2)
+  // Estrategia: UNA request por fuente, máximo 3 fuentes en paralelo.
+  //
+  // 1. SuperPrecio: 1 call devuelve productos de Coto, DIA, Cordiez, etc
+  // 2. ML highlights: 1 call devuelve best sellers de la categoría
+  // 3. VTEX lite: 1 call con la query principal a 15 tiendas (solo si las
+  //    otras fuentes no devolvieron suficiente)
+  //
+  // Total: 3 requests por categoría × 26 categorías = ~78 requests en total
+  // que es perfectamente manejable dentro del límite de Vercel.
 
-  // 2. SuperPrecio se llama UNA sola vez con la query principal (no por cada extra)
-  //    VTEX se llama por cada query pero usando la versión lite (15 tiendas)
-  const [queryResults, superPrecioResult] = await Promise.all([
-    Promise.allSettled(queries.map(q => searchVtexLite(q))),
+  const [spResult, mlResult, vtexResult] = await Promise.allSettled([
     category.useSuperPrecio
-      ? searchSuperPrecio(category.query, 20).catch(() => [] as SearchResult[])
+      ? searchSuperPrecio(category.query, 25)
       : Promise.resolve([] as SearchResult[]),
+    category.ml_category_id
+      ? fetchMLHighlightsByCategory(category.ml_category_id, 12)
+      : Promise.resolve([] as SearchResult[]),
+    searchVtexLite(category.query),
   ])
 
-  // 3. ML highlights por categoría (independiente de las queries)
-  const mlRes = await (category.ml_category_id
-    ? fetchMLHighlightsByCategory(category.ml_category_id, 12).catch(() => [] as SearchResult[])
-    : Promise.resolve([] as SearchResult[]))
+  const sp = spResult.status === 'fulfilled' ? spResult.value : []
+  const ml = mlResult.status === 'fulfilled' ? mlResult.value : []
+  const vtex = vtexResult.status === 'fulfilled' ? vtexResult.value : []
 
-  // 4. Juntar todos los resultados
-  const allRaw: SearchResult[] = []
-  for (const r of queryResults) {
-    if (r.status === 'fulfilled') allRaw.push(...r.value)
-  }
-  allRaw.push(...superPrecioResult)
-  allRaw.push(...mlRes)
+  const allRaw: SearchResult[] = [...sp, ...vtex, ...ml]
 
   // 5. Dedupe por URL
   const seen = new Set<string>()
@@ -382,6 +383,7 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
 }
 
 export async function GET() {
+  const started = Date.now()
   try {
     const allQueries = SECTIONS.flatMap(s =>
       s.categories.map(c => ({ section: s.key, category: c }))
@@ -392,12 +394,16 @@ export async function GET() {
     )
 
     const productsByKey = new Map<string, SearchResult[]>()
+    let totalProducts = 0
+    let emptyCategories = 0
     allQueries.forEach((q, i) => {
       const key = `${q.section}/${q.category.key}`
       const value = results[i].status === 'fulfilled'
         ? (results[i] as PromiseFulfilledResult<SearchResult[]>).value
         : []
       productsByKey.set(key, value)
+      totalProducts += value.length
+      if (value.length === 0) emptyCategories++
     })
 
     const sections = SECTIONS.map(s => ({
@@ -413,11 +419,26 @@ export async function GET() {
       })),
     }))
 
+    const duration = Date.now() - started
+    console.log('[FEATURED]', JSON.stringify({
+      duration_ms: duration,
+      total_products: totalProducts,
+      empty_categories: emptyCategories,
+      total_categories: allQueries.length,
+    }))
+
     return NextResponse.json({
       sections,
       updated_at: new Date().toISOString(),
+      total_products: totalProducts,
+      duration_ms: duration,
     })
-  } catch {
-    return NextResponse.json({ sections: [], updated_at: null }, { status: 500 })
+  } catch (err) {
+    console.error('[FEATURED] ERROR', err)
+    return NextResponse.json({
+      sections: [],
+      updated_at: null,
+      error: String(err),
+    }, { status: 500 })
   }
 }
