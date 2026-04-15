@@ -59,10 +59,10 @@ export default function SearchBar({ onSearch, loading }: Props) {
   return (
     <div>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Fila de inputs */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-
           {/* Producto */}
-          <div style={{ flex: '2 1 180px', position: 'relative' }}>
+          <div style={{ flex: '2 1 220px', position: 'relative', minWidth: 0 }}>
             <label style={labelStyle}>Producto</label>
             <input
               type="text"
@@ -76,7 +76,7 @@ export default function SearchBar({ onSearch, loading }: Props) {
           </div>
 
           {/* Modelo */}
-          <div style={{ flex: '1.5 1 140px', position: 'relative' }}>
+          <div style={{ flex: '1.5 1 160px', position: 'relative', minWidth: 0 }}>
             <label style={{ ...labelStyle, color: '#4d7fa8' }}>
               Modelo / Marca{' '}
               <span style={{ fontWeight: 400, textTransform: 'none' }}>(opcional)</span>
@@ -90,33 +90,33 @@ export default function SearchBar({ onSearch, loading }: Props) {
               style={inputStyle}
             />
           </div>
-
-          {/* Botón */}
-          <button
-            type="submit"
-            disabled={loading || !canSearch}
-            style={{
-              flex: '0 0 auto',
-              alignSelf: 'stretch',
-              background: loading || !canSearch
-                ? '#bfdbfe'
-                : 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 12,
-              padding: '0 26px',
-              fontWeight: 700,
-              fontSize: 15,
-              cursor: loading || !canSearch ? 'not-allowed' : 'pointer',
-              boxShadow: loading || !canSearch ? 'none' : '0 4px 16px rgba(2,132,199,0.35)',
-              whiteSpace: 'nowrap',
-              minHeight: 46,
-              transition: 'all 0.2s',
-            }}
-          >
-            {loading ? 'Buscando...' : '🔍 Buscar'}
-          </button>
         </div>
+
+        {/* Botón full width para mejor mobile */}
+        <button
+          type="submit"
+          disabled={loading || !canSearch}
+          style={{
+            width: '100%',
+            background: loading || !canSearch
+              ? '#bfdbfe'
+              : 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 12,
+            padding: '14px 26px',
+            fontWeight: 800,
+            fontSize: 15,
+            cursor: loading || !canSearch ? 'not-allowed' : 'pointer',
+            boxShadow: loading || !canSearch ? 'none' : '0 4px 16px rgba(2,132,199,0.35)',
+            whiteSpace: 'nowrap',
+            minHeight: 50,
+            transition: 'all 0.2s',
+            letterSpacing: '0.02em',
+          }}
+        >
+          {loading ? 'Buscando...' : '🔍 Buscar el mejor precio'}
+        </button>
       </form>
 
       {/* Sugerencias */}

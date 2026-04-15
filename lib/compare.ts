@@ -91,7 +91,7 @@ export function applyCrossSellerDiscounts(results: SearchResult[]): SearchResult
       // Si el promo_label viene de un teaser real (no termina en "%" solo),
       // lo mantenemos. Los "-X%" planos los tiramos porque son ListPrice fake.
       for (const r of group) {
-        const isRealTeaser = r.promo_label && !/^-\d+%$/.test(r.promo_label)
+        const isRealTeaser = r.is_real_promo === true
         output.push({
           ...r,
           promo_label: isRealTeaser ? r.promo_label : null,
@@ -107,7 +107,7 @@ export function applyCrossSellerDiscounts(results: SearchResult[]): SearchResult
       const otherPrices = group.filter(g => g !== r).map(g => g.price)
       const refPrice = median(otherPrices)
 
-      const isRealTeaser = r.promo_label && !/^-\d+%$/.test(r.promo_label)
+      const isRealTeaser = r.is_real_promo === true
 
       // Si el producto tiene un teaser real (2x1, 4x3), lo conservamos
       if (isRealTeaser) {

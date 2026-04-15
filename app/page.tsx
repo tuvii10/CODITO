@@ -38,12 +38,18 @@ export default function Home() {
           <img
             src="/logo.png"
             alt="Codito"
-            style={{ height: 110, width: 'auto', margin: '0 auto 6px', display: 'block' }}
+            style={{
+              height: 'clamp(140px, 22vw, 200px)',
+              width: 'auto',
+              margin: '0 auto 8px',
+              display: 'block',
+              filter: 'drop-shadow(0 6px 20px rgba(2,132,199,0.25))',
+            }}
           />
           <p style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#f59e0b',
+            fontSize: 12,
+            fontWeight: 800,
+            color: '#c2410c',
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
             marginBottom: 6,
@@ -51,20 +57,58 @@ export default function Home() {
             ¿Cuánto sale hoy?
           </p>
           <h2 style={{
-            fontSize: 'clamp(26px, 5.5vw, 40px)',
+            fontSize: 'clamp(24px, 5.5vw, 40px)',
             fontWeight: 800,
             marginBottom: 12,
             color: '#0c4a6e',
             lineHeight: 1.15,
             maxWidth: 620,
             margin: '0 auto 12px',
+            padding: '0 8px',
           }}>
             Encontrá el <span style={{ color: '#0284c7' }}>precio más bajo</span> de Argentina
           </h2>
-          <p style={{ color: '#4d7fa8', fontSize: 15, maxWidth: 480, margin: '0 auto', lineHeight: 1.5 }}>
+          <p style={{
+            color: '#1e3a5f',
+            fontSize: 'clamp(13px, 3.5vw, 15px)',
+            maxWidth: 480,
+            margin: '0 auto',
+            lineHeight: 1.5,
+            padding: '0 12px',
+          }}>
             Buscá cualquier producto y te mostramos al instante dónde está más barato.
             Sin vueltas, sin cuentas, sin perder guita.
           </p>
+
+          {/* Indicador de frecuencia */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            marginTop: 14,
+            padding: '7px 16px',
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.7)',
+            border: '1px solid #60a5fa',
+            fontSize: 11,
+            color: '#0c4a6e',
+            fontWeight: 600,
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}>
+            <span style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: '#16a34a',
+              boxShadow: '0 0 0 3px rgba(22,163,74,0.25)',
+            }} />
+            <span>Búsquedas al instante</span>
+            <span style={{ color: '#60a5fa' }}>·</span>
+            <span>Destacados cada 1 hora</span>
+            <span style={{ color: '#60a5fa' }}>·</span>
+            <span>Ofertas cada 24 hs</span>
+          </div>
         </div>
       )}
 

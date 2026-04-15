@@ -36,19 +36,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div style={{
             maxWidth: 960,
             margin: '0 auto',
-            padding: '10px 20px',
+            padding: '8px 14px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: 10,
           }}>
             {/* Logo */}
-            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Codito" style={{ height: 52, width: 'auto', objectFit: 'contain' }} />
+              <img
+                src="/logo.png"
+                alt="Codito"
+                style={{
+                  height: 'clamp(44px, 11vw, 58px)',
+                  width: 'auto',
+                  objectFit: 'contain',
+                }}
+              />
             </Link>
 
             {/* Botón Ofertas en header */}
-            <Link href="/ofertas" style={{
+            <Link href="/ofertas" className="ofertas-header-btn" style={{
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
@@ -56,18 +65,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               background: 'linear-gradient(135deg, #f97316, #ef4444)',
               color: '#fff',
               fontWeight: 700,
-              fontSize: 14,
-              padding: '8px 18px',
+              fontSize: 13,
+              padding: '8px 14px',
               borderRadius: 12,
               boxShadow: '0 4px 14px rgba(239,68,68,0.30)',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}>
-              🏷️ Ofertas del día
+              <span style={{ fontSize: 15 }}>🏷️</span>
+              <span className="ofertas-header-text">Ofertas del día</span>
             </Link>
           </div>
         </header>
 
         {/* Contenido */}
-        <main style={{ maxWidth: 960, margin: '0 auto', padding: '28px 20px 60px' }}>
+        <main style={{
+          maxWidth: 960,
+          margin: '0 auto',
+          padding: 'clamp(18px, 5vw, 32px) clamp(12px, 4vw, 24px) 60px',
+        }}>
           {children}
         </main>
 

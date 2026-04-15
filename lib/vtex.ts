@@ -231,6 +231,9 @@ async function searchOneStore(store: VtexStore, query: string): Promise<SearchRe
           : hasListDiscount
             ? offer.ListPrice
             : null,
+        // Los teasers (2x1, 4x3, 2do al X%, % OFF real) son promos confiables.
+        // Los ListPrice pueden ser falsos → no marcar como real
+        is_real_promo: !!promo,
       } as SearchResult]
     })
   } catch {
