@@ -188,10 +188,13 @@ const VTEX_SUPERMARKETS = [
   { name: 'Disco',     domain: 'www.disco.com.ar' },
   { name: 'Vea',       domain: 'www.vea.com.ar' },
   { name: 'Jumbo',     domain: 'www.jumbo.com.ar' },
-  { name: 'Libertad',  domain: 'www.hiperlibertad.com.ar' },
+  { name: 'Chango Más', domain: 'www.masonline.com.ar' },
   { name: 'Frávega',   domain: 'www.fravega.com' },
+  { name: 'Naldo',     domain: 'www.naldo.com.ar' },
   { name: 'Easy',      domain: 'www.easy.com.ar' },
+  { name: 'Pardo Hogar', domain: 'www.pardo.com.ar' },
   { name: 'Farmacity', domain: 'www.farmacity.com' },
+  { name: 'Puppis',    domain: 'www.puppis.com.ar' },
 ]
 
 async function vtexSearch(domain: string, query: string): Promise<{ name: string; price: number }[]> {

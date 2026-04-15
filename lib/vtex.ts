@@ -16,18 +16,21 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Disco',        domain: 'www.disco.com.ar',         category: 'supermercado' },
   { name: 'Vea',          domain: 'www.vea.com.ar',           category: 'supermercado' },
   { name: 'Jumbo',        domain: 'www.jumbo.com.ar',         category: 'supermercado' },
-  { name: 'Libertad',     domain: 'www.hiperlibertad.com.ar', category: 'supermercado' },
+  { name: 'Chango Más',   domain: 'www.masonline.com.ar',     category: 'supermercado' },
 
   // Electrónica / tecnología
   { name: 'Frávega',      domain: 'www.fravega.com',          category: 'electro' },
+  { name: 'Naldo',        domain: 'www.naldo.com.ar',         category: 'electro' },
   { name: 'Motorola',     domain: 'www.motorola.com.ar',      category: 'electro' },
   { name: 'BGH',          domain: 'www.bgh.com.ar',           category: 'electro' },
 
   // Hogar / construcción
   { name: 'Easy',         domain: 'www.easy.com.ar',          category: 'hogar' },
+  { name: 'Pardo Hogar',  domain: 'www.pardo.com.ar',         category: 'hogar' },
 
-  // Farmacia / salud / belleza
+  // Farmacia / mascotas / belleza
   { name: 'Farmacity',    domain: 'www.farmacity.com',        category: 'farmacia' },
+  { name: 'Puppis',       domain: 'www.puppis.com.ar',        category: 'mascotas' },
 
   // Indumentaria / moda
   { name: 'Topper',       domain: 'www.topper.com.ar',        category: 'moda' },
