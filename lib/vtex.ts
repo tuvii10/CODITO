@@ -18,6 +18,7 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Jumbo',          domain: 'www.jumbo.com.ar',          category: 'supermercado' },
   { name: 'Chango Más',     domain: 'www.masonline.com.ar',      category: 'supermercado' },
   { name: 'The Food Market', domain: 'www.thefoodmarket.com.ar', category: 'supermercado' },
+  { name: 'DIA',             domain: 'diaonline.supermercadosdia.com.ar', category: 'supermercado' },
 
   // ── Electro / tecnología ────────────────────────────────
   { name: 'Frávega',        domain: 'www.fravega.com',           category: 'electro' },
