@@ -88,7 +88,7 @@ export default function FeaturedProducts() {
             Productos destacados
           </h2>
           <p style={{ fontSize: 12, color: '#4d7fa8', marginTop: 2 }}>
-            Precios reales en tiempo real · se actualizan cada hora
+            Precios reales · actualizados cada hora
           </p>
         </div>
       </div>

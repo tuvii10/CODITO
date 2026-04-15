@@ -31,78 +31,90 @@ export default function Home() {
 
   return (
     <div>
-      {/* Banner Ofertas */}
-      <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginBottom: 28 }}>
-        <div style={{
-          borderRadius: 18,
-          padding: '16px 22px',
-          background: 'linear-gradient(135deg, #f97316 0%, #ef4444 60%, #dc2626 100%)',
-          boxShadow: '0 6px 24px rgba(239,68,68,0.30)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span style={{ fontSize: 36, flexShrink: 0 }}>🏷️</span>
-            <div>
-              <p style={{ color: '#fff', fontWeight: 800, fontSize: 17, lineHeight: 1.2 }}>
-                Ofertas del día
-              </p>
-              <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 3 }}>
-                30 productos con descuento real · se renuevan cada 24 hs
-              </p>
-            </div>
-          </div>
-          <div style={{
-            flexShrink: 0,
-            background: 'rgba(255,255,255,0.22)',
-            border: '1.5px solid rgba(255,255,255,0.45)',
-            borderRadius: 10,
-            padding: '7px 16px',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 13,
-            whiteSpace: 'nowrap',
-          }}>
-            Ver ofertas →
-          </div>
-        </div>
-      </Link>
-
       {/* Hero */}
       {!searched && (
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Codito"
-            style={{ height: 130, width: 'auto', margin: '0 auto 4px', display: 'block' }}
+            style={{ height: 110, width: 'auto', margin: '0 auto 6px', display: 'block' }}
           />
-          <h2 style={{
-            fontSize: 'clamp(24px, 5vw, 36px)',
-            fontWeight: 800,
-            marginBottom: 10,
-            color: '#0284c7',
+          <p style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#f59e0b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            marginBottom: 6,
           }}>
             ¿Cuánto sale hoy?
+          </p>
+          <h2 style={{
+            fontSize: 'clamp(26px, 5.5vw, 40px)',
+            fontWeight: 800,
+            marginBottom: 12,
+            color: '#0c4a6e',
+            lineHeight: 1.15,
+            maxWidth: 620,
+            margin: '0 auto 12px',
+          }}>
+            Encontrá el <span style={{ color: '#0284c7' }}>precio más bajo</span> de Argentina
           </h2>
-          <p style={{ color: '#4d7fa8', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
-            Buscá por producto y modelo para comparar precios en supermercados y Mercado Libre.
+          <p style={{ color: '#4d7fa8', fontSize: 15, maxWidth: 480, margin: '0 auto', lineHeight: 1.5 }}>
+            Buscá cualquier producto y te mostramos al instante dónde está más barato.
+            Sin vueltas, sin cuentas, sin perder guita.
           </p>
         </div>
       )}
 
-      {/* Buscador */}
+      {/* Buscador — destacado, primer elemento al que llega el ojo */}
       <div style={{
         background: '#ffffff',
         borderRadius: 20,
-        padding: 20,
-        boxShadow: '0 2px 20px rgba(2,132,199,0.10)',
-        border: '1.5px solid #bfdbfe',
+        padding: 22,
+        boxShadow: '0 8px 32px rgba(2,132,199,0.12)',
+        border: '2px solid #bfdbfe',
       }}>
         <SearchBar onSearch={handleSearch} loading={loading} />
       </div>
+
+      {/* Banner Ofertas — debajo del buscador, más chico, no roba el show */}
+      {!searched && (
+        <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginTop: 16 }}>
+          <div style={{
+            borderRadius: 14,
+            padding: '12px 18px',
+            background: 'linear-gradient(135deg, #f97316 0%, #ef4444 70%, #dc2626 100%)',
+            boxShadow: '0 4px 14px rgba(239,68,68,0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 22 }}>🏷️</span>
+              <div>
+                <p style={{ color: '#fff', fontWeight: 800, fontSize: 14, lineHeight: 1.2 }}>
+                  Ofertas del día
+                </p>
+                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, marginTop: 1 }}>
+                  30 productos con descuento real
+                </p>
+              </div>
+            </div>
+            <div style={{
+              flexShrink: 0,
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 12,
+              whiteSpace: 'nowrap',
+            }}>
+              Ver ofertas →
+            </div>
+          </div>
+        </Link>
+      )}
 
       {/* Resultados */}
       {searched && (
@@ -115,7 +127,7 @@ export default function Home() {
               boxShadow: '0 2px 12px rgba(2,132,199,0.07)',
             }}>
               <div style={{ fontSize: 40, marginBottom: 14 }}>⏳</div>
-              <p style={{ color: '#4d7fa8', fontWeight: 600 }}>Buscando en supermercados y Mercado Libre...</p>
+              <p style={{ color: '#4d7fa8', fontWeight: 600 }}>Buscando el mejor precio...</p>
             </div>
           ) : results.length === 0 ? (
             <div style={{

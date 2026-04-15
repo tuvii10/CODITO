@@ -44,7 +44,7 @@ export default function ResultsTable({ results, query }: Props) {
                 boxShadow: filter === f ? '0 2px 12px rgba(14,165,233,0.3)' : 'none',
                 transition: 'all 0.2s',
               }}>
-              {f === 'all' ? 'Todos' : f === 'vtex' ? 'Tiendas' : f === 'mercadolibre' ? 'Mercado Libre' : '🌐 Web'}
+              {f === 'all' ? 'Todos' : f === 'vtex' ? 'Tiendas oficiales' : f === 'mercadolibre' ? 'Marketplace' : '🌐 Web'}
             </button>
           ))}
           <select value={sortBy} onChange={e => setSortBy(e.target.value as 'price' | 'store')}
@@ -64,47 +64,78 @@ export default function ResultsTable({ results, query }: Props) {
         </div>
       </div>
 
-      {/* Banner más barato */}
+      {/* Banner más barato — protagonista, dorado y llamativo */}
       {cheapest && (
         <a href={cheapest.url ?? '#'} target="_blank" rel="noopener noreferrer"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
-            background: '#f0f9ff',
-            border: '2px solid var(--accent)',
+            gap: 14,
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '2.5px solid #f59e0b',
             borderRadius: 20,
-            padding: '12px 16px',
-            marginBottom: 20,
+            padding: '14px 18px',
+            marginBottom: 22,
             textDecoration: 'none',
-            boxShadow: '0 4px 32px rgba(14,165,233,0.18)',
-            transition: 'transform 0.15s',
+            boxShadow: '0 8px 32px rgba(245,158,11,0.22)',
+            transition: 'transform 0.15s, box-shadow 0.15s',
             flexWrap: 'wrap',
+            position: 'relative',
           }}
-          onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
-          onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(245,158,11,0.32)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(245,158,11,0.22)'
+          }}
         >
-          <ProductImage result={cheapest} size={56} />
+          {/* Badge corona */}
+          <div style={{
+            position: 'absolute',
+            top: -12, left: 16,
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 800,
+            padding: '4px 12px',
+            borderRadius: 999,
+            boxShadow: '0 3px 10px rgba(245,158,11,0.40)',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+          }}>
+            🏆 El más barato
+          </div>
+
+          <ProductImage result={cheapest} size={64} />
           <div style={{ flex: 1, minWidth: 120 }}>
-            <p style={{ color: '#0284c7', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>
-              🏆 Más barato
+            <p style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, color: '#0c1a2e', marginTop: 6, marginBottom: 6 }}>
+              {cheapest.name}
             </p>
-            <p style={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3, color: '#0c1a2e' }}>{cheapest.name}</p>
             <StoreBadge name={cheapest.store_name} logo={cheapest.store_logo} />
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             <p style={{
-              fontSize: 'clamp(20px, 5vw, 26px)',
-              fontWeight: 800,
-              background: 'linear-gradient(135deg, #0284c7, #0ea5e9)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              fontSize: 'clamp(22px, 5.5vw, 30px)',
+              fontWeight: 900,
+              color: '#0284c7',
+              lineHeight: 1,
             }}>{fmt(cheapest.price)}</p>
-            {cheapest.price_per_unit && cheapest.unit && (
-              <p style={{ fontSize: 11, color: '#4d7fa8' }}>{fmt(cheapest.price_per_unit)} / {cheapest.unit}</p>
+            {cheapest.original_price && cheapest.original_price > cheapest.price && (
+              <>
+                <p style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'line-through', marginTop: 2 }}>
+                  {fmt(cheapest.original_price)}
+                </p>
+                <p style={{ fontSize: 12, color: '#16a34a', fontWeight: 800, marginTop: 1 }}>
+                  💰 Ahorrás {fmt(cheapest.original_price - cheapest.price)}
+                </p>
+              </>
             )}
-            <p style={{ fontSize: 12, color: '#0284c7', marginTop: 4, fontWeight: 600 }}>Ver producto →</p>
+            {cheapest.price_per_unit && cheapest.unit && (
+              <p style={{ fontSize: 10, color: '#4d7fa8', marginTop: 2 }}>{fmt(cheapest.price_per_unit)} / {cheapest.unit}</p>
+            )}
+            <p style={{ fontSize: 12, color: '#d97706', marginTop: 4, fontWeight: 700 }}>Ver producto →</p>
           </div>
         </a>
       )}
@@ -231,17 +262,22 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
           backgroundClip: isCheapest ? 'text' : undefined,
           whiteSpace: 'nowrap',
         }}>{fmt(result.price)}</p>
-        {result.original_price && (
-          <p style={{ fontSize: 10, color: '#4d7fa8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
-            {fmt(result.original_price)}
-          </p>
+        {result.original_price && result.original_price > result.price && (
+          <>
+            <p style={{ fontSize: 10, color: '#94a3b8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
+              {fmt(result.original_price)}
+            </p>
+            <p style={{ fontSize: 11, color: '#16a34a', fontWeight: 800, whiteSpace: 'nowrap', marginTop: 1 }}>
+              💰 Ahorrás {fmt(result.original_price - result.price)}
+            </p>
+          </>
         )}
         {result.price_per_unit && result.unit && (
           <p style={{ fontSize: 10, color: '#4d7fa8', whiteSpace: 'nowrap' }}>
             {fmt(result.price_per_unit)} / {result.unit}
           </p>
         )}
-        <p style={{ fontSize: 11, marginTop: 2, fontWeight: 600, color: '#0284c7' }}>Ver →</p>
+        <p style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: '#0284c7' }}>Ver →</p>
       </div>
     </a>
   )
