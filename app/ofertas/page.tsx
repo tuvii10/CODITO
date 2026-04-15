@@ -116,21 +116,29 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
           display: 'inline-block',
           background: 'linear-gradient(135deg, #f97316, #ef4444)',
           color: '#fff', fontSize: 11, fontWeight: 800,
-          padding: '2px 8px', borderRadius: 999, marginBottom: 4,
+          padding: '2px 9px', borderRadius: 999, marginBottom: 5,
         }}>
           -{deal.discount_pct}%
         </div>
         <p style={{
-          fontSize: 20, fontWeight: 800,
-          background: 'linear-gradient(135deg, #f97316, #ef4444)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text', whiteSpace: 'nowrap',
+          fontSize: 22, fontWeight: 900,
+          color: '#0284c7',
+          whiteSpace: 'nowrap', lineHeight: 1,
         }}>{fmt(deal.price)}</p>
-        <p style={{ fontSize: 10, color: 'var(--muted)', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'line-through', whiteSpace: 'nowrap', marginTop: 2 }}>
           {fmt(deal.original_price)}
         </p>
-        <p style={{ fontSize: 10, color: '#16a34a', fontWeight: 700, marginTop: 1 }}>
-          Ahorrás {fmt(saving)}
+        <p style={{
+          fontSize: 13, fontWeight: 900, marginTop: 3,
+          background: 'linear-gradient(135deg, #16a34a, #22c55e)',
+          color: '#fff',
+          padding: '3px 9px',
+          borderRadius: 8,
+          display: 'inline-block',
+          whiteSpace: 'nowrap',
+          boxShadow: '0 2px 8px rgba(22,163,74,0.30)',
+        }}>
+          💰 Ahorrás {fmt(saving)}
         </p>
       </div>
     </a>
@@ -175,8 +183,10 @@ export default async function OfertasPage() {
             </p>
           </div>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>
-          Ordenadas de menor a mayor precio. Las ofertas se renuevan cada 24 hs.
+        <p style={{ fontSize: 13, color: '#4d7fa8', lineHeight: 1.5 }}>
+          Ordenadas por <strong style={{ color: '#16a34a' }}>cuánto ahorrás en pesos</strong>.
+          Cada oferta fue verificada contra la competencia: solo aparecen descuentos reales.
+          Se renuevan cada 24 hs.
         </p>
       </div>
 

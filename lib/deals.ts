@@ -11,45 +11,40 @@ export type Deal = SearchResult & {
 }
 
 const DEAL_QUERIES = [
-  // Lácteos
-  { q: 'leche entera',              cat: 'Lácteos' },
-  { q: 'leche descremada',          cat: 'Lácteos' },
-  { q: 'yogur',                     cat: 'Lácteos' },
-  { q: 'manteca',                   cat: 'Lácteos' },
-  // Aceites
-  { q: 'aceite girasol',            cat: 'Aceites' },
-  { q: 'aceite oliva',              cat: 'Aceites' },
-  // Yerba y bebidas
-  { q: 'yerba mate',                cat: 'Yerba' },
-  { q: 'cafe molido',               cat: 'Bebidas' },
-  { q: 'gaseosa',                   cat: 'Bebidas' },
-  { q: 'agua mineral',              cat: 'Bebidas' },
-  { q: 'jugo en polvo',             cat: 'Bebidas' },
-  // Cereales y pastas
-  { q: 'arroz largo fino',          cat: 'Cereales' },
-  { q: 'fideos spaghetti',          cat: 'Pastas' },
-  { q: 'fideos moño',               cat: 'Pastas' },
-  { q: 'harina trigo',              cat: 'Harinas' },
-  { q: 'avena',                     cat: 'Cereales' },
-  // Condimentos
-  { q: 'azucar blanca',             cat: 'Azúcar' },
-  { q: 'sal fina',                  cat: 'Condimentos' },
-  { q: 'mayonesa',                  cat: 'Condimentos' },
-  { q: 'pure tomate',               cat: 'Condimentos' },
-  // Limpieza
-  { q: 'detergente lavavajillas',   cat: 'Limpieza' },
-  { q: 'lavandina',                 cat: 'Limpieza' },
-  { q: 'jabón en polvo',            cat: 'Limpieza' },
-  { q: 'suavizante ropa',           cat: 'Limpieza' },
-  // Higiene
-  { q: 'papel higienico',           cat: 'Higiene' },
-  { q: 'shampoo',                   cat: 'Higiene' },
-  { q: 'jabón tocador',             cat: 'Higiene' },
-  { q: 'desodorante',               cat: 'Higiene' },
-  { q: 'pasta dental',              cat: 'Higiene' },
-  // Galletitas y snacks
-  { q: 'galletitas dulces',         cat: 'Snacks' },
-  { q: 'galletitas saladas',        cat: 'Snacks' },
+  // Electrodomésticos (alto valor)
+  { q: 'televisor smart 50',        cat: 'Electro' },
+  { q: 'televisor smart 55',        cat: 'Electro' },
+  { q: 'celular samsung',           cat: 'Electro' },
+  { q: 'celular motorola',          cat: 'Electro' },
+  { q: 'notebook',                  cat: 'Electro' },
+  { q: 'heladera no frost',         cat: 'Electro' },
+  { q: 'lavarropas automatico',     cat: 'Electro' },
+  { q: 'aire acondicionado split',  cat: 'Electro' },
+  { q: 'microondas',                cat: 'Electro' },
+  { q: 'cafetera',                  cat: 'Electro' },
+  { q: 'licuadora',                 cat: 'Electro' },
+  { q: 'plancha a vapor',           cat: 'Electro' },
+  { q: 'auriculares bluetooth',     cat: 'Electro' },
+  { q: 'smartwatch',                cat: 'Electro' },
+  // Moda (valor medio)
+  { q: 'zapatillas running',        cat: 'Moda' },
+  { q: 'zapatillas adidas',         cat: 'Moda' },
+  { q: 'zapatillas nike',           cat: 'Moda' },
+  { q: 'campera inflable',          cat: 'Moda' },
+  { q: 'botines futbol',            cat: 'Moda' },
+  // Hogar (alto valor)
+  { q: 'colchon queen',             cat: 'Hogar' },
+  { q: 'sommier',                   cat: 'Hogar' },
+  { q: 'taladro inalambrico',       cat: 'Hogar' },
+  { q: 'bicicleta mountain bike',   cat: 'Hogar' },
+  // Supermercado (valor medio — solo productos caros)
+  { q: 'aceite oliva',              cat: 'Supermercado' },
+  { q: 'yerba mate 1 kg',           cat: 'Supermercado' },
+  { q: 'cafe en grano',             cat: 'Supermercado' },
+  { q: 'whisky',                    cat: 'Supermercado' },
+  { q: 'pañales',                   cat: 'Supermercado' },
+  { q: 'leche en polvo',            cat: 'Supermercado' },
+  { q: 'detergente ropa 3 litros',  cat: 'Supermercado' },
 ]
 
 // ─── Normalización de nombres ──────────────────────────────────────────────
@@ -389,25 +384,32 @@ async function verifyDeal(deal: Deal): Promise<Deal | null> {
     .filter(r => r.status === 'fulfilled')
     .flatMap(r => (r as PromiseFulfilledResult<{ name: string; price: number }[]>).value)
 
-  // Filtrar por similitud de nombre (umbral: 40%)
-  const SIMILARITY_THRESHOLD = 0.40
+  // Filtrar por similitud de nombre (umbral: 50% para ser más estricto)
+  const SIMILARITY_THRESHOLD = 0.50
   const matching = allCompetitorProducts.filter(
     c => nameSimilarity(deal.name, c.name) >= SIMILARITY_THRESHOLD && c.price > 0
   )
 
   if (matching.length === 0) {
-    // No encontramos el mismo producto en otros lados → no podemos verificar
-    // Lo incluimos como "sin verificar" en lugar de rechazarlo
-    return { ...deal, verified: false, cheapest_alt: null }
+    // No lo encontramos en otras tiendas → aceptamos solo si el descuento es muy fuerte
+    // (>=25%) y asumimos que es una oferta exclusiva legítima
+    if (deal.discount_pct >= 25) {
+      return { ...deal, verified: false, cheapest_alt: null }
+    }
+    // Descuento menor a 25% sin poder verificar → rechazar para no mentir
+    return null
   }
 
   const cheapestAlt = Math.min(...matching.map(m => m.price))
 
-  if (deal.price <= cheapestAlt) {
-    // El precio con descuento ES el más barato del mercado
+  // Tolerancia de 3% — aceptamos diferencias mínimas por variaciones de stock/envío
+  const tolerance = cheapestAlt * 0.03
+
+  if (deal.price <= cheapestAlt + tolerance) {
+    // El precio con descuento ES (prácticamente) el más barato del mercado
     return { ...deal, verified: true, cheapest_alt: cheapestAlt }
   } else {
-    // Hay alguien más barato → este "descuento" no es real
+    // Hay alguien significativamente más barato → este "descuento" no es real
     return null
   }
 }
@@ -432,10 +434,24 @@ export async function fetchAllDeals(): Promise<Deal[]> {
     if (!existing || deal.discount_pct > existing.discount_pct) byName.set(key, deal)
   }
 
+  // Criterios de "oferta con valor":
+  // - Descuento mínimo 15%
+  // - Ahorro absoluto mínimo $500
+  // - Precio mínimo $1500 (descarta productos triviales)
+  // - Precio original no absurdamente alto (descarta listPrice fake)
   const deduped = Array.from(byName.values())
-    .filter(d => d.discount_pct >= 3)
-    .sort((a, b) => b.discount_pct - a.discount_pct)
-    .slice(0, 100) // verificar top 100 para asegurar 30 finales
+    .filter(d => {
+      const savings = d.original_price - d.price
+      return (
+        d.discount_pct >= 15 &&
+        savings >= 500 &&
+        d.price >= 1500 &&
+        // descartar descuentos sospechosamente altos (probable listPrice fake)
+        d.discount_pct <= 70
+      )
+    })
+    .sort((a, b) => (b.original_price - b.price) - (a.original_price - a.price))
+    .slice(0, 120) // verificar top 120 para asegurar 30 reales
 
   // Paso 2: verificar cada deal contra el mercado en paralelo
   const verified = await Promise.allSettled(deduped.map(verifyDeal))
@@ -444,7 +460,8 @@ export async function fetchAllDeals(): Promise<Deal[]> {
     .filter(r => r.status === 'fulfilled')
     .map(r => (r as PromiseFulfilledResult<Deal | null>).value)
     .filter((d): d is Deal => d !== null)
-    .sort((a, b) => a.price - b.price) // ordenar por precio de menor a mayor
+    // Ordenar por ahorro absoluto (pesos) descendente — lo que más valor tiene
+    .sort((a, b) => (b.original_price - b.price) - (a.original_price - a.price))
     .slice(0, 30)
 
   return final
