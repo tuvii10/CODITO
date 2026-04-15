@@ -20,6 +20,7 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Libertad',       domain: 'www.hiperlibertad.com.ar',  category: 'supermercado' },
   { name: 'Toledo',         domain: 'www.toledodigital.com.ar',  category: 'supermercado' },
   { name: 'Josimar',        domain: 'www.josimar.com.ar',        category: 'supermercado' },
+  { name: 'The Food Market', domain: 'www.thefoodmarket.com.ar', category: 'supermercado' },
 
   // ── Electro / tecnología ────────────────────────────────
   { name: 'Frávega',        domain: 'www.fravega.com',           category: 'electro' },
@@ -36,6 +37,9 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Tramontina',     domain: 'www.tramontina.com.ar',     category: 'hogar' },
   { name: 'Arredo',         domain: 'www.arredo.com.ar',         category: 'hogar' },
   { name: 'Blaisten',       domain: 'www.blaisten.com.ar',       category: 'hogar' },
+  { name: 'Castillo',       domain: 'www.castillo.com.ar',       category: 'hogar' },
+  { name: 'El Balcón',      domain: 'www.elbalcon.com',          category: 'hogar' },
+  { name: 'Ferniplast',     domain: 'www.ferniplast.com',        category: 'hogar' },
 
   // ── Farmacia / belleza / mascotas ───────────────────────
   { name: 'Farmacity',      domain: 'www.farmacity.com',         category: 'farmacia' },
@@ -56,6 +60,11 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Tienda River',   domain: 'www.tiendariver.com',       category: 'moda' },
   { name: 'Equus',          domain: 'www.equus.com.ar',          category: 'moda' },
   { name: 'GRID',           domain: 'www.grid.com.ar',           category: 'moda' },
+  { name: 'Style Store',    domain: 'www.stylestore.com.ar',     category: 'moda' },
+  { name: 'Desiderata',     domain: 'www.desiderata.com.ar',     category: 'moda' },
+  { name: 'Levis',          domain: 'www.levi.com.ar',           category: 'moda' },
+  { name: 'Tate Kilroy',    domain: 'tiendakilroy.tate.com.ar',  category: 'moda' },
+  { name: 'Vallejo',        domain: 'www.vallejocalzados.com.ar', category: 'moda' },
 
   // ── Deportes ────────────────────────────────────────────
   { name: 'Sporting',       domain: 'www.sporting.com.ar',       category: 'deportes' },
@@ -66,6 +75,8 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Batistella',     domain: 'www.calzadosbatistella.com.ar', category: 'deportes' },
   { name: 'Woker',          domain: 'www.wokerbysporting.com.ar', category: 'deportes' },
   { name: 'Las Margaritas', domain: 'www.lasmargaritas.com.ar',  category: 'moda' },
+  { name: 'Factory',        domain: 'www.factorydeportivo.com.ar', category: 'deportes' },
+  { name: 'Punto Deportivo', domain: 'www.puntodeportivo.com.ar', category: 'deportes' },
 
   // ── Multimarca ──────────────────────────────────────────
   { name: 'Coppel',         domain: 'www.coppel.com.ar',         category: 'multi' },
