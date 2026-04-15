@@ -63,10 +63,20 @@ type VtexTeaser = {
 function parseBestPromo(teasers: VtexTeaser[], unitPrice: number): { label: string; effectivePrice: number } | null {
   let best: { label: string; effectivePrice: number; discountPct: number } | null = null
 
+  // Convertir ordinales en palabras a número
+  const ordinalWordToNum: Record<string, number> = {
+    'primera': 1, 'primero': 1,
+    'segunda': 2, 'segundo': 2,
+    'tercera': 3, 'tercero': 3,
+    'cuarta': 4, 'cuarto': 4,
+    'quinta': 5, 'quinto': 5,
+  }
+
   for (const t of teasers) {
     const name: string = t['<Name>k__BackingField'] ?? ''
     const conditions = t['<Conditions>k__BackingField']
     const effects = t['<Effects>k__BackingField']
+    const minQty: number = conditions?.['<MinimumQuantity>k__BackingField'] ?? 0
     const condParams: VtexTeaserParam[] = conditions?.['<Parameters>k__BackingField'] ?? []
     const effParams: VtexTeaserParam[] = effects?.['<Parameters>k__BackingField'] ?? []
 
@@ -78,8 +88,10 @@ function parseBestPromo(teasers: VtexTeaser[], unitPrice: number): { label: stri
     let effectivePrice = unitPrice
     let discountPct = 0
 
-    // NxM: "4x3", "3x2", "2x1"
-    const nxmMatch = name.match(/(\d+)[xX](\d+)/)
+    // ── Tipo "NxM" ──────────────────────────────────────────────
+    // "4x3", "3x2", "2x1", "Llevando 2 pagá 1" (variantes)
+    const nxmMatch = name.match(/(\d+)\s*[xX]\s*(\d+)/)
+      ?? name.match(/llevand[oa]?\s+(\d+)\s+pag[áa]\s+(\d+)/i)
     if (nxmMatch) {
       const buy = parseInt(nxmMatch[1])
       const pay = parseInt(nxmMatch[2])
@@ -90,10 +102,21 @@ function parseBestPromo(teasers: VtexTeaser[], unitPrice: number): { label: stri
       }
     }
 
-    // "2do al X%" / "3ro al X%"
+    // ── Tipo "Ndo/Nda al X%" ─────────────────────────────────────
+    // "2do al 50%", "2da al 50%", "3ro al 80%", "segunda al 70%"
     if (!label) {
-      const ndoMatch = name.match(/(\d+)(?:do|ro|to)\s+al\s+(\d+)%/i)
+      // Formato numérico con ordinal masculino/femenino
+      const ndoMatch = name.match(/(\d+)(?:do|da|ro|ra|to|ta)\s+(?:unidad\s+)?al\s+(\d+)\s*%/i)
+        // Formato con palabra: "segunda al 50%", "segunda unidad al 80%"
+        ?? (() => {
+          const m = name.match(/(primera|segunda|tercera|cuarta|quinta|primero|segundo|tercero|cuarto|quinto)\s+(?:unidad\s+)?al\s+(\d+)\s*%/i)
+          if (!m) return null
+          const n = ordinalWordToNum[m[1].toLowerCase()]
+          return n ? ([m[0], String(n), m[2]] as RegExpMatchArray) : null
+        })()
+        // Formato corto "Reg-N-X"
         ?? name.match(/[Rr]eg-(\d+)-(\d+)/)
+
       if (ndoMatch) {
         const n = parseInt(ndoMatch[1])
         const discOnNth = parseInt(ndoMatch[2])
@@ -105,15 +128,51 @@ function parseBestPromo(teasers: VtexTeaser[], unitPrice: number): { label: stri
       }
     }
 
-    // Descuento porcentual directo en Effects
+    // ── "Llevando N" con descuento genérico ─────────────────────
+    // "Llevando 2 pagá el 50%" o similar
+    if (!label) {
+      const llevandoMatch = name.match(/llevand[oa]?\s+(\d+).*?(\d+)\s*%/i)
+      if (llevandoMatch) {
+        const n = parseInt(llevandoMatch[1])
+        const pct = parseInt(llevandoMatch[2])
+        if (n >= 2 && pct > 0 && pct <= 90) {
+          // Asumimos que el descuento aplica a la Nth unidad
+          effectivePrice = ((n - 1) * unitPrice + unitPrice * (1 - pct / 100)) / n
+          discountPct = Math.round((1 - effectivePrice / unitPrice) * 100)
+          label = `Llevando ${n} -${pct}%`
+        }
+      }
+    }
+
+    // ── Descuento porcentual directo en Effects ─────────────────
     if (!label) {
       const pctParam = effParams.find(p => p['<Name>k__BackingField'] === 'PercentualDiscount')
       if (pctParam) {
         const pct = parseInt(pctParam['<Value>k__BackingField'])
         if (pct > 0 && pct <= 80) {
-          effectivePrice = unitPrice * (1 - pct / 100)
+          // Si hay MinimumQuantity > 1, el descuento aplica a esa cantidad
+          // (muchas veces el pct ya viene calculado como "promedio efectivo")
+          if (minQty > 1) {
+            effectivePrice = unitPrice * (1 - pct / 100)
+            label = `-${pct}% (x${minQty})`
+          } else {
+            effectivePrice = unitPrice * (1 - pct / 100)
+            label = `-${pct}%`
+          }
           discountPct = pct
-          label = `-${pct}%`
+        }
+      }
+    }
+
+    // ── Descuento absoluto en Effects (menos común) ─────────────
+    if (!label) {
+      const amtParam = effParams.find(p => p['<Name>k__BackingField'] === 'AbsoluteDiscount')
+      if (amtParam) {
+        const amt = parseFloat(amtParam['<Value>k__BackingField'])
+        if (amt > 0 && amt < unitPrice) {
+          effectivePrice = unitPrice - amt
+          discountPct = Math.round((amt / unitPrice) * 100)
+          label = `-${discountPct}%`
         }
       }
     }
