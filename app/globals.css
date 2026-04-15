@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #bfdbfe;
+  /* Paleta futurista: indigo / violeta / cyan */
+  --bg: #f5f3ff;
+  --bg-2: #e0e7ff;
   --surface: #ffffff;
-  --border: #60a5fa;
-  --accent: #0369a1;
-  --accent-hover: #0c4a6e;
-  --foreground: #0c1a2e;
-  --muted: #3b6b94;
+  --surface-glass: rgba(255, 255, 255, 0.7);
+  --border: #e0e7ff;
+  --border-strong: #c7d2fe;
+  --accent: #6366f1;
+  --accent-2: #8b5cf6;
+  --accent-3: #06b6d4;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --danger: #ec4899;
+  --warning: #f59e0b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   color-scheme: light !important;
-  background: #bfdbfe !important;
-  background-image: linear-gradient(180deg, #bfdbfe 0%, #93c5fd 100%) !important;
+  background:
+    radial-gradient(ellipse at top left, #e0e7ff 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, #f5f3ff 0%, transparent 50%),
+    linear-gradient(180deg, #eef2ff 0%, #f5f3ff 100%) !important;
   background-attachment: fixed;
-  color: #0c1a2e;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--text);
+  font-family: -apple-system, 'SF Pro Display', 'Inter', 'Segoe UI', system-ui, sans-serif;
   min-height: 100vh;
   -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+/* Números con ancho fijo — sensación futurista en precios */
+.mono-price {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
 }
 
 .line-clamp-2 {
@@ -29,8 +47,6 @@ html, body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* ── Responsive tweaks ───────────────────────────────────────────────── */
 
 /* Header: versión corta del botón Ofertas en mobile */
 .ofertas-header-text-short { display: none; }
@@ -41,12 +57,18 @@ html, body {
   .ofertas-header-text-short { display: inline; }
 }
 
-/* Mejorar toque en mobile: touch-target mínimo 44px */
 @media (max-width: 640px) {
   button, a {
     -webkit-tap-highlight-color: transparent;
   }
   input, select, textarea {
-    font-size: 16px !important; /* evita zoom automático en iOS */
+    font-size: 16px !important;
   }
 }
+
+/* Animación subtle de pulso para el indicador live */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50% { opacity: 0.85; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+.live-dot { animation: pulse-live 2s ease-in-out infinite; }

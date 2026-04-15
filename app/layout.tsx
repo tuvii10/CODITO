@@ -50,17 +50,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="color-scheme" content="light" />
       </head>
-      <body style={{
-        minHeight: '100vh',
-        backgroundImage: 'linear-gradient(180deg, #bfdbfe 0%, #93c5fd 100%)',
-        backgroundAttachment: 'fixed',
-      }}>
-        {/* Header */}
+      <body style={{ minHeight: '100vh' }}>
+        {/* Header con glass effect */}
         <header style={{
-          background: '#ffffff',
-          borderBottom: '2px solid transparent',
-          borderImage: 'linear-gradient(90deg, #0284c7, #38bdf8, #fbbf24, #f59e0b) 1',
-          boxShadow: '0 2px 14px rgba(2,132,199,0.10)',
+          background: 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(18px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+          borderBottom: '1px solid rgba(199, 210, 254, 0.6)',
           position: 'sticky',
           top: 0,
           zIndex: 50,
@@ -88,24 +84,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
             </Link>
 
-            {/* Botón Ofertas en header */}
+            {/* Botón Ofertas — futurista */}
             <Link href="/ofertas" className="ofertas-header-btn" style={{
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6,
-              background: 'linear-gradient(135deg, #f97316, #ef4444)',
+              gap: 7,
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
               color: '#fff',
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: 13,
-              padding: '9px 15px',
-              borderRadius: 12,
-              boxShadow: '0 4px 14px rgba(239,68,68,0.30)',
+              padding: '9px 16px',
+              borderRadius: 10,
+              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.35)',
               whiteSpace: 'nowrap',
               flexShrink: 0,
+              letterSpacing: '-0.01em',
             }}>
-              <span style={{ fontSize: 15 }}>🏷️</span>
-              <span className="ofertas-header-text-long">Ofertas del día</span>
+              <span className="ofertas-header-text-long">Ofertas</span>
               <span className="ofertas-header-text-short">Ofertas</span>
             </Link>
           </div>
@@ -120,20 +116,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
 
-        {/* Footer */}
+        {/* Footer minimal */}
         <footer style={{
-          background: '#ffffff',
-          borderTop: '2px solid #bfdbfe',
-          padding: '18px 20px',
+          background: 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderTop: '1px solid rgba(199, 210, 254, 0.5)',
+          padding: '14px 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 10,
+          gap: 8,
         }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/favicon.png" alt="" style={{ height: 20, width: 'auto', opacity: 0.7 }} />
-          <span style={{ fontSize: 12, color: '#4d7fa8' }}>
-            Precios orientativos. Verificá siempre en el sitio oficial de cada tienda.
+          <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>
+            Precios orientativos · Verificá siempre en la tienda
           </span>
         </footer>
       </body>

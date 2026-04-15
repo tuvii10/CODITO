@@ -31,9 +31,9 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero minimalista */}
+      {/* Hero futurista */}
       {!searched && (
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
@@ -41,35 +41,47 @@ export default function Home() {
             style={{
               height: 'clamp(130px, 22vw, 200px)',
               width: 'auto',
-              margin: '0 auto 6px',
+              margin: '0 auto 4px',
               display: 'block',
-              filter: 'drop-shadow(0 6px 20px rgba(2,132,199,0.25))',
+              filter: 'drop-shadow(0 10px 30px rgba(139, 92, 246, 0.25))',
             }}
           />
           <p style={{
             fontSize: 11,
-            fontWeight: 800,
-            color: '#c2410c',
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #6366f1, #ec4899)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
             textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            marginBottom: 6,
+            letterSpacing: '0.18em',
+            marginBottom: 8,
           }}>
             ¿Cuánto sale hoy?
           </p>
           <h2 style={{
-            fontSize: 'clamp(24px, 6vw, 42px)',
-            fontWeight: 800,
+            fontSize: 'clamp(28px, 7vw, 48px)',
+            fontWeight: 900,
             marginBottom: 8,
-            color: '#0c4a6e',
-            lineHeight: 1.1,
+            color: '#0f172a',
+            lineHeight: 1.05,
             maxWidth: 620,
             margin: '0 auto 8px',
             padding: '0 4px',
+            letterSpacing: '-0.03em',
           }}>
-            Buscá. <span style={{ color: '#0284c7' }}>Comprá barato.</span>
+            Buscá.{' '}
+            <span style={{
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              Comprá barato.
+            </span>
           </h2>
           <p style={{
-            color: '#1e3a5f',
+            color: '#64748b',
             fontSize: 'clamp(12px, 3.2vw, 14px)',
             margin: '0 auto',
             fontWeight: 500,
@@ -77,61 +89,74 @@ export default function Home() {
             Sin vueltas, sin perder guita.
           </p>
 
-          {/* Indicador mínimo */}
+          {/* Indicador live */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
-            marginTop: 12,
-            padding: '5px 12px',
+            gap: 7,
+            marginTop: 14,
+            padding: '6px 13px',
             borderRadius: 999,
-            background: 'rgba(255,255,255,0.8)',
-            border: '1px solid #60a5fa',
+            background: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: '1px solid #c7d2fe',
             fontSize: 11,
-            color: '#0c4a6e',
+            color: '#0f172a',
             fontWeight: 700,
+            letterSpacing: '0.02em',
           }}>
-            <span style={{
-              width: 8, height: 8, borderRadius: '50%',
-              background: '#16a34a',
-              boxShadow: '0 0 0 3px rgba(22,163,74,0.25)',
+            <span className="live-dot" style={{
+              width: 7, height: 7, borderRadius: '50%',
+              background: '#10b981',
             }} />
             En vivo
           </div>
         </div>
       )}
 
-      {/* Buscador — destacado, primer elemento al que llega el ojo */}
+      {/* Buscador — glass card */}
       <div style={{
-        background: '#ffffff',
+        background: 'rgba(255, 255, 255, 0.75)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
         borderRadius: 20,
         padding: 'clamp(14px, 4vw, 22px)',
-        boxShadow: '0 8px 32px rgba(2,132,199,0.12)',
-        border: '2px solid #bfdbfe',
+        boxShadow: '0 10px 40px -10px rgba(99, 102, 241, 0.20)',
+        border: '1px solid rgba(199, 210, 254, 0.6)',
       }}>
         <SearchBar onSearch={handleSearch} loading={loading} />
       </div>
 
-      {/* Banner Ofertas — debajo del buscador, más chico, no roba el show */}
+      {/* Banner Ofertas — futurista */}
       {!searched && (
-        <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginTop: 16 }}>
+        <Link href="/ofertas" style={{ textDecoration: 'none', display: 'block', marginTop: 14 }}>
           <div style={{
             borderRadius: 14,
-            padding: '12px 18px',
-            background: 'linear-gradient(135deg, #f97316 0%, #ef4444 70%, #dc2626 100%)',
-            boxShadow: '0 4px 14px rgba(239,68,68,0.25)',
+            padding: '13px 18px',
+            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
+            boxShadow: '0 8px 24px -6px rgba(139, 92, 246, 0.40)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 10,
+            position: 'relative',
+            overflow: 'hidden',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 22 }}>🏷️</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 10,
+                background: 'rgba(255, 255, 255, 0.25)',
+                backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 16,
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+              }}>⚡</div>
               <div>
-                <p style={{ color: '#fff', fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>
+                <p style={{ color: '#fff', fontWeight: 800, fontSize: 15, lineHeight: 1.15, letterSpacing: '-0.01em' }}>
                   Ofertas del día
                 </p>
-                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, marginTop: 1 }}>
+                <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: 11, marginTop: 2, fontWeight: 500 }}>
                   Descuentos verificados
                 </p>
               </div>
@@ -140,10 +165,10 @@ export default function Home() {
               flexShrink: 0,
               color: '#fff',
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: 18,
               whiteSpace: 'nowrap',
             }}>
-              Ver →
+              →
             </div>
           </div>
         </Link>

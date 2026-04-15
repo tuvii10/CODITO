@@ -19,21 +19,22 @@ const SUGGESTIONS = [
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  border: '1.5px solid #bfdbfe',
+  border: '1.5px solid #e0e7ff',
   borderRadius: 12,
-  padding: '11px 14px',
+  padding: '12px 14px',
   fontSize: 15,
   fontWeight: 500,
-  background: '#f0f7ff',
-  color: '#0c1a2e',
+  background: '#f5f3ff',
+  color: '#0f172a',
   outline: 'none',
   boxSizing: 'border-box',
+  transition: 'border-color 0.15s, background 0.15s',
 }
 
 const labelStyle: React.CSSProperties = {
   position: 'absolute', top: -9, left: 12,
-  fontSize: 11, fontWeight: 700, color: '#0284c7',
-  background: '#ffffff', padding: '0 4px',
+  fontSize: 10, fontWeight: 700, color: '#6366f1',
+  background: '#ffffff', padding: '0 5px',
   letterSpacing: '0.05em', textTransform: 'uppercase',
   zIndex: 1,
 }
@@ -92,15 +93,15 @@ export default function SearchBar({ onSearch, loading }: Props) {
           </div>
         </div>
 
-        {/* Botón full width para mejor mobile */}
+        {/* Botón futurista */}
         <button
           type="submit"
           disabled={loading || !canSearch}
           style={{
             width: '100%',
             background: loading || !canSearch
-              ? '#bfdbfe'
-              : 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)',
+              ? '#e0e7ff'
+              : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%)',
             color: '#fff',
             border: 'none',
             borderRadius: 12,
@@ -108,41 +109,43 @@ export default function SearchBar({ onSearch, loading }: Props) {
             fontWeight: 800,
             fontSize: 15,
             cursor: loading || !canSearch ? 'not-allowed' : 'pointer',
-            boxShadow: loading || !canSearch ? 'none' : '0 4px 16px rgba(2,132,199,0.35)',
+            boxShadow: loading || !canSearch ? 'none' : '0 10px 24px -6px rgba(99, 102, 241, 0.45)',
             whiteSpace: 'nowrap',
             minHeight: 50,
             transition: 'all 0.2s',
-            letterSpacing: '0.02em',
+            letterSpacing: '-0.01em',
           }}
         >
-          {loading ? 'Buscando...' : '🔍 Buscar'}
+          {loading ? 'Buscando...' : 'Buscar'}
         </button>
       </form>
 
-      {/* Sugerencias */}
+      {/* Sugerencias — chips minimal */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
         {SUGGESTIONS.map(s => (
           <button
             key={s.producto + s.modelo}
             onClick={() => applySuggestion(s)}
             style={{
-              background: '#e0f2fe',
-              border: '1px solid #bfdbfe',
-              color: '#0369a1',
+              background: 'rgba(224, 231, 255, 0.5)',
+              border: '1px solid #e0e7ff',
+              color: '#6366f1',
               borderRadius: 999,
-              padding: '4px 14px',
+              padding: '5px 13px',
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.15s',
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = '#0284c7'
+              (e.currentTarget as HTMLButtonElement).style.background = '#6366f1'
               ;(e.currentTarget as HTMLButtonElement).style.color = '#fff'
+              ;(e.currentTarget as HTMLButtonElement).style.borderColor = '#6366f1'
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = '#e0f2fe'
-              ;(e.currentTarget as HTMLButtonElement).style.color = '#0369a1'
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(224, 231, 255, 0.5)'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#6366f1'
+              ;(e.currentTarget as HTMLButtonElement).style.borderColor = '#e0e7ff'
             }}
           >
             {s.producto}{s.modelo ? ` · ${s.modelo}` : ''}
