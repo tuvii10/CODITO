@@ -18,7 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="color-scheme" content="light" />
       </head>
-      <body style={{ minHeight: '100vh', background: '#f0f7ff' }}>
+      <body style={{
+        minHeight: '100vh',
+        backgroundImage: 'linear-gradient(180deg, #bfdbfe 0%, #93c5fd 100%)',
+        backgroundAttachment: 'fixed',
+      }}>
         {/* Header */}
         <header style={{
           background: '#ffffff',

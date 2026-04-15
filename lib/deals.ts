@@ -11,33 +11,34 @@ export type Deal = SearchResult & {
 }
 
 const DEAL_QUERIES = [
-  // Electrodomésticos (alto valor)
-  { q: 'televisor smart 50',        cat: 'Electro' },
-  { q: 'televisor smart 55',        cat: 'Electro' },
-  { q: 'celular samsung',           cat: 'Electro' },
-  { q: 'celular motorola',          cat: 'Electro' },
-  { q: 'notebook',                  cat: 'Electro' },
-  { q: 'heladera no frost',         cat: 'Electro' },
-  { q: 'lavarropas automatico',     cat: 'Electro' },
-  { q: 'aire acondicionado split',  cat: 'Electro' },
-  { q: 'microondas',                cat: 'Electro' },
-  { q: 'cafetera',                  cat: 'Electro' },
+  // Electrodomésticos chicos (accesibles, bajo $400k)
+  { q: 'cafetera express',          cat: 'Electro' },
   { q: 'licuadora',                 cat: 'Electro' },
   { q: 'plancha a vapor',           cat: 'Electro' },
+  { q: 'microondas 20 litros',      cat: 'Electro' },
   { q: 'auriculares bluetooth',     cat: 'Electro' },
   { q: 'smartwatch',                cat: 'Electro' },
-  // Moda (valor medio)
+  { q: 'parlante bluetooth',        cat: 'Electro' },
+  { q: 'tostadora',                 cat: 'Electro' },
+  { q: 'batidora',                  cat: 'Electro' },
+  { q: 'ventilador de pie',         cat: 'Electro' },
+  { q: 'pava electrica',            cat: 'Electro' },
+  { q: 'secador de pelo',           cat: 'Electro' },
+  // Moda (valor medio, todos bajo $400k)
   { q: 'zapatillas running',        cat: 'Moda' },
   { q: 'zapatillas adidas',         cat: 'Moda' },
   { q: 'zapatillas nike',           cat: 'Moda' },
+  { q: 'zapatillas topper',         cat: 'Moda' },
   { q: 'campera inflable',          cat: 'Moda' },
+  { q: 'buzo hoodie',               cat: 'Moda' },
   { q: 'botines futbol',            cat: 'Moda' },
-  // Hogar (alto valor)
-  { q: 'colchon queen',             cat: 'Hogar' },
-  { q: 'sommier',                   cat: 'Hogar' },
+  // Hogar accesible
+  { q: 'colchon 1 plaza',           cat: 'Hogar' },
   { q: 'taladro inalambrico',       cat: 'Hogar' },
-  { q: 'bicicleta mountain bike',   cat: 'Hogar' },
-  // Supermercado (valor medio — solo productos caros)
+  { q: 'juego sabanas',             cat: 'Hogar' },
+  { q: 'frazada polar',             cat: 'Hogar' },
+  { q: 'olla',                      cat: 'Hogar' },
+  // Supermercado (valor medio)
   { q: 'aceite oliva',              cat: 'Supermercado' },
   { q: 'yerba mate 1 kg',           cat: 'Supermercado' },
   { q: 'cafe en grano',             cat: 'Supermercado' },
@@ -443,11 +444,13 @@ export async function fetchAllDeals(): Promise<Deal[]> {
     if (!existing || deal.discount_pct > existing.discount_pct) byName.set(key, deal)
   }
 
-  // Criterios de "oferta con valor":
+  // Criterios de "oferta con valor y accesible":
   // - Descuento mínimo 15%
   // - Ahorro absoluto mínimo $500
   // - Precio mínimo $1500 (descarta productos triviales)
-  // - Precio original no absurdamente alto (descarta listPrice fake)
+  // - Precio máximo $400.000 (que sea accesible para el usuario común,
+  //   nada de TVs de millón o heladeras de $2M)
+  // - Descuento ≤70% (descarta listPrice fake)
   const deduped = Array.from(byName.values())
     .filter(d => {
       const savings = d.original_price - d.price
@@ -455,7 +458,7 @@ export async function fetchAllDeals(): Promise<Deal[]> {
         d.discount_pct >= 15 &&
         savings >= 500 &&
         d.price >= 1500 &&
-        // descartar descuentos sospechosamente altos (probable listPrice fake)
+        d.price <= 400000 &&
         d.discount_pct <= 70
       )
     })
