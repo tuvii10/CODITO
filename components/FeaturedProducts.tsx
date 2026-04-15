@@ -161,9 +161,6 @@ export default function FeaturedProducts() {
             >
               <span>{c.emoji}</span>
               {c.label}
-              {c.products.length > 0 && (
-                <span style={{ opacity: 0.6, fontWeight: 500 }}>({c.products.length})</span>
-              )}
             </button>
           )
         })}
