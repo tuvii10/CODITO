@@ -298,23 +298,15 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
   // el más barato (para que la vista no se llene de repetidos)
   const deduplicated = deduplicateToCheapest(withRealDiscounts)
 
-  // Ordenar por precio de menor a mayor (simple y claro)
+  // Ordenar por precio de menor a mayor
   const sortByPrice = (a: SearchResult, b: SearchResult) => a.price - b.price
 
-  // Separar por fuente, ordenar cada una por precio
-  const vtexSorted = deduplicated.filter(r => r.source === 'vtex').sort(sortByPrice)
-  const mlSorted = deduplicated.filter(r => r.source === 'mercadolibre').sort(sortByPrice)
+  // Garantizar representación de ambas fuentes: tomar los 12 más baratos
+  // de cada una (VTEX y ML), juntar y ordenar el resultado final por precio.
+  const vtexTop = deduplicated.filter(r => r.source === 'vtex').sort(sortByPrice).slice(0, 12)
+  const mlTop = deduplicated.filter(r => r.source === 'mercadolibre').sort(sortByPrice).slice(0, 12)
 
-  // Interleave para garantizar presencia de ambas fuentes
-  const interleaved: SearchResult[] = []
-  const maxLen = Math.max(vtexSorted.length, mlSorted.length)
-  for (let i = 0; i < maxLen && interleaved.length < 24; i++) {
-    if (i < vtexSorted.length && interleaved.length < 24) interleaved.push(vtexSorted[i])
-    if (i < mlSorted.length && interleaved.length < 24) interleaved.push(mlSorted[i])
-  }
-
-  // Reordenar el resultado final por precio (sin importar la fuente)
-  return interleaved.sort(sortByPrice)
+  return [...vtexTop, ...mlTop].sort(sortByPrice).slice(0, 24)
 }
 
 export async function GET() {

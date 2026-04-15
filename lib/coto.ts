@@ -23,6 +23,10 @@ export async function searchCoto(query: string): Promise<SearchResult[]> {
 
     return products.slice(0, 5).map((p: CotoProduct) => {
       const price = p.price ?? p.priceWithoutDiscount ?? 0
+      // Si no hay linkText, linkeamos al buscador con el nombre (en vez de al home)
+      const url = p.linkText
+        ? `https://www.coto.com.ar/${p.linkText}/p`
+        : `https://www.cotodigital.com.ar/sitios/cdigi/categoria?Ntt=${encodeURIComponent(p.name ?? query)}`
       return {
         id: `coto-${p.id ?? p.slug}`,
         name: p.name ?? p.productName,
@@ -33,9 +37,9 @@ export async function searchCoto(query: string): Promise<SearchResult[]> {
         price,
         price_per_unit: null,
         unit: null,
-        url: `https://www.coto.com.ar${p.linkText ? '/' + p.linkText + '/p' : ''}`,
+        url,
         in_stock: true,
-        source: 'vtex' as const,
+        source: 'coto' as const,
         image: p.imageUrl ?? p.thumbnail ?? null,
       }
     }).filter((r: SearchResult) => r.price > 0)

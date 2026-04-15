@@ -161,7 +161,7 @@ function parseBestTeaser(teasers: VtexTeaser[], unitPrice: number): PromoResult 
       }
     }
 
-    if (promo && promo.discountPct >= 3 && promo.discountPct <= 80) {
+    if (promo && promo.discountPct >= 3 && promo.discountPct <= 70) {
       if (!best || promo.discountPct > best.discountPct) best = promo
     }
   }

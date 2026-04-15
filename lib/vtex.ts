@@ -177,7 +177,7 @@ function parseBestPromo(teasers: VtexTeaser[], unitPrice: number): { label: stri
       }
     }
 
-    if (label && discountPct >= 3 && discountPct <= 80) {
+    if (label && discountPct >= 3 && discountPct <= 70) {
       if (!best || discountPct > best.discountPct) best = { label, effectivePrice, discountPct }
     }
   }

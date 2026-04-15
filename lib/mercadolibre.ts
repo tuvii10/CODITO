@@ -147,6 +147,8 @@ export async function fetchMLHighlightsByCategory(
         image,
         promo_label: hasDiscount && discPct >= 3 ? `-${discPct}%` : null,
         original_price: hasDiscount ? original : null,
+        // ML devuelve original_price solo cuando hay descuento real del vendedor
+        is_real_promo: hasDiscount && discPct >= 3,
       } as SearchResult
     })
   )

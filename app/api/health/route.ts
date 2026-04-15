@@ -7,7 +7,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { searchVtex, VTEX_STORE_NAMES } from '@/lib/vtex'
-import { searchMercadoLibre } from '@/lib/mercadolibre'
+import { fetchMLHighlightsByCategory } from '@/lib/mercadolibre'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -23,9 +23,11 @@ export async function GET(req: NextRequest) {
 
   const started = Date.now()
 
+  // ML se prueba con el endpoint de highlights (OAuth token)
+  // Usamos MLA1403 (Alimentos y Bebidas) como query de test
   const [vtexResults, mlResults] = await Promise.allSettled([
     searchVtex(testQuery),
-    searchMercadoLibre(testQuery, 5),
+    fetchMLHighlightsByCategory('MLA1403', 3),
   ])
 
   const vtex = vtexResults.status === 'fulfilled' ? vtexResults.value : []
