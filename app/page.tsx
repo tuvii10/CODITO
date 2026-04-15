@@ -128,99 +128,120 @@ export default function Home() {
         <SearchBar onSearch={handleSearch} loading={loading} />
       </div>
 
-      {/* Banner Ofertas — protagonista de la home */}
+      {/* Banner Ofertas — naranja llamativo */}
       {!searched && (
         <Link
           href="/ofertas"
           className="ofertas-banner"
-          style={{ textDecoration: 'none', display: 'block', marginTop: 18 }}
+          style={{ textDecoration: 'none', display: 'block', marginTop: 20 }}
         >
           <div style={{
             position: 'relative',
-            borderRadius: 20,
+            borderRadius: 22,
             padding: 'clamp(20px, 5vw, 28px) clamp(20px, 5vw, 32px)',
-            background: 'linear-gradient(135deg, #09090b 0%, #1c1c1f 50%, #09090b 100%)',
+            background: 'linear-gradient(135deg, #ea580c 0%, #f97316 40%, #ef4444 100%)',
             overflow: 'hidden',
             cursor: 'pointer',
-            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.35)',
-            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s',
+            boxShadow: '0 16px 48px -10px rgba(234,88,12,0.55)',
+            transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s',
           }}>
-            {/* Shimmer effect — linea diagonal sutil */}
+            {/* Shimmer */}
             <div className="banner-shimmer" style={{
               position: 'absolute',
               top: 0, left: '-100%',
               width: '50%', height: '100%',
-              background: 'linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%)',
+              background: 'linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)',
               transform: 'skewX(-20deg)',
               pointerEvents: 'none',
             }} />
+            {/* Círculos decorativos de fondo */}
+            <div style={{
+              position: 'absolute', right: -30, top: -30,
+              width: 140, height: 140, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.08)', pointerEvents: 'none',
+            }} />
+            <div style={{
+              position: 'absolute', right: 40, bottom: -40,
+              width: 100, height: 100, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.06)', pointerEvents: 'none',
+            }} />
 
             {/* Contenido */}
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Eyebrow con pulse */}
+                {/* Badge NUEVO */}
                 <div style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 7,
+                  gap: 6,
                   padding: '4px 10px',
                   borderRadius: 999,
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.35)',
+                  background: 'rgba(255,255,255,0.2)',
                   marginBottom: 10,
                 }}>
                   <span className="live-dot" style={{
                     width: 6, height: 6, borderRadius: '50%',
-                    background: '#ef4444',
+                    background: '#fff',
                   }} />
                   <span style={{
                     fontSize: 10,
                     fontWeight: 800,
-                    color: '#fca5a5',
+                    color: '#fff',
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
                   }}>
-                    HOY · en vivo
+                    HOY · actualizado
                   </span>
                 </div>
 
                 <h3 style={{
                   color: '#ffffff',
                   fontWeight: 900,
-                  fontSize: 'clamp(20px, 5vw, 28px)',
-                  lineHeight: 1.05,
+                  fontSize: 'clamp(22px, 5.5vw, 32px)',
+                  lineHeight: 1.0,
                   letterSpacing: '-0.03em',
-                  marginBottom: 6,
+                  marginBottom: 8,
+                  textShadow: '0 2px 8px rgba(0,0,0,0.15)',
                 }}>
-                  Ofertas del día
+                  🔥 Ofertas del día
                 </h3>
                 <p style={{
-                  color: '#a1a1aa',
-                  fontSize: 'clamp(12px, 3vw, 13px)',
+                  color: 'rgba(255,255,255,0.88)',
+                  fontSize: 'clamp(12px, 3vw, 14px)',
                   fontWeight: 500,
                   lineHeight: 1.4,
                 }}>
-                  Los precios más bajos verificados entre{' '}
-                  <strong style={{ color: '#e4e4e7' }}>60+ tiendas</strong>.
+                  Los mejores descuentos verificados en{' '}
+                  <strong style={{ color: '#fff' }}>60+ tiendas</strong>
                 </p>
               </div>
 
-              {/* CTA arrow */}
+              {/* CTA */}
               <div className="ofertas-arrow" style={{
                 flexShrink: 0,
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                background: '#ffffff',
-                color: '#09090b',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 22,
-                fontWeight: 900,
-                transition: 'transform 0.2s',
+                gap: 4,
               }}>
-                →
+                <div style={{
+                  width: 52, height: 52,
+                  borderRadius: 16,
+                  background: '#ffffff',
+                  color: '#ea580c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 24,
+                  fontWeight: 900,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  transition: 'transform 0.2s',
+                }}>
+                  →
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>
+                  Ver todo
+                </span>
               </div>
             </div>
           </div>

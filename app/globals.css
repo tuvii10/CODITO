@@ -67,12 +67,18 @@ html, body {
   100% { left: 200%; }
 }
 .banner-shimmer {
-  animation: banner-shimmer-anim 3.5s ease-in-out infinite;
+  animation: banner-shimmer-anim 3s ease-in-out infinite;
 }
 .ofertas-banner:hover > div {
-  transform: translateY(-3px);
-  box-shadow: 0 28px 50px -15px rgba(0, 0, 0, 0.45);
+  transform: translateY(-4px);
+  box-shadow: 0 28px 60px -10px rgba(234,88,12,0.65) !important;
 }
-.ofertas-banner:hover .ofertas-arrow {
-  transform: translateX(4px);
+.ofertas-banner:hover .ofertas-arrow > div {
+  transform: translateX(5px);
+}
+
+/* Botón header Ofertas — hover */
+.ofertas-header-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(249,115,22,0.55) !important;
 }

@@ -84,24 +84,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
             </Link>
 
-            {/* Botón Ofertas — negro minimal */}
+            {/* Botón Ofertas — naranja llamativo */}
             <Link href="/ofertas" className="ofertas-header-btn" style={{
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              background: '#18181b',
+              background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
               color: '#fff',
-              fontWeight: 700,
-              fontSize: 13,
-              padding: '9px 16px',
-              borderRadius: 10,
+              fontWeight: 800,
+              fontSize: 14,
+              padding: '10px 18px',
+              borderRadius: 12,
               whiteSpace: 'nowrap',
               flexShrink: 0,
               letterSpacing: '-0.01em',
-              transition: 'background 0.15s',
+              boxShadow: '0 4px 14px rgba(249,115,22,0.45)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
             }}>
-              Ofertas
+              🔥 Ofertas
             </Link>
           </div>
         </header>
