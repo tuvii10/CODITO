@@ -179,8 +179,9 @@ function normalize(s: string): string {
 /**
  * Matchea un término contra un texto.
  * - Multi-palabra (ej: "coca cola"): substring directo
- * - Una sola palabra (ej: "cola"): match con word boundary para evitar
- *   falsos positivos como "cola" matcheando "escolar" o "chocolate"
+ * - Una sola palabra (ej: "zapatilla"): prefix match de cualquier palabra
+ *   del nombre. Así "zapatilla" matchea "zapatillas" (plural),
+ *   "zapatillados", etc. pero no "zapatos" ni "escolar".
  */
 function matchesTerm(haystack: string, rawTerm: string): boolean {
   const term = normalize(rawTerm).trim()
@@ -191,10 +192,10 @@ function matchesTerm(haystack: string, rawTerm: string): boolean {
     return haystack.includes(term)
   }
 
-  // Una palabra: word boundary
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const re = new RegExp(`\\b${escaped}\\b`, 'i')
-  return re.test(haystack)
+  // Una palabra: prefix match sobre cada palabra del haystack
+  // (así 'cola' matchea 'Coca Cola' pero no 'escolar' ni 'chocolate')
+  const words = haystack.split(/\s+/).filter(Boolean)
+  return words.some(w => w.startsWith(term))
 }
 
 function passesFilter(name: string, category: Category): boolean {

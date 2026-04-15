@@ -52,25 +52,18 @@ export default function FeaturedProducts() {
   }, [])
 
   /**
-   * Para cada cambio de categoría activa, fetchea ML client-side si todavía
-   * no lo hicimos y mergea los resultados.
+   * Fetchea ML client-side para UNA categoría y mergea con los productos
+   * del server. Dedupe por URL + interleave VTEX/ML.
    */
-  const enrichWithMl = useCallback(async (sectionKey: string, categoryKey: string) => {
+  const enrichWithMl = useCallback(async (sectionKey: string, categoryKey: string, query: string) => {
     const key = `${sectionKey}/${categoryKey}`
-    if (mlFetched.has(key)) return
 
-    // Encontrar la categoría para obtener la query
-    const section = sections.find(s => s.key === sectionKey)
-    const category = section?.categories.find(c => c.key === categoryKey)
-    if (!category?.query) return
+    console.log('[FeaturedProducts] Fetching ML for', key, 'query:', query)
+    const mlResults = await searchMercadoLibreClient(query, 12)
+    console.log('[FeaturedProducts] ML returned', mlResults.length, 'products for', key)
 
-    // Marcar como fetcheado antes de la request para evitar race conditions
-    setMlFetched(prev => new Set(prev).add(key))
-
-    const mlResults = await searchMercadoLibreClient(category.query, 12)
     if (mlResults.length === 0) return
 
-    // Mergear en el state dedupeando por URL
     setSections(prevSections =>
       prevSections.map(s => {
         if (s.key !== sectionKey) return s
@@ -80,7 +73,6 @@ export default function FeaturedProducts() {
             if (c.key !== categoryKey) return c
             const seen = new Set(c.products.map(p => p.url).filter(Boolean))
             const newMl = mlResults.filter(r => !r.url || !seen.has(r.url))
-            // Interleave VTEX + ML para mostrar ambas fuentes
             const vtexOnly = c.products.filter(p => p.source !== 'mercadolibre')
             const merged: SearchResult[] = []
             const maxLen = Math.max(vtexOnly.length, newMl.length)
@@ -93,14 +85,40 @@ export default function FeaturedProducts() {
         }
       })
     )
-  }, [sections, mlFetched])
+  }, [])
 
-  // Fetchar ML cuando cambia la categoría activa
+  // Cuando sections se carga, enriquecer TODAS las categorías de TODAS las
+  // secciones con ML en paralelo (de a poco para no saturar)
   useEffect(() => {
-    if (sections.length > 0 && activeCategory && activeSection) {
-      enrichWithMl(activeSection, activeCategory)
+    if (sections.length === 0) return
+
+    const toFetch: Array<{ section: string; category: string; query: string }> = []
+    for (const s of sections) {
+      for (const c of s.categories) {
+        const key = `${s.key}/${c.key}`
+        if (mlFetched.has(key)) continue
+        if (!c.query) continue
+        toFetch.push({ section: s.key, category: c.key, query: c.query })
+      }
     }
-  }, [sections, activeCategory, activeSection, enrichWithMl])
+
+    if (toFetch.length === 0) return
+
+    // Marcar todos como fetcheados antes de iniciar
+    setMlFetched(prev => {
+      const next = new Set(prev)
+      for (const t of toFetch) next.add(`${t.section}/${t.category}`)
+      return next
+    })
+
+    // Fetchar en paralelo pero con un pequeño stagger para no saturar
+    toFetch.forEach((t, i) => {
+      setTimeout(() => {
+        enrichWithMl(t.section, t.category, t.query)
+      }, i * 120)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections.length])
 
   if (loading) {
     return (
