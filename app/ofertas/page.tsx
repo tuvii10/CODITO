@@ -184,18 +184,16 @@ export default async function OfertasPage() {
           </div>
         </div>
         <p style={{ fontSize: 13, color: '#4d7fa8', lineHeight: 1.5 }}>
-          Ordenadas por <strong style={{ color: '#16a34a' }}>cuánto ahorrás en pesos</strong>.
-          Cada oferta fue verificada contra la competencia: solo aparecen descuentos reales.
-          Se renuevan cada 24 hs.
+          Descuentos verificados · Se renuevan cada 24 hs.
         </p>
       </div>
 
       {/* Lista */}
       {deals.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--muted)' }}>
+        <div style={{ textAlign: 'center', padding: '80px 0', color: '#4d7fa8' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>😕</div>
-          <p style={{ fontWeight: 600 }}>No hay ofertas disponibles en este momento</p>
-          <p style={{ fontSize: 13, marginTop: 6 }}>Volvé más tarde, se actualizan cada 24 hs.</p>
+          <p style={{ fontWeight: 600 }}>Sin ofertas ahora</p>
+          <p style={{ fontSize: 13, marginTop: 6 }}>Volvé en 24 hs.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

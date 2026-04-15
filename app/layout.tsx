@@ -3,12 +3,44 @@ import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Codito — Comparador de Precios Argentina',
-  description: 'Compará precios de supermercados y Mercado Libre en un solo lugar',
+  metadataBase: new URL('https://codito-rho.vercel.app'),
+  title: {
+    default: 'Codito — El precio más bajo de Argentina',
+    template: '%s · Codito',
+  },
+  description: 'Buscá cualquier producto y te mostramos dónde está más barato. Comparamos supermercados, electro y moda al instante.',
+  keywords: ['comparador de precios', 'Argentina', 'supermercados', 'ofertas', 'precio más bajo'],
+  authors: [{ name: 'Codito' }],
   icons: {
     icon: '/favicon.png',
     shortcut: '/favicon.png',
     apple: '/favicon.png',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'es_AR',
+    url: 'https://codito-rho.vercel.app',
+    siteName: 'Codito',
+    title: 'Codito — El precio más bajo de Argentina',
+    description: 'Buscá cualquier producto y te mostramos dónde está más barato. Sin vueltas, sin perder guita.',
+    images: [
+      {
+        url: '/logo.png',
+        width: 500,
+        height: 500,
+        alt: 'Codito',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Codito — El precio más bajo de Argentina',
+    description: 'Buscá cualquier producto y te mostramos dónde está más barato.',
+    images: ['/logo.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 

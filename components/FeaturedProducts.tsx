@@ -53,7 +53,7 @@ export default function FeaturedProducts() {
       <section style={{ marginTop: 40 }}>
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#4d7fa8' }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-          <p style={{ fontSize: 13, fontWeight: 600 }}>Cargando productos destacados...</p>
+          <p style={{ fontSize: 13, fontWeight: 600 }}>Cargando...</p>
         </div>
       </section>
     )
@@ -85,10 +85,10 @@ export default function FeaturedProducts() {
         }}>⭐</div>
         <div>
           <h2 style={{ fontSize: 19, fontWeight: 800, color: '#0c4a6e', lineHeight: 1.2 }}>
-            Productos destacados
+            Destacados
           </h2>
           <p style={{ fontSize: 12, color: '#4d7fa8', marginTop: 2 }}>
-            Precios reales · actualizados cada hora
+            Actualizados cada hora
           </p>
         </div>
       </div>
@@ -177,7 +177,7 @@ export default function FeaturedProducts() {
         </div>
       ) : (
         <p style={{ textAlign: 'center', padding: 30, color: '#4d7fa8', fontSize: 13 }}>
-          No hay productos disponibles en esta categoría ahora mismo.
+          Sin productos en esta categoría.
         </p>
       )}
     </section>

@@ -115,7 +115,7 @@ export default function SearchBar({ onSearch, loading }: Props) {
             letterSpacing: '0.02em',
           }}
         >
-          {loading ? 'Buscando...' : '🔍 Buscar el mejor precio'}
+          {loading ? 'Buscando...' : '🔍 Buscar'}
         </button>
       </form>
 

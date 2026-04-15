@@ -31,7 +31,7 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero */}
+      {/* Hero minimalista */}
       {!searched && (
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -39,9 +39,9 @@ export default function Home() {
             src="/logo.png"
             alt="Codito"
             style={{
-              height: 'clamp(110px, 20vw, 180px)',
+              height: 'clamp(130px, 22vw, 200px)',
               width: 'auto',
-              margin: '0 auto 4px',
+              margin: '0 auto 6px',
               display: 'block',
               filter: 'drop-shadow(0 6px 20px rgba(2,132,199,0.25))',
             }}
@@ -57,52 +57,46 @@ export default function Home() {
             ¿Cuánto sale hoy?
           </p>
           <h2 style={{
-            fontSize: 'clamp(22px, 5.5vw, 38px)',
+            fontSize: 'clamp(24px, 6vw, 42px)',
             fontWeight: 800,
-            marginBottom: 10,
+            marginBottom: 8,
             color: '#0c4a6e',
-            lineHeight: 1.15,
+            lineHeight: 1.1,
             maxWidth: 620,
-            margin: '0 auto 10px',
+            margin: '0 auto 8px',
             padding: '0 4px',
           }}>
-            Encontrá el <span style={{ color: '#0284c7' }}>precio más bajo</span> de Argentina
+            Buscá. <span style={{ color: '#0284c7' }}>Comprá barato.</span>
           </h2>
           <p style={{
             color: '#1e3a5f',
-            fontSize: 'clamp(12px, 3.2vw, 15px)',
-            maxWidth: 460,
+            fontSize: 'clamp(12px, 3.2vw, 14px)',
             margin: '0 auto',
-            lineHeight: 1.45,
-            padding: '0 12px',
+            fontWeight: 500,
           }}>
-            Buscá cualquier producto y te mostramos dónde está más barato.
+            Sin vueltas, sin perder guita.
           </p>
 
-          {/* Indicador de frecuencia — compacto en mobile */}
+          {/* Indicador mínimo */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
             marginTop: 12,
-            padding: '6px 14px',
+            padding: '5px 12px',
             borderRadius: 999,
             background: 'rgba(255,255,255,0.8)',
             border: '1px solid #60a5fa',
             fontSize: 11,
             color: '#0c4a6e',
             fontWeight: 700,
-            boxShadow: '0 2px 8px rgba(2,132,199,0.10)',
           }}>
             <span style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
+              width: 8, height: 8, borderRadius: '50%',
               background: '#16a34a',
               boxShadow: '0 0 0 3px rgba(22,163,74,0.25)',
-              flexShrink: 0,
             }} />
-            <span>En vivo · datos en tiempo real</span>
+            En vivo
           </div>
         </div>
       )}
@@ -134,11 +128,11 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 22 }}>🏷️</span>
               <div>
-                <p style={{ color: '#fff', fontWeight: 800, fontSize: 14, lineHeight: 1.2 }}>
+                <p style={{ color: '#fff', fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>
                   Ofertas del día
                 </p>
                 <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, marginTop: 1 }}>
-                  30 productos con descuento real
+                  Descuentos verificados
                 </p>
               </div>
             </div>
@@ -146,10 +140,10 @@ export default function Home() {
               flexShrink: 0,
               color: '#fff',
               fontWeight: 700,
-              fontSize: 12,
+              fontSize: 13,
               whiteSpace: 'nowrap',
             }}>
-              Ver ofertas →
+              Ver →
             </div>
           </div>
         </Link>
@@ -166,7 +160,7 @@ export default function Home() {
               boxShadow: '0 2px 12px rgba(2,132,199,0.07)',
             }}>
               <div style={{ fontSize: 40, marginBottom: 14 }}>⏳</div>
-              <p style={{ color: '#4d7fa8', fontWeight: 600 }}>Buscando el mejor precio...</p>
+              <p style={{ color: '#4d7fa8', fontWeight: 600 }}>Buscando...</p>
             </div>
           ) : results.length === 0 ? (
             <div style={{
@@ -176,9 +170,9 @@ export default function Home() {
             }}>
               <div style={{ fontSize: 40, marginBottom: 14 }}>😕</div>
               <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: '#0c1a2e' }}>
-                Sin resultados para &quot;{lastQuery}&quot;
+                Nada para &quot;{lastQuery}&quot;
               </p>
-              <p style={{ fontSize: 13, color: '#4d7fa8' }}>Probá con otro nombre o una búsqueda más corta.</p>
+              <p style={{ fontSize: 13, color: '#4d7fa8' }}>Probá con otro nombre.</p>
             </div>
           ) : (
             <ResultsTable results={results} query={lastQuery} />
