@@ -28,6 +28,7 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Samsung',        domain: 'shop.samsung.com.ar',       category: 'electro' },
   { name: 'Whirlpool',      domain: 'www.whirlpool.com.ar',      category: 'electro' },
   { name: 'KitchenAid',     domain: 'www.kitchenaid.com.ar',     category: 'electro' },
+  { name: 'Liliana',        domain: 'www.liliana.com.ar',        category: 'electro' },
 
   // ── Hogar / construcción ────────────────────────────────
   { name: 'Easy',           domain: 'www.easy.com.ar',           category: 'hogar' },
@@ -39,12 +40,13 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'El Balcón',      domain: 'www.elbalcon.com',          category: 'hogar' },
 
   // ── Farmacia / belleza / mascotas ───────────────────────
-  { name: 'Farmacity',      domain: 'www.farmacity.com',         category: 'farmacia' },
-  { name: 'Farmaonline',    domain: 'www.farmaonline.com',       category: 'farmacia' },
-  { name: 'Farmalife',      domain: 'www.farmalife.com.ar',      category: 'farmacia' },
-  { name: 'Farmaplus',      domain: 'www.farmaplus.com.ar',      category: 'farmacia' },
-  { name: 'Get The Look',   domain: 'www.getthelook.com.ar',     category: 'belleza' },
-  { name: 'Puppis',         domain: 'www.puppis.com.ar',         category: 'mascotas' },
+  { name: 'Farmacity',         domain: 'www.farmacity.com',         category: 'farmacia' },
+  { name: 'Farmaonline',       domain: 'www.farmaonline.com',       category: 'farmacia' },
+  { name: 'Farmalife',         domain: 'www.farmalife.com.ar',      category: 'farmacia' },
+  { name: 'Farmaplus',         domain: 'www.farmaplus.com.ar',      category: 'farmacia' },
+  { name: 'Farmacia del Pueblo', domain: 'www.farmaciadelpueblo.com.ar', category: 'farmacia' },
+  { name: 'Get The Look',      domain: 'www.getthelook.com.ar',     category: 'belleza' },
+  { name: 'Puppis',            domain: 'www.puppis.com.ar',         category: 'mascotas' },
 
   // ── Moda / indumentaria ────────────────────────────────
   { name: 'Topper',         domain: 'www.topper.com.ar',         category: 'moda' },
@@ -74,6 +76,9 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Las Margaritas', domain: 'www.lasmargaritas.com.ar',  category: 'moda' },
   { name: 'Factory',        domain: 'www.factorydeportivo.com.ar', category: 'deportes' },
   { name: 'Punto Deportivo', domain: 'www.puntodeportivo.com.ar', category: 'deportes' },
+
+  // ── Librerías ───────────────────────────────────────────
+  { name: 'SBS',            domain: 'www.sbs.com.ar',            category: 'libros' },
 
   // ── Multimarca ──────────────────────────────────────────
   { name: 'Coppel',         domain: 'www.coppel.com.ar',         category: 'multi' },
