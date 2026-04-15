@@ -46,22 +46,30 @@ export async function searchMercadoLibre(query: string, limit = 24): Promise<Sea
     return items
       .filter(item => item.item_offered?.price > 0)
       .slice(0, limit)
-      .map(item => ({
-        id: `ml-${item.id}`,
-        name: item.name,
-        brand: item.brand_attribute?.name ?? null,
-        ean: null,
-        store_name: 'Mercado Libre',
-        store_logo: 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/favicon.svg',
-        price: item.item_offered.price,
-        price_per_unit: null,
-        unit: null,
-        url: item.item_offered.url,
-        in_stock: true,
-        source: 'mercadolibre' as const,
-        image: item.image?.replace('http://', 'https://') ?? null,
-        seller: undefined,
-      }))
+      .map(item => {
+        const price = item.item_offered.price
+        const original = item.item_offered.original_price ?? null
+        const hasDiscount = original && original > price
+        const discPct = hasDiscount ? Math.round((1 - price / original) * 100) : 0
+        return {
+          id: `ml-${item.id}`,
+          name: item.name,
+          brand: item.brand_attribute?.name ?? null,
+          ean: null,
+          store_name: 'Mercado Libre',
+          store_logo: 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/favicon.svg',
+          price,
+          price_per_unit: null,
+          unit: null,
+          url: item.item_offered.url,
+          in_stock: true,
+          source: 'mercadolibre' as const,
+          image: item.image?.replace('http://', 'https://') ?? null,
+          seller: undefined,
+          promo_label: hasDiscount && discPct >= 3 ? `-${discPct}%` : null,
+          original_price: hasDiscount ? original : null,
+        }
+      })
   } catch {
     return []
   }
@@ -74,6 +82,7 @@ type MLProductItem = {
   brand_attribute?: { name: string }
   item_offered: {
     price: number
+    original_price?: number
     price_currency: string
     url: string
   }

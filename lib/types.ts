@@ -42,4 +42,6 @@ export type SearchResult = {
   source: 'sepa' | 'mercadolibre' | 'vtex' | 'coto' | 'searxng'
   image?: string | null
   seller?: string
+  promo_label?: string | null
+  original_price?: number | null
 }

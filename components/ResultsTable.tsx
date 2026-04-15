@@ -205,6 +205,21 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
 
       {/* Precio */}
       <div style={{ textAlign: 'right', padding: '8px 14px 8px 4px', flexShrink: 0 }}>
+        {result.promo_label && (
+          <span style={{
+            display: 'inline-block',
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: 999,
+            marginBottom: 4,
+            background: 'linear-gradient(135deg, #16a34a, #22c55e)',
+            color: '#fff',
+            whiteSpace: 'nowrap',
+          }}>
+            {result.promo_label}
+          </span>
+        )}
         <p style={{
           fontSize: 'clamp(16px, 4vw, 20px)',
           fontWeight: 800,
@@ -216,6 +231,11 @@ function ProductCard({ result, rank, isCheapest }: { result: SearchResult; rank:
           backgroundClip: isCheapest ? 'text' : undefined,
           whiteSpace: 'nowrap',
         }}>{fmt(result.price)}</p>
+        {result.original_price && (
+          <p style={{ fontSize: 10, color: 'var(--muted)', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
+            {fmt(result.original_price)}
+          </p>
+        )}
         {result.price_per_unit && result.unit && (
           <p style={{ fontSize: 10, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
             {fmt(result.price_per_unit)} / {result.unit}
