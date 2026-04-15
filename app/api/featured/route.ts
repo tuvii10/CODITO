@@ -298,26 +298,23 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
   // el más barato (para que la vista no se llene de repetidos)
   const deduplicated = deduplicateToCheapest(withRealDiscounts)
 
-  // Ordenar cada fuente por su mejor propuesta (descuento absoluto → precio)
-  const sortFn = (a: SearchResult, b: SearchResult) => {
-    const savingsA = a.original_price && a.original_price > a.price ? a.original_price - a.price : 0
-    const savingsB = b.original_price && b.original_price > b.price ? b.original_price - b.price : 0
-    if (savingsA !== savingsB) return savingsB - savingsA
-    return a.price - b.price
-  }
+  // Ordenar por precio de menor a mayor (simple y claro)
+  const sortByPrice = (a: SearchResult, b: SearchResult) => a.price - b.price
 
-  const vtexSorted = deduplicated.filter(r => r.source === 'vtex').sort(sortFn)
-  const mlSorted = deduplicated.filter(r => r.source === 'mercadolibre').sort(sortFn)
+  // Separar por fuente, ordenar cada una por precio
+  const vtexSorted = deduplicated.filter(r => r.source === 'vtex').sort(sortByPrice)
+  const mlSorted = deduplicated.filter(r => r.source === 'mercadolibre').sort(sortByPrice)
 
-  // Interleave 1:1 para garantizar presencia de Mercado Libre
-  const result: SearchResult[] = []
+  // Interleave para garantizar presencia de ambas fuentes
+  const interleaved: SearchResult[] = []
   const maxLen = Math.max(vtexSorted.length, mlSorted.length)
-  for (let i = 0; i < maxLen && result.length < 24; i++) {
-    if (i < vtexSorted.length && result.length < 24) result.push(vtexSorted[i])
-    if (i < mlSorted.length && result.length < 24) result.push(mlSorted[i])
+  for (let i = 0; i < maxLen && interleaved.length < 24; i++) {
+    if (i < vtexSorted.length && interleaved.length < 24) interleaved.push(vtexSorted[i])
+    if (i < mlSorted.length && interleaved.length < 24) interleaved.push(mlSorted[i])
   }
 
-  return result
+  // Reordenar el resultado final por precio (sin importar la fuente)
+  return interleaved.sort(sortByPrice)
 }
 
 export async function GET() {
