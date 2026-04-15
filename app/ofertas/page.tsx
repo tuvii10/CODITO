@@ -65,7 +65,6 @@ function DealCard({ deal, rank }: { deal: Deal; rank: number }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={deal.image} alt={deal.name}
             style={{ width: 56, height: 56, objectFit: 'contain' }}
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         ) : (
           <span style={{ fontSize: 24, opacity: 0.15 }}>🛒</span>
