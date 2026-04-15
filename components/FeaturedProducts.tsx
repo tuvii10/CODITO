@@ -70,7 +70,27 @@ export default function FeaturedProducts() {
     (sum, s) => sum + s.categories.reduce((a, c) => a + c.products.length, 0),
     0
   )
-  if (totalProducts === 0) return null
+
+  if (totalProducts === 0) {
+    return (
+      <section style={{ marginTop: 40 }}>
+        <div style={{
+          textAlign: 'center',
+          padding: '50px 20px',
+          background: '#ffffff',
+          borderRadius: 16,
+          border: '1px solid #e4e4e7',
+        }}>
+          <p style={{ fontWeight: 700, color: '#09090b', fontSize: 14 }}>
+            Cargando productos destacados...
+          </p>
+          <p style={{ fontSize: 12, marginTop: 6, color: '#71717a' }}>
+            Se actualizan cada 12 hs. Refrescá en unos minutos.
+          </p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section style={{ marginTop: 40 }}>

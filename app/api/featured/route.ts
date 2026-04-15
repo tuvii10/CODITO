@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { searchVtex } from '@/lib/vtex'
+import { searchVtexLite } from '@/lib/vtex'
 import { searchSuperPrecio } from '@/lib/superprecio'
 import { fetchMLHighlightsByCategory } from '@/lib/mercadolibre'
 import { applyCrossSellerDiscounts, deduplicateToCheapest } from '@/lib/compare'
@@ -313,25 +313,21 @@ function passesFilter(name: string, category: Category): boolean {
 }
 
 async function searchCategory(category: Category): Promise<SearchResult[]> {
-  // 1. Juntar pool de queries: la principal + las extra (hasta 4)
-  const queries = [category.query, ...(category.extraQueries ?? [])].slice(0, 4)
+  // 1. Juntar pool de queries: solo la principal + 1 extra para no saturar
+  const queries = [category.query, ...(category.extraQueries ?? [])].slice(0, 2)
 
-  // 2. Para cada query, hacer búsqueda en VTEX + opcionalmente SuperPrecio en paralelo
-  const queryResults = await Promise.allSettled(
-    queries.map(async q => {
-      const [vtex, sp] = await Promise.allSettled([
-        searchVtex(q),
-        category.useSuperPrecio ? searchSuperPrecio(q, 15) : Promise.resolve([]),
-      ])
-      const vtexRes = vtex.status === 'fulfilled' ? vtex.value : []
-      const spRes = sp.status === 'fulfilled' ? sp.value : []
-      return [...vtexRes, ...spRes]
-    })
-  )
+  // 2. SuperPrecio se llama UNA sola vez con la query principal (no por cada extra)
+  //    VTEX se llama por cada query pero usando la versión lite (15 tiendas)
+  const [queryResults, superPrecioResult] = await Promise.all([
+    Promise.allSettled(queries.map(q => searchVtexLite(q))),
+    category.useSuperPrecio
+      ? searchSuperPrecio(category.query, 20).catch(() => [] as SearchResult[])
+      : Promise.resolve([] as SearchResult[]),
+  ])
 
   // 3. ML highlights por categoría (independiente de las queries)
   const mlRes = await (category.ml_category_id
-    ? fetchMLHighlightsByCategory(category.ml_category_id, 15).catch(() => [] as SearchResult[])
+    ? fetchMLHighlightsByCategory(category.ml_category_id, 12).catch(() => [] as SearchResult[])
     : Promise.resolve([] as SearchResult[]))
 
   // 4. Juntar todos los resultados
@@ -339,6 +335,7 @@ async function searchCategory(category: Category): Promise<SearchResult[]> {
   for (const r of queryResults) {
     if (r.status === 'fulfilled') allRaw.push(...r.value)
   }
+  allRaw.push(...superPrecioResult)
   allRaw.push(...mlRes)
 
   // 5. Dedupe por URL

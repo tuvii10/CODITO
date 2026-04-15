@@ -356,5 +356,27 @@ export async function searchVtex(query: string): Promise<SearchResult[]> {
     .flatMap(r => (r as PromiseFulfilledResult<SearchResult[]>).value)
 }
 
+/**
+ * Versión liviana: busca solo en las 15 tiendas VTEX más grandes/populares.
+ * Usado en featured/route para evitar timeouts cuando hay muchas queries
+ * corriendo en paralelo.
+ */
+const VTEX_TOP_STORES = [
+  'Carrefour', 'Disco', 'Vea', 'Jumbo', 'Chango Más', 'DIA',
+  'Frávega', 'Naldo', 'Samsung', 'Easy',
+  'Farmacity', 'Puppis',
+  'Topper', 'Marathon', 'Sporting',
+]
+
+export async function searchVtexLite(query: string): Promise<SearchResult[]> {
+  const topStores = VTEX_STORES.filter(s => VTEX_TOP_STORES.includes(s.name))
+  const results = await Promise.allSettled(
+    topStores.map(s => searchOneStore(s, query))
+  )
+  return results
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => (r as PromiseFulfilledResult<SearchResult[]>).value)
+}
+
 export const VTEX_STORE_COUNT = VTEX_STORES.length
 export const VTEX_STORE_NAMES = VTEX_STORES.map(s => s.name)
