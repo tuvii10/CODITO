@@ -258,8 +258,10 @@ function extractMLDeals(html: string, category: string): Deal[] {
 
     const price = parseFloat(m[2] + '.' + m[3])
     const original = parseInt(m[4])
+    // Sanity check: precio original sospechosamente alto → fake
+    if (price / original < 0.30) continue
     const discPct = Math.round((1 - price / original) * 100)
-    if (discPct < 3 || discPct > 80) continue
+    if (discPct < 3 || discPct > 70) continue
 
     const meta = imageMap.get(key) ?? { url: null, image: null }
     const fallbackUrl = 'https://listado.mercadolibre.com.ar/' +
@@ -328,6 +330,10 @@ async function fetchVtexDeals(query: string, category: string): Promise<Deal[]> 
             minUnits = promo.minUnits
           } else if (listPrice > unitPrice) {
             // Descuento tradicional ListPrice vs Price
+            // Sanity check: si el ratio es absurdo (<0.30 = desc >70%)
+            // el ListPrice es fake y lo descartamos
+            const ratio = unitPrice / listPrice
+            if (ratio < 0.30) return []
             effectivePrice = unitPrice
             discPct = Math.round((1 - unitPrice / listPrice) * 100)
             promoLabel = null
@@ -336,7 +342,7 @@ async function fetchVtexDeals(query: string, category: string): Promise<Deal[]> 
             return [] // sin descuento
           }
 
-          if (discPct < 3 || discPct > 80) return []
+          if (discPct < 3 || discPct > 70) return []
 
           const productUrl = p.link?.startsWith('http') ? p.link : `https://${store.domain}${p.link ?? ''}`
           return [{

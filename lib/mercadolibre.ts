@@ -49,8 +49,10 @@ export async function searchMercadoLibre(query: string, limit = 24): Promise<Sea
       .map(item => {
         const price = item.item_offered.price
         const original = item.item_offered.original_price ?? null
-        const hasDiscount = original && original > price
-        const discPct = hasDiscount ? Math.round((1 - price / original) * 100) : 0
+        // Sanity check: descuento > 70% = precio original falso, ignorar
+        const validRatio = original && original > price ? price / original : 1
+        const hasDiscount = !!original && original > price && validRatio >= 0.30
+        const discPct = hasDiscount ? Math.round((1 - price / original!) * 100) : 0
         return {
           id: `ml-${item.id}`,
           name: item.name,

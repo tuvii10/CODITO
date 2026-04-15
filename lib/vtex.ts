@@ -199,7 +199,13 @@ async function searchOneStore(store: VtexStore, query: string): Promise<SearchRe
       const promo = parseBestPromo(offer.Teasers ?? [], offer.Price)
 
       // Detectar descuento tradicional (ListPrice vs Price)
-      const hasListDiscount = offer.ListPrice && offer.ListPrice > offer.Price
+      // Validación de cordura: si el ratio Price/ListPrice es menor a 0.30
+      // (descuento > 70%), el ListPrice es fake. Muchas tiendas cargan un
+      // ListPrice absurdo solo para mostrar un "precio tachado" marketinero.
+      const listDiscount = offer.ListPrice && offer.ListPrice > offer.Price
+        ? offer.Price / offer.ListPrice
+        : 1
+      const hasListDiscount = listDiscount < 1 && listDiscount >= 0.30
 
       return [{
         id: `vtex-${store.name}-${p.link}`,
