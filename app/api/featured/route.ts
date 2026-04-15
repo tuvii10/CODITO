@@ -291,6 +291,7 @@ export async function GET() {
         key: c.key,
         label: c.label,
         emoji: c.emoji,
+        query: c.query,
         products: productsByKey.get(`${s.key}/${c.key}`) ?? [],
       })),
     }))

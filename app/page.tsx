@@ -6,6 +6,7 @@ import SearchBar from '@/components/SearchBar'
 import ResultsTable from '@/components/ResultsTable'
 import FeaturedProducts from '@/components/FeaturedProducts'
 import { SearchResult } from '@/lib/types'
+import { searchMercadoLibreClient } from '@/lib/ml-client'
 
 export default function Home() {
   const [results, setResults] = useState<SearchResult[]>([])
@@ -19,9 +20,23 @@ export default function Home() {
     setSearched(true)
     setLastQuery(query)
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
-      const data = await res.json()
-      setResults(data.results || [])
+      // Paralelo: servidor (VTEX + Coto) y cliente (Mercado Libre desde el navegador)
+      const [serverRes, mlResults] = await Promise.all([
+        fetch(`/api/search?q=${encodeURIComponent(query)}`).then(r => r.json()),
+        searchMercadoLibreClient(query, 20),
+      ])
+
+      const serverResults: SearchResult[] = serverRes.results || []
+
+      // Deduplicar por URL y unir
+      const seen = new Set(serverResults.map(r => r.url).filter(Boolean))
+      const mergedMl = mlResults.filter(r => !r.url || !seen.has(r.url))
+
+      // Juntar y ordenar por precio
+      const combined = [...serverResults, ...mergedMl]
+      combined.sort((a, b) => (a.price || Infinity) - (b.price || Infinity))
+
+      setResults(combined)
     } catch {
       setResults([])
     } finally {

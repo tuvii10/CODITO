@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { SearchResult } from '@/lib/types'
 import { getStoreConfig } from '@/lib/stores'
+import { searchMercadoLibreClient } from '@/lib/ml-client'
 
 type Category = {
   key: string
   label: string
   emoji: string
+  query?: string
   products: SearchResult[]
 }
 
@@ -29,6 +31,8 @@ export default function FeaturedProducts() {
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState<string>('supermercado')
   const [activeCategory, setActiveCategory] = useState<string>('gaseosa')
+  // Set de categorías que ya enriquecimos con ML (para no re-fetchar)
+  const [mlFetched, setMlFetched] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetch('/api/featured')
@@ -36,7 +40,6 @@ export default function FeaturedProducts() {
       .then(d => {
         const secs: Section[] = d.sections || []
         setSections(secs)
-        // Ajustar tab inicial si viene vacío
         if (secs.length > 0) {
           const first = secs.find(s => s.categories.some(c => c.products.length > 0)) ?? secs[0]
           setActiveSection(first.key)
@@ -47,6 +50,57 @@ export default function FeaturedProducts() {
       .catch(() => setSections([]))
       .finally(() => setLoading(false))
   }, [])
+
+  /**
+   * Para cada cambio de categoría activa, fetchea ML client-side si todavía
+   * no lo hicimos y mergea los resultados.
+   */
+  const enrichWithMl = useCallback(async (sectionKey: string, categoryKey: string) => {
+    const key = `${sectionKey}/${categoryKey}`
+    if (mlFetched.has(key)) return
+
+    // Encontrar la categoría para obtener la query
+    const section = sections.find(s => s.key === sectionKey)
+    const category = section?.categories.find(c => c.key === categoryKey)
+    if (!category?.query) return
+
+    // Marcar como fetcheado antes de la request para evitar race conditions
+    setMlFetched(prev => new Set(prev).add(key))
+
+    const mlResults = await searchMercadoLibreClient(category.query, 12)
+    if (mlResults.length === 0) return
+
+    // Mergear en el state dedupeando por URL
+    setSections(prevSections =>
+      prevSections.map(s => {
+        if (s.key !== sectionKey) return s
+        return {
+          ...s,
+          categories: s.categories.map(c => {
+            if (c.key !== categoryKey) return c
+            const seen = new Set(c.products.map(p => p.url).filter(Boolean))
+            const newMl = mlResults.filter(r => !r.url || !seen.has(r.url))
+            // Interleave VTEX + ML para mostrar ambas fuentes
+            const vtexOnly = c.products.filter(p => p.source !== 'mercadolibre')
+            const merged: SearchResult[] = []
+            const maxLen = Math.max(vtexOnly.length, newMl.length)
+            for (let i = 0; i < maxLen; i++) {
+              if (i < vtexOnly.length) merged.push(vtexOnly[i])
+              if (i < newMl.length) merged.push(newMl[i])
+            }
+            return { ...c, products: merged.slice(0, 24) }
+          }),
+        }
+      })
+    )
+  }, [sections, mlFetched])
+
+  // Fetchar ML cuando cambia la categoría activa
+  useEffect(() => {
+    if (sections.length > 0 && activeCategory && activeSection) {
+      enrichWithMl(activeSection, activeCategory)
+    }
+  }, [sections, activeCategory, activeSection, enrichWithMl])
 
   if (loading) {
     return (
