@@ -176,17 +176,38 @@ function normalize(s: string): string {
     .replace(/[\u0300-\u036f]/g, '')
 }
 
+/**
+ * Matchea un término contra un texto.
+ * - Multi-palabra (ej: "coca cola"): substring directo
+ * - Una sola palabra (ej: "cola"): match con word boundary para evitar
+ *   falsos positivos como "cola" matcheando "escolar" o "chocolate"
+ */
+function matchesTerm(haystack: string, rawTerm: string): boolean {
+  const term = normalize(rawTerm).trim()
+  if (!term) return false
+
+  // Multi-palabra: substring directo
+  if (term.includes(' ') || term.includes('-')) {
+    return haystack.includes(term)
+  }
+
+  // Una palabra: word boundary
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`\\b${escaped}\\b`, 'i')
+  return re.test(haystack)
+}
+
 function passesFilter(name: string, category: Category): boolean {
   const n = normalize(name)
 
-  // Si hay lista de exclusión, el nombre no puede contener ninguna
+  // Exclude: se mantiene agresivo (substring) para filtrar accesorios/variantes
   if (category.exclude && category.exclude.some(term => n.includes(normalize(term)))) {
     return false
   }
 
-  // Si hay lista de requeridos, el nombre debe contener al menos una
+  // Require: usa word boundary para palabras sueltas, substring para frases
   if (category.require && category.require.length > 0) {
-    const hasRequired = category.require.some(term => n.includes(normalize(term)))
+    const hasRequired = category.require.some(term => matchesTerm(n, term))
     if (!hasRequired) return false
   }
 
