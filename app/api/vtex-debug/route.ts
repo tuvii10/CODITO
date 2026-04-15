@@ -44,7 +44,7 @@ async function testSearchApi(domain: string, query: string) {
 
 async function testIntelligentSearch(domain: string, query: string) {
   try {
-    const url = `https://${domain}/api/io/_v/api/intelligent-search/product_search/?query=${encodeURIComponent(query)}&count=1`
+    const url = `https://${domain}/api/io/_v/api/intelligent-search/product_search/?query=${encodeURIComponent(query)}&count=2`
     const res = await fetch(url, {
       headers: { Accept: 'application/json', 'User-Agent': UA },
       cache: 'no-store',
@@ -54,18 +54,16 @@ async function testIntelligentSearch(domain: string, query: string) {
     let parsed: unknown = null
     try { parsed = JSON.parse(text) } catch {}
 
-    // Extraer el primer producto y su commertialOffer
-    let teaserStructure: unknown = null
-    let offerKeys: string[] = []
-    let installmentsSample: unknown = null
+    const products: Array<{
+      name: string
+      offer: Record<string, unknown>
+    }> = []
 
     if (parsed && typeof parsed === 'object') {
-      const p = parsed as { products?: Array<{ items?: Array<{ sellers?: Array<{ commertialOffer?: Record<string, unknown> }> }> }> }
-      const offer = p.products?.[0]?.items?.[0]?.sellers?.[0]?.commertialOffer
-      if (offer) {
-        offerKeys = Object.keys(offer)
-        teaserStructure = (offer as Record<string, unknown>).Teasers ?? (offer as Record<string, unknown>).teasers
-        installmentsSample = (offer as Record<string, unknown>).Installments
+      const p = parsed as { products?: Array<{ productName?: string; items?: Array<{ sellers?: Array<{ commertialOffer?: Record<string, unknown> }> }> }> }
+      for (const prod of p.products ?? []) {
+        const offer = prod.items?.[0]?.sellers?.[0]?.commertialOffer
+        if (offer) products.push({ name: prod.productName ?? '', offer })
       }
     }
 
@@ -73,11 +71,17 @@ async function testIntelligentSearch(domain: string, query: string) {
       endpoint: 'intelligent-search',
       url,
       status: res.status,
-      has_teasers: /"teasers":\s*\[/i.test(text),
       length: text.length,
-      offer_keys: offerKeys,
-      teasers: teaserStructure,
-      installments_sample: Array.isArray(installmentsSample) ? (installmentsSample as unknown[]).slice(0, 1) : null,
+      products: products.map(p => ({
+        name: p.name,
+        Price: p.offer.Price,
+        ListPrice: p.offer.ListPrice,
+        spotPrice: p.offer.spotPrice,
+        PriceWithoutDiscount: p.offer.PriceWithoutDiscount,
+        teasers: p.offer.teasers,
+        Teasers: p.offer.Teasers,
+        discountHighlights: p.offer.discountHighlights,
+      })),
     }
   } catch (err) {
     return { endpoint: 'intelligent-search', error: String(err) }
@@ -133,10 +137,11 @@ export async function GET(req: NextRequest) {
   ])
 
   return NextResponse.json({
-    version: 'v3-teaser-structure',
+    version: 'v4-discount-highlights',
     store,
     query,
     slug,
+    hint: 'Probá cambiar store=carrefour o store=fravega para ver si otras tiendas exponen teasers',
     tests: { search, intelligent, pdp },
   }, { headers: { 'Cache-Control': 'no-store' } })
 }
