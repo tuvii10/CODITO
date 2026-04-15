@@ -17,9 +17,6 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Vea',            domain: 'www.vea.com.ar',            category: 'supermercado' },
   { name: 'Jumbo',          domain: 'www.jumbo.com.ar',          category: 'supermercado' },
   { name: 'Chango Más',     domain: 'www.masonline.com.ar',      category: 'supermercado' },
-  { name: 'Libertad',       domain: 'www.hiperlibertad.com.ar',  category: 'supermercado' },
-  { name: 'Toledo',         domain: 'www.toledodigital.com.ar',  category: 'supermercado' },
-  { name: 'Josimar',        domain: 'www.josimar.com.ar',        category: 'supermercado' },
   { name: 'The Food Market', domain: 'www.thefoodmarket.com.ar', category: 'supermercado' },
 
   // ── Electro / tecnología ────────────────────────────────
@@ -39,7 +36,6 @@ const VTEX_STORES: VtexStore[] = [
   { name: 'Blaisten',       domain: 'www.blaisten.com.ar',       category: 'hogar' },
   { name: 'Castillo',       domain: 'www.castillo.com.ar',       category: 'hogar' },
   { name: 'El Balcón',      domain: 'www.elbalcon.com',          category: 'hogar' },
-  { name: 'Ferniplast',     domain: 'www.ferniplast.com',        category: 'hogar' },
 
   // ── Farmacia / belleza / mascotas ───────────────────────
   { name: 'Farmacity',      domain: 'www.farmacity.com',         category: 'farmacia' },
