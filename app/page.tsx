@@ -209,9 +209,28 @@ export default function Home() {
         </Link>
       )}
 
-      {/* Accesos rápidos */}
+      {/* Herramientas */}
       {!searched && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 12, marginTop: 14 }}>
+        <div style={{ marginTop: 24, marginBottom: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#09090b', letterSpacing: '-0.02em', margin: 0 }}>
+              Herramientas
+            </h2>
+            <span style={{
+              fontSize: 11, fontWeight: 700, color: '#f97316',
+              background: '#fff7ed', border: '1px solid #fed7aa',
+              borderRadius: 999, padding: '3px 10px',
+            }}>
+              7 herramientas gratis
+            </span>
+          </div>
+          <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
+            Todo lo que necesitás para cuidar tu bolsillo
+          </p>
+        </div>
+      )}
+      {!searched && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 12, marginTop: 10 }}>
           <Link href="/suscripciones" style={{ textDecoration: 'none' }}>
             <div style={{
               background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
