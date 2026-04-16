@@ -127,9 +127,16 @@ export default function DescuentosClient({ promos, updatedAt }: { promos: BankPr
         </div>
       )}
 
-      <p style={{ fontSize: 11, color: '#a1a1aa', textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
-        Datos verificados manualmente · Siempre confirmar en el sitio oficial de tu banco
-      </p>
+      {/* Disclaimer */}
+      <div style={{
+        background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14,
+        padding: '12px 16px', marginBottom: 40, display: 'flex', gap: 10, alignItems: 'flex-start',
+      }}>
+        <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+        <p style={{ fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
+          <strong>Datos orientativos.</strong> Las promociones pueden cambiar sin aviso. Verificá siempre en el sitio o app oficial de tu banco antes de ir al supermercado.
+        </p>
+      </div>
     </div>
   )
 }
