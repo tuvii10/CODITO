@@ -57,7 +57,7 @@ export default function Home() {
             marginLeft: '-50vw',
             marginRight: '-50vw',
             width: '100vw',
-            marginBottom: 24,
+            marginBottom: 10,
           }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -67,7 +67,7 @@ export default function Home() {
             />
           </div>
           {/* Mobile: contenido normal */}
-          <div className="hero-mobile" style={{ marginBottom: 24 }}>
+          <div className="hero-mobile" style={{ marginBottom: 10 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/header.png"

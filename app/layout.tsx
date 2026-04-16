@@ -83,7 +83,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             padding: '8px 14px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
+            position: 'relative',
             gap: 10,
           }}>
             {/* Logo */}
@@ -93,7 +94,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 src="/CODITOLOGO300.png"
                 alt="Codito"
                 style={{
-                  height: 'clamp(44px, 11vw, 58px)',
+                  height: 'clamp(52px, 13vw, 72px)',
                   width: 'auto',
                   objectFit: 'contain',
                 }}
@@ -101,7 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
 
             {/* Navegación */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'absolute', right: 14 }}>
               <Link href="/ofertas" className="ofertas-header-btn" style={{
                 textDecoration: 'none',
                 display: 'inline-flex',
