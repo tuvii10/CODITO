@@ -1,40 +1,97 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Vercel Cron: llamado automáticamente cada 24hs (ver vercel.json)
-// También puede llamarse manualmente con el header Authorization correcto
-
 export const maxDuration = 60
 
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
-  return createClient(url, key)
+// ─── Catálogo de bancos conocidos ─────────────────────────────────────────────
+// Para cada banco guardamos los metadatos fijos (icon, color, tarjeta)
+// y buscamos si el texto menciona cambios en descuento/días/supers/tope.
+
+const BANK_CATALOG: Record<string, { icon: string; color: string; tarjeta: string }> = {
+  'Banco Nación':    { icon: '🇦🇷', color: '#009cde', tarjeta: 'Visa' },
+  'Santander':       { icon: '🔴', color: '#ec0000', tarjeta: 'Visa / Mastercard' },
+  'Galicia':         { icon: '🟠', color: '#e95b0c', tarjeta: 'Visa / Mastercard' },
+  'BBVA':            { icon: '🔵', color: '#004481', tarjeta: 'Visa / Mastercard' },
+  'HSBC':            { icon: '⬜', color: '#db0011', tarjeta: 'Visa / Mastercard' },
+  'Banco Macro':     { icon: '🟡', color: '#f5b400', tarjeta: 'Visa / Mastercard' },
+  'Banco Provincia': { icon: '🏦', color: '#0057a8', tarjeta: 'Cuenta DNI / Mastercard' },
+  'Naranja X':       { icon: '🍊', color: '#ff6a00', tarjeta: 'Naranja Visa' },
+  'MODO':            { icon: '💳', color: '#6c11e8', tarjeta: 'Múltiples bancos' },
+  'Uala':            { icon: '💜', color: '#7b2d8b', tarjeta: 'Mastercard Prepaga' },
+  'Mercado Pago':    { icon: '💙', color: '#009ee3', tarjeta: 'Tarjeta MP / QR' },
+  'Personal Pay':    { icon: '🟢', color: '#00a550', tarjeta: 'Visa Prepaga' },
+  'Brubank':         { icon: '🟣', color: '#6a0dad', tarjeta: 'Visa Débito' },
 }
 
-async function searchWeb(query: string): Promise<string> {
-  // Intenta Tavily primero, luego Serper
+const DIAS_SEMANA = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']
+
+const SUPERS_CONOCIDOS = [
+  'Carrefour','Coto','Jumbo','Disco','Vea','Changomás','La Anónima',
+  'Día','DIA','Makro','Supermercados Toledo','Walmart',
+]
+
+// ─── Parser de texto libre ─────────────────────────────────────────────────────
+
+function extractFromText(banco: string, text: string): {
+  descuento: number | null
+  dias: string[]
+  supers: string[]
+  tope: string | null
+} {
+  const t = text.toLowerCase()
+
+  // Descuento: primer número seguido de %
+  const pctMatch = text.match(/(\d{1,2})\s*%/)
+  const descuento = pctMatch ? parseInt(pctMatch[1]) : null
+
+  // Días mencionados
+  const dias = DIAS_SEMANA.filter(d => t.includes(d.toLowerCase()))
+  if (t.includes('todos los días') || t.includes('siempre') || t.includes('todos los dias')) {
+    dias.push('Siempre')
+  }
+
+  // Supermercados mencionados
+  const supers = SUPERS_CONOCIDOS.filter(s => t.includes(s.toLowerCase()))
+
+  // Tope: busca "$NNN.NNN" cerca de palabras clave de tope
+  let tope: string | null = null
+  const topeMatch = text.match(/(?:tope|hasta|máximo|maximo|límite|limite)[^$\n]*\$\s*([\d.,]+)/i)
+    ?? text.match(/\$\s*([\d.,]+)[^$\n]*(?:tope|límite|semanal|mensual|por\s+semana|por\s+mes)/i)
+  if (topeMatch) {
+    // Buscar la unidad de tiempo cerca
+    const nearby = text.slice(Math.max(0, text.indexOf(topeMatch[0]) - 30),
+                              text.indexOf(topeMatch[0]) + topeMatch[0].length + 40)
+    const unit = nearby.match(/semanal|por semana|mensual|por mes/i)?.[0] ?? ''
+    tope = `$${topeMatch[1]}${unit ? ' ' + unit : ''}`
+  }
+
+  return { descuento, dias, supers, tope }
+}
+
+// ─── Búsqueda web ──────────────────────────────────────────────────────────────
+
+async function searchForBank(banco: string): Promise<string> {
+  const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+  const query = `descuento ${banco} supermercado tarjeta ${mes} argentina`
+
   const tavilyKey = process.env.TAVILY_API_KEY
   if (tavilyKey) {
-    try {
-      const res = await fetch('https://api.tavily.com/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          api_key: tavilyKey,
-          query,
-          search_depth: 'basic',
-          max_results: 8,
-          include_answer: true,
-        }),
-      })
-      const data = await res.json()
-      const snippets = (data.results ?? []).map((r: { title: string; content: string; url: string }) =>
-        `[${r.title}]\n${r.content}\nFuente: ${r.url}`
-      )
-      if (data.answer) snippets.unshift(`Resumen: ${data.answer}`)
-      return snippets.join('\n\n---\n\n')
-    } catch { /* fallback */ }
+    const res = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: tavilyKey,
+        query,
+        search_depth: 'basic',
+        max_results: 5,
+        include_answer: true,
+      }),
+    })
+    const data = await res.json()
+    const parts: string[] = []
+    if (data.answer) parts.push(data.answer)
+    for (const r of (data.results ?? [])) parts.push(`${r.title}: ${r.content}`)
+    return parts.join(' | ')
   }
 
   const serperKey = process.env.SERPER_API_KEY
@@ -42,86 +99,29 @@ async function searchWeb(query: string): Promise<string> {
     const res = await fetch('https://google.serper.dev/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-API-KEY': serperKey },
-      body: JSON.stringify({ q: query, gl: 'ar', hl: 'es', num: 8 }),
+      body: JSON.stringify({ q: query, gl: 'ar', hl: 'es', num: 5 }),
     })
     const data = await res.json()
-    const snippets = (data.organic ?? []).map((r: { title: string; snippet: string; link: string }) =>
-      `[${r.title}]\n${r.snippet}\nFuente: ${r.link}`
-    )
-    return snippets.join('\n\n---\n\n')
+    return (data.organic ?? []).map((r: { title: string; snippet: string }) =>
+      `${r.title}: ${r.snippet}`
+    ).join(' | ')
   }
 
-  throw new Error('No hay API de búsqueda configurada (TAVILY_API_KEY o SERPER_API_KEY)')
+  throw new Error('Sin API de búsqueda')
 }
 
-async function extractPromosWithClaude(searchText: string): Promise<BankPromo[]> {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY
-  if (!anthropicKey) throw new Error('Falta ANTHROPIC_API_KEY')
+// ─── Supabase ─────────────────────────────────────────────────────────────────
 
-  const today = new Date().toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-
-  const prompt = `Hoy es ${today}.
-
-Analizá los siguientes resultados de búsqueda sobre descuentos bancarios en supermercados de Argentina y extraé las promociones actuales vigentes.
-
-RESULTADOS DE BÚSQUEDA:
-${searchText}
-
-Extraé SOLO las promociones que parecen actualmente vigentes (no pasadas). Para cada una, devolvé un JSON con este formato exacto:
-{
-  "banco": "Nombre del banco",
-  "icon": "emoji representativo del banco",
-  "color": "color hexadecimal del banco",
-  "tarjeta": "tipo de tarjeta (ej: Visa / Mastercard)",
-  "descuento": número_entero (ej: 25),
-  "dias": ["Lunes", "Martes", etc. — solo días vigentes, o ["Siempre"] si es todos los días],
-  "supers": ["Carrefour", "Coto", etc.],
-  "tope": "descripción del tope o null",
-  "nota": "nota adicional relevante o null"
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
 }
 
-Los días válidos son: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo, Siempre.
-
-Devolvé SOLO un array JSON válido, sin texto adicional, sin markdown, sin explicaciones.`
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  })
-
-  if (!res.ok) throw new Error(`Claude API error: ${res.status}`)
-  const data = await res.json()
-  const text = data.content?.[0]?.text ?? '[]'
-
-  // Extraer JSON del response (puede venir con markdown)
-  const jsonMatch = text.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) return []
-  return JSON.parse(jsonMatch[0])
-}
-
-type BankPromo = {
-  banco: string
-  icon: string
-  color: string
-  tarjeta: string
-  descuento: number
-  dias: string[]
-  supers: string[]
-  tope?: string | null
-  nota?: string | null
-}
+// ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function GET(req: Request) {
-  // Verificar que viene de Vercel Cron o tiene token de autorización
   const auth = req.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   if (cronSecret && auth !== `Bearer ${cronSecret}`) {
@@ -131,56 +131,84 @@ export async function GET(req: Request) {
   try {
     const supabase = getSupabase()
 
-    // Buscar promociones actuales
-    const query = `descuentos supermercados banco tarjeta argentina ${new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
-    console.log('[bank-promos cron] Buscando:', query)
+    // Leer las promociones actuales de Supabase para comparar
+    const { data: current } = await supabase
+      .from('bank_promos')
+      .select('*')
+      .eq('activo', true)
 
-    const searchResults = await searchWeb(query)
-    console.log('[bank-promos cron] Resultados obtenidos, parseando con Claude...')
-
-    const promos = await extractPromosWithClaude(searchResults)
-    console.log('[bank-promos cron] Promociones extraídas:', promos.length)
-
-    if (promos.length < 3) {
-      // Muy pocas — algo salió mal, no actualizar
-      return NextResponse.json({
-        ok: false,
-        message: `Solo se extrajeron ${promos.length} promos, abortando actualización`,
-        promos,
-      })
-    }
-
-    // Reemplazar todas las promociones activas con las nuevas
+    const updates: string[] = []
     const now = new Date().toISOString()
 
-    // Desactivar todas las actuales
-    await supabase.from('bank_promos').update({ activo: false }).eq('activo', true)
+    // Buscar cada banco y comparar con los datos actuales
+    for (const [banco, meta] of Object.entries(BANK_CATALOG)) {
+      try {
+        const text = await searchForBank(banco)
+        const extracted = extractFromText(banco, text)
 
-    // Insertar las nuevas
-    const rows = promos.map(p => ({
-      banco:     p.banco,
-      icon:      p.icon || '🏦',
-      color:     p.color || '#71717a',
-      tarjeta:   p.tarjeta,
-      descuento: p.descuento,
-      dias:      p.dias,
-      supers:    p.supers,
-      tope:      p.tope ?? null,
-      nota:      p.nota ?? null,
-      activo:    true,
-      updated_at: now,
-    }))
+        // Solo actualizar si encontramos datos concretos
+        if (!extracted.descuento || extracted.dias.length === 0 || extracted.supers.length === 0) {
+          console.log(`[cron] ${banco}: datos insuficientes, sin cambios`)
+          continue
+        }
 
-    const { error } = await supabase.from('bank_promos').insert(rows)
-    if (error) throw error
+        const existing = current?.find(p => p.banco === banco)
 
-    console.log('[bank-promos cron] Actualizado exitosamente:', rows.length, 'promociones')
+        const changed =
+          !existing ||
+          existing.descuento !== extracted.descuento ||
+          JSON.stringify(existing.dias.sort()) !== JSON.stringify(extracted.dias.sort()) ||
+          JSON.stringify(existing.supers.sort()) !== JSON.stringify(extracted.supers.sort())
+
+        if (changed) {
+          if (existing) {
+            // Actualizar registro existente
+            await supabase.from('bank_promos').update({
+              descuento:  extracted.descuento,
+              dias:       extracted.dias,
+              supers:     extracted.supers,
+              tope:       extracted.tope,
+              updated_at: now,
+            }).eq('banco', banco).eq('activo', true)
+          } else {
+            // Insertar banco nuevo
+            await supabase.from('bank_promos').insert({
+              banco,
+              icon:       meta.icon,
+              color:      meta.color,
+              tarjeta:    meta.tarjeta,
+              descuento:  extracted.descuento,
+              dias:       extracted.dias,
+              supers:     extracted.supers,
+              tope:       extracted.tope,
+              activo:     true,
+              updated_at: now,
+            })
+          }
+          updates.push(`${banco}: ${extracted.descuento}% los ${extracted.dias.join('/')}`)
+          console.log(`[cron] ${banco}: actualizado →`, extracted)
+        } else {
+          // Sin cambios, solo tocar updated_at para mostrar que se verificó
+          await supabase.from('bank_promos')
+            .update({ updated_at: now })
+            .eq('banco', banco)
+            .eq('activo', true)
+          console.log(`[cron] ${banco}: sin cambios`)
+        }
+
+        // Pausa entre búsquedas para no saturar la API
+        await new Promise(r => setTimeout(r, 500))
+      } catch (err) {
+        console.warn(`[cron] ${banco}: error buscando —`, err)
+      }
+    }
 
     return NextResponse.json({
       ok: true,
-      updated: rows.length,
+      checked: Object.keys(BANK_CATALOG).length,
+      updated: updates.length,
+      changes: updates,
       updated_at: now,
-      promos: rows.map(r => ({ banco: r.banco, descuento: r.descuento, dias: r.dias })),
     })
   } catch (err) {
     console.error('[bank-promos cron] Error:', err)
