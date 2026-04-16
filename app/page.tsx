@@ -47,23 +47,35 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero — imagen personalizada full width */}
+      {/* Hero — full width en desktop, normal en mobile */}
       {!searched && (
-        <div style={{
-          position: 'relative',
-          left: '50%',
-          marginLeft: '-50vw',
-          marginRight: '-50vw',
-          width: '100vw',
-          marginBottom: 24,
-        }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/header.png"
-            alt="Codito — Buscá. Comprá barato."
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-          />
-        </div>
+        <>
+          {/* Desktop: full width */}
+          <div className="hero-desktop" style={{
+            position: 'relative',
+            left: '50%',
+            marginLeft: '-50vw',
+            marginRight: '-50vw',
+            width: '100vw',
+            marginBottom: 24,
+          }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/header.png"
+              alt="Codito — Buscá. Comprá barato."
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+          </div>
+          {/* Mobile: contenido normal */}
+          <div className="hero-mobile" style={{ marginBottom: 24 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/header.png"
+              alt="Codito — Buscá. Comprá barato."
+              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 16 }}
+            />
+          </div>
+        </>
       )}
 
       {/* Buscador — blanco minimal */}

@@ -82,3 +82,11 @@ html, body {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(249,115,22,0.55) !important;
 }
+
+/* Hero header: full width en desktop, normal en mobile */
+.hero-desktop { display: block; }
+.hero-mobile  { display: none; }
+@media (max-width: 640px) {
+  .hero-desktop { display: none; }
+  .hero-mobile  { display: block; }
+}
