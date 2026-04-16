@@ -58,8 +58,13 @@ export async function GET(req: Request) {
       const text = parts.join(' | ')
 
       // Aplicar regex
-      const pctMatches = [...text.matchAll(/(\d{1,2})\s*%\s*(?:de\s+)?(?:descuento|reintegro|cashback|beneficio|devoluci[oó]n)/gi)]
-      const pcts = pctMatches.map(m => parseInt(m[1])).filter(n => n >= 5 && n <= 70)
+      const KW = '(?:descuento|reintegro|cashback|beneficio|devoluci[oó]n|ahorro)'
+      const reA = new RegExp(`(\\d{1,2})\\s*%\\s*(?:de\\s+)?${KW}`, 'gi')
+      const reB = new RegExp(`${KW}\\s+de[l]?\\s+(\\d{1,2})\\s*%`, 'gi')
+      const pcts = [
+        ...[...text.matchAll(reA)].map(m => parseInt(m[1])),
+        ...[...text.matchAll(reB)].map(m => parseInt(m[1])),
+      ].filter(n => n >= 5 && n <= 70)
 
       const dias: string[] = []
       for (const [re, dia] of DIAS_REGEX) {

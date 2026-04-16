@@ -88,9 +88,15 @@ type ParsedPromo = {
 }
 
 function parseWithRegex(text: string): ParsedPromo {
-  // Porcentaje: buscar el mayor descuento mencionado en supermercados
-  const pctMatches = [...text.matchAll(/(\d{1,2})\s*%\s*(?:de\s+)?(?:descuento|reintegro|cashback|beneficio|devoluci[oó]n)/gi)]
-  const pcts = pctMatches.map(m => parseInt(m[1])).filter(n => n >= 5 && n <= 70)
+  const KW = '(?:descuento|reintegro|cashback|beneficio|devoluci[oó]n|ahorro)'
+  // Patrón A: "30% de reintegro"
+  const reA = new RegExp(`(\\d{1,2})\\s*%\\s*(?:de\\s+)?${KW}`, 'gi')
+  // Patrón B: "reintegro del 30%"
+  const reB = new RegExp(`${KW}\\s+de[l]?\\s+(\\d{1,2})\\s*%`, 'gi')
+  const pcts = [
+    ...[...text.matchAll(reA)].map(m => parseInt(m[1])),
+    ...[...text.matchAll(reB)].map(m => parseInt(m[1])),
+  ].filter(n => n >= 5 && n <= 70)
   const descuento = pcts.length > 0 ? Math.max(...pcts) : null
 
   // Días
