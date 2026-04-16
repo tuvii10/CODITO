@@ -47,73 +47,21 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero minimal blanco/gris */}
+      {/* Hero — imagen personalizada */}
       {!searched && (
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ marginBottom: 24 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo.png"
-            alt="Codito"
+            src="/header.png"
+            alt="Codito — Buscá. Comprá barato."
             style={{
-              height: 'clamp(130px, 22vw, 200px)',
-              width: 'auto',
-              margin: '0 auto 6px',
+              width: '100%',
+              height: 'auto',
               display: 'block',
-              filter: 'drop-shadow(0 8px 20px rgba(0, 0, 0, 0.08))',
+              borderRadius: 18,
+              objectFit: 'cover',
             }}
           />
-          <p style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: '#71717a',
-            textTransform: 'uppercase',
-            letterSpacing: '0.18em',
-            marginBottom: 8,
-          }}>
-            ¿Cuánto sale hoy?
-          </p>
-          <h2 style={{
-            fontSize: 'clamp(28px, 7vw, 48px)',
-            fontWeight: 900,
-            marginBottom: 8,
-            color: '#09090b',
-            lineHeight: 1.05,
-            maxWidth: 620,
-            margin: '0 auto 8px',
-            padding: '0 4px',
-            letterSpacing: '-0.03em',
-          }}>
-            Buscá. Comprá barato.
-          </h2>
-          <p style={{
-            color: '#71717a',
-            fontSize: 'clamp(12px, 3.2vw, 14px)',
-            margin: '0 auto',
-            fontWeight: 500,
-          }}>
-            Sin vueltas, sin perder guita.
-          </p>
-
-          {/* Indicador live */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 7,
-            marginTop: 14,
-            padding: '6px 13px',
-            borderRadius: 999,
-            background: '#ffffff',
-            border: '1px solid #e4e4e7',
-            fontSize: 11,
-            color: '#09090b',
-            fontWeight: 700,
-          }}>
-            <span className="live-dot" style={{
-              width: 7, height: 7, borderRadius: '50%',
-              background: '#16a34a',
-            }} />
-            En vivo
-          </div>
         </div>
       )}
 
