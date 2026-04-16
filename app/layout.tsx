@@ -105,7 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 💸 <span className="ofertas-header-text-long">Suscripciones</span>
               </Link>
 
-              <Link href="/calculadora" style={{
+              <Link href="/suscripciones?tab=descuentos" style={{
                 textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -121,7 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 border: '1px solid #e4e4e7',
                 transition: 'background 0.15s',
               }}>
-                🧮 <span className="ofertas-header-text-long">Calculadora</span>
+                🏪 <span className="ofertas-header-text-long">Descuentos</span>
               </Link>
 
               <Link href="/ofertas" className="ofertas-header-btn" style={{
