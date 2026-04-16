@@ -64,6 +64,55 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
       </head>
       <body style={{ minHeight: '100vh', background: '#fafafa' }}>
+        {/* Splash screen */}
+        <div id="splash" style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: '#ffffff',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          transition: 'opacity 0.4s ease, visibility 0.4s ease',
+        }}>
+          <div style={{ position: 'relative', width: 90, height: 90, marginBottom: 20 }}>
+            {/* Anillo giratorio */}
+            <svg style={{
+              position: 'absolute', inset: -10,
+              width: 110, height: 110,
+              animation: 'splashSpin 1.2s linear infinite',
+            }} viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="50" fill="none" stroke="#f4f4f5" strokeWidth="4" />
+              <circle cx="55" cy="55" r="50" fill="none" stroke="#f59e0b" strokeWidth="4"
+                strokeDasharray="80 240" strokeLinecap="round" />
+            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/CODITOLOGO300.png"
+              alt="Codito"
+              style={{ width: 90, height: 90, objectFit: 'contain', position: 'relative', zIndex: 1 }}
+            />
+          </div>
+          <p style={{
+            fontSize: 13, fontWeight: 700, color: '#a1a1aa',
+            letterSpacing: '0.1em', textTransform: 'uppercase',
+          }}>Cargando</p>
+          <div style={{
+            display: 'flex', gap: 4, marginTop: 8,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', animation: 'splashDot 1s ease-in-out infinite' }} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', animation: 'splashDot 1s ease-in-out 0.2s infinite' }} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', animation: 'splashDot 1s ease-in-out 0.4s infinite' }} />
+          </div>
+          <style>{`
+            @keyframes splashSpin { to { transform: rotate(360deg) } }
+            @keyframes splashDot { 0%,100% { opacity: 0.3; transform: scale(0.8) } 50% { opacity: 1; transform: scale(1.2) } }
+          `}</style>
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.addEventListener('load', function() {
+            var s = document.getElementById('splash');
+            if (s) { s.style.opacity = '0'; s.style.visibility = 'hidden'; setTimeout(function() { s.remove() }, 500); }
+          });
+        `}} />
+
         {/* Header minimal */}
         <header style={{
           background: '#ffffff',
