@@ -17,8 +17,8 @@ type Plazo = {
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
-const TNA = 0.29 // Tasa Nominal Anual plazo fijo
-const INFLACION_MENSUAL = 0.025 // 2.5% mensual
+const TNA = 0.23 // Tasa Nominal Anual promedio plazo fijo (abril 2026)
+const INFLACION_MENSUAL = 0.034 // 3.4% mensual (INDEC marzo 2026)
 
 const PLAZOS: Plazo[] = [
   { label: '30 días', dias: 30 },
