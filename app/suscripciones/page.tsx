@@ -150,12 +150,6 @@ const SERVICES: Service[] = [
     plans: [{ name: 'Premium', usd: 6.99, highlight: true }],
     note: 'Contenido en español. Cobra en USD.',
   },
-  {
-    id: 'starzplay', name: 'Star+', icon: '🌟', category: 'Streaming', billing: 'ars',
-    priceUrl: 'https://www.disneyplus.com/es-ar',
-    plans: [{ name: 'Incluido en Disney+', ars: 0, highlight: true }],
-    note: 'Fusionado con Disney+. Ya no se vende por separado en Argentina.',
-  },
 
   // ── Música ───────────────────────────────────────────────────────────────────
   {
@@ -723,28 +717,6 @@ export default function Suscripciones() {
         </p>
       </div>
 
-      {/* Aviso general */}
-      <div style={{
-        background: '#fff7ed',
-        border: '1.5px solid #fed7aa',
-        borderRadius: 14,
-        padding: '12px 16px',
-        marginBottom: 20,
-        fontSize: 12,
-        color: '#92400e',
-        lineHeight: 1.7,
-        display: 'flex',
-        gap: 10,
-      }}>
-        <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
-        <div>
-          <strong>Precios orientativos — verificar antes de suscribirse.</strong><br />
-          Los precios en pesos cambian con la inflación. Los servicios en USD incluyen impuestos argentinos
-          (IVA, percepción AFIP, IIBB) que podés calcular abajo según tu condición fiscal.
-          Siempre confirmar en el sitio oficial de cada servicio.
-        </div>
-      </div>
-
       {/* ── Panel: cotización + perfil fiscal ── */}
       <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #e4e4e7', padding: '18px 20px', marginBottom: 16 }}>
 
@@ -822,24 +794,9 @@ export default function Suscripciones() {
             </div>
           </div>
           <p style={{ fontSize: 10, color: '#71717a', lineHeight: 1.5 }}>
-            {profile.detail}
-            {' '}Las tasas son aprox. y pueden variar. Fuente: RG AFIP 4815 + normativas IIBB provinciales.
+            Tasas aprox. — pueden variar. Fuente: RG AFIP 4815 + normativas IIBB provinciales.
           </p>
         </div>
-      </div>
-
-      {/* Leyenda */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
-        <span style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Referencias:</span>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
-          🏠 Precio local ARS
-        </span>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
-          💵 Cobra en USD + impuestos
-        </span>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#fef9c3', color: '#854d0e', border: '1px solid #fde047' }}>
-          ~ Precio aprox.
-        </span>
       </div>
 
       {/* Filtro categorías */}
@@ -927,21 +884,14 @@ function ServiceCard({ service, oficialRate, taxes }: {
             <p style={{ fontWeight: 800, fontSize: 15, color: '#09090b', letterSpacing: '-0.01em' }}>{service.name}</p>
             <p style={{ fontSize: 11, color: '#71717a', marginTop: 1 }}>{service.category}</p>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-            <span style={{
-              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-              background: isARS ? '#f0fdf4' : '#eff6ff',
-              color: isARS ? '#15803d' : '#1d4ed8',
-              border: `1px solid ${isARS ? '#bbf7d0' : '#bfdbfe'}`,
-            }}>
-              {isARS ? '🏠 Local ARS' : '💵 USD'}
-            </span>
-            {isARS && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#fef9c3', color: '#854d0e', border: '1px solid #fde047' }}>
-                ~ aprox.
-              </span>
-            )}
-          </div>
+          <span style={{
+            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, flexShrink: 0,
+            background: isARS ? '#f0fdf4' : '#eff6ff',
+            color: isARS ? '#15803d' : '#1d4ed8',
+            border: `1px solid ${isARS ? '#bbf7d0' : '#bfdbfe'}`,
+          }}>
+            {isARS ? '🏠 ARS' : '💵 USD'}
+          </span>
         </div>
 
         {/* Precio principal */}
@@ -956,11 +906,6 @@ function ServiceCard({ service, oficialRate, taxes }: {
               {!isARS && mainPlan.usd !== undefined && (
                 <p style={{ fontSize: 10, color: '#93c5fd', fontWeight: 600, marginBottom: 2 }}>
                   {fmtUSD(mainPlan.usd)} × oficial{oficialRate ? ` (${fmtARS(oficialRate)})` : ''} + {taxes.iva + taxes.afip + taxes.iibb}% impuestos
-                </p>
-              )}
-              {isARS && (
-                <p style={{ fontSize: 10, color: '#86efac', fontWeight: 600, marginBottom: 2 }}>
-                  Precio local — sin conversión
                 </p>
               )}
             </div>
