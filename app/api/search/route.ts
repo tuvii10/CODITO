@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   ]
   // Resultados sin precio se descartan para evitar $0 falsos
 
-  // Filtrar resultados que no son productos (artículos, listados, etc.)
+  // ── Filtro 1: nombres que NO son productos reales ──
   const nonProductPatterns = [
     /\|\s*MercadoLibre$/i,
     /Listado\./i,
@@ -58,9 +58,36 @@ export async function GET(req: NextRequest) {
     /^cu[aá]nto\s+(cuesta|sale|vale)/i,
     /recetas?\s+(de|para)/i,
     /noticias?\s+/i,
+    /en cuotas sin inter[eé]s/i,
+    /los mejores precios/i,
+    /precio y variedad/i,
+    /comprar online/i,
   ]
   const isProduct = (name: string) => !nonProductPatterns.some(p => p.test(name))
-  const productsOnly = rawWithPrice.filter(r => isProduct(r.name))
+
+  // ── Filtro 2: nombres genéricos (solo el nombre de la categoría, sin marca/modelo/detalle) ──
+  // Si el nombre tiene menos de 4 palabras útiles y viene de web, probablemente es una categoría
+  const isGenericCategoryName = (r: SearchResult) => {
+    const words = r.name.replace(/[-–—|·]/g, ' ').split(/\s+/).filter(w => w.length > 2)
+    // Si tiene 3 palabras o menos Y viene de web (searxng), probablemente es categoría
+    if (words.length <= 3 && r.source === 'searxng') return true
+    return false
+  }
+
+  // ── Filtro 3: precios ridículamente bajos para lo que se busca ──
+  // Detectar si los resultados más baratos son outliers (ej: $1.200 para lavarropas)
+  const filterOutlierPrices = (results: SearchResult[]) => {
+    if (results.length < 3) return results
+    // Calcular la mediana de precios
+    const prices = results.map(r => r.price).sort((a, b) => a - b)
+    const median = prices[Math.floor(prices.length / 2)]
+    // Si un precio es menor al 5% de la mediana, es probablemente falso
+    return results.filter(r => r.price >= median * 0.05)
+  }
+
+  const productsOnly = rawWithPrice
+    .filter(r => isProduct(r.name))
+    .filter(r => !isGenericCategoryName(r))
 
   // Filtrar por relevancia: al menos 20% de los tokens del query deben estar en el nombre
   const queryTokens = tokenize(query)
@@ -75,7 +102,7 @@ export async function GET(req: NextRequest) {
   const allWithPrice = applyCrossSellerDiscounts(deduped)
   allWithPrice.sort((a, b) => a.price - b.price)
 
-  const results = [...allWithPrice]
+  const results = filterOutlierPrices(allWithPrice)
 
   // Guardar historial (fire-and-forget, no bloqueamos la respuesta)
   recordPriceHistory(query, allWithPrice).catch(() => {})

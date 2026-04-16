@@ -44,10 +44,13 @@ const BLOCKED_DOMAINS = [
 
 // Patrones de URL que indican listados/categorías, no productos individuales
 const BLOCKED_URL_PATTERNS = [
-  '/listado/', '/listados/', '/categoria/', '/categorias/',
-  '/search?', '/buscar?', '/resultados?',
+  '/listado/', '/listados/', '/categoria/', '/categorias/', '/category/',
+  '/search?', '/buscar?', '/resultados?', '/search/',
   '/tag/', '/tags/', '/archivo/', '/blog/',
   '/noticias/', '/nota/', '/articulo/',
+  '/collection/', '/collections/', '/coleccion/',
+  '/productos?', '/products?',
+  'provinciacompras.com', 'dfrancia.com', 'novogar.com.ar',
 ]
 
 // Palabras en el título que indican que NO es un producto
