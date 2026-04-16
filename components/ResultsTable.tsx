@@ -14,7 +14,6 @@ type Props = {
 type DollarRates = { blue: number | null; oficial: number | null; mep: number | null }
 
 export default function ResultsTable({ results, query, onClear }: Props) {
-  const [filter, setFilter] = useState<'all' | 'vtex' | 'mercadolibre' | 'searxng'>('all')
   const [sortBy, setSortBy] = useState<'price' | 'store'>('price')
   const [shared, setShared] = useState(false)
   const [showUsd, setShowUsd] = useState(false)
@@ -36,7 +35,6 @@ export default function ResultsTable({ results, query, onClear }: Props) {
   const rate = rates[dolarType]
 
   const filtered = results
-    .filter(r => filter === 'all' || r.source === filter)
     .sort((a, b) => sortBy === 'price' ? a.price - b.price : a.store_name.localeCompare(b.store_name))
 
   const cheapest = filtered[0]
@@ -83,27 +81,7 @@ export default function ResultsTable({ results, query, onClear }: Props) {
       </div>
 
       {/* Filtros */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
-        {(['all', 'vtex', 'mercadolibre', 'searxng'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            style={{
-              background: filter === f
-                ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
-                : 'rgba(255,255,255,0.8)',
-              color: filter === f ? '#fff' : 'var(--muted)',
-              border: '1px solid #bfdbfe',
-              borderRadius: 999,
-              padding: '5px 14px',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: filter === f ? '0 2px 12px rgba(14,165,233,0.3)' : 'none',
-              transition: 'all 0.2s',
-              minHeight: 32,
-            }}>
-            {f === 'all' ? 'Todos' : f === 'vtex' ? 'Tiendas oficiales' : f === 'mercadolibre' ? 'Marketplace' : '🌐 Web'}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, alignItems: 'center', justifyContent: 'flex-end' }}>
         <select value={sortBy} onChange={e => setSortBy(e.target.value as 'price' | 'store')}
           style={{
             background: '#f0f7ff',
