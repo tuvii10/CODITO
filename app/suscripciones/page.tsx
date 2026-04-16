@@ -138,6 +138,24 @@ const SERVICES: Service[] = [
     ],
     note: 'Cobra en USD. Se aplican impuestos argentinos.',
   },
+  {
+    id: 'mubi', name: 'MUBI', icon: '🎞️', category: 'Streaming', billing: 'usd',
+    priceUrl: 'https://mubi.com/ar',
+    plans: [{ name: 'Individual', usd: 10.99, highlight: true }],
+    note: 'Cine de autor y festivales. Cobra en USD.',
+  },
+  {
+    id: 'vix', name: 'ViX Premium', icon: '🌎', category: 'Streaming', billing: 'usd',
+    priceUrl: 'https://www.vix.com/',
+    plans: [{ name: 'Premium', usd: 6.99, highlight: true }],
+    note: 'Contenido en español. Cobra en USD.',
+  },
+  {
+    id: 'starzplay', name: 'Star+', icon: '🌟', category: 'Streaming', billing: 'ars',
+    priceUrl: 'https://www.disneyplus.com/es-ar',
+    plans: [{ name: 'Incluido en Disney+', ars: 0, highlight: true }],
+    note: 'Fusionado con Disney+. Ya no se vende por separado en Argentina.',
+  },
 
   // ── Música ───────────────────────────────────────────────────────────────────
   {
@@ -173,6 +191,15 @@ const SERVICES: Service[] = [
     plans: [
       { name: 'Individual', usd: 10.99, highlight: true },
       { name: 'HiFi Plus',  usd: 19.99 },
+    ],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'deezer', name: 'Deezer', icon: '🎧', category: 'Música', billing: 'usd',
+    priceUrl: 'https://www.deezer.com/ar/offers/',
+    plans: [
+      { name: 'Individual', usd: 10.99, highlight: true },
+      { name: 'Familiar',   usd: 16.99 },
     ],
     note: 'Cobra en USD. Se aplican impuestos argentinos.',
   },
@@ -215,40 +242,196 @@ const SERVICES: Service[] = [
     ],
     note: 'Precio mensualizado del plan anual. Cobra en USD.',
   },
-
-  // ── IA y Productividad ───────────────────────────────────────────────────────
   {
-    id: 'claude', name: 'Claude Pro', icon: '🤖', category: 'IA & Prod.', billing: 'usd',
+    id: 'apparcade', name: 'Apple Arcade', icon: '🕹️', category: 'Gaming', billing: 'ars',
+    priceUrl: 'https://www.apple.com/ar/apple-arcade/',
+    plans: [{ name: 'Individual', ars: 2999, highlight: true }],
+    note: 'Apple cobra en pesos a través de la App Store Argentina.',
+  },
+  {
+    id: 'ubisoft', name: 'Ubisoft+', icon: '🎯', category: 'Gaming', billing: 'usd',
+    priceUrl: 'https://www.ubisoft.com/es-ar/ubisoft-plus',
+    plans: [
+      { name: 'Classics', usd: 7.99, highlight: true },
+      { name: 'Premium',  usd: 17.99 },
+    ],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'geforcenow', name: 'GeForce Now', icon: '☁️', category: 'Gaming', billing: 'usd',
+    priceUrl: 'https://www.nvidia.com/es-la/geforce-now/plans/',
+    plans: [
+      { name: 'Priority',  usd: 9.99, highlight: true },
+      { name: 'Ultimate',  usd: 19.99 },
+    ],
+    note: 'Cloud gaming. Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'chess', name: 'Chess.com', icon: '♟️', category: 'Gaming', billing: 'usd',
+    priceUrl: 'https://www.chess.com/membership',
+    plans: [
+      { name: 'Gold',     usd: 6.99, highlight: true },
+      { name: 'Platinum', usd: 15.99 },
+    ],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+
+  // ── Deportes ─────────────────────────────────────────────────────────────────
+  {
+    id: 'f1tv', name: 'F1 TV', icon: '🏎️', category: 'Deportes', billing: 'usd',
+    priceUrl: 'https://f1tv.formula1.com/',
+    plans: [
+      { name: 'Access', usd: 2.99, highlight: true },
+      { name: 'Pro',    usd: 9.99 },
+    ],
+    note: 'Carreras en vivo (Pro) o diferidas (Access). Cobra en USD.',
+  },
+  {
+    id: 'nba', name: 'NBA League Pass', icon: '🏀', category: 'Deportes', billing: 'usd',
+    priceUrl: 'https://www.nba.com/watch/league-pass-stream',
+    plans: [
+      { name: 'Individual', usd: 14.99, highlight: true },
+      { name: 'Team',       usd: 9.99 },
+    ],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'ufc', name: 'UFC Fight Pass', icon: '🥊', category: 'Deportes', billing: 'usd',
+    priceUrl: 'https://ufcfightpass.com/',
+    plans: [{ name: 'Mensual', usd: 10.99, highlight: true }],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'wwe', name: 'WWE Network', icon: '💪', category: 'Deportes', billing: 'usd',
+    priceUrl: 'https://peacocktv.com/',
+    plans: [{ name: 'Peacock Premium', usd: 7.99, highlight: true }],
+    note: 'Disponible vía Peacock en USD. Se aplican impuestos argentinos.',
+  },
+
+  // ── IA ───────────────────────────────────────────────────────────────────────
+  {
+    id: 'claude', name: 'Claude Pro', icon: '🤖', category: 'IA', billing: 'usd',
     priceUrl: 'https://claude.ai/upgrade',
-    plans: [{ name: 'Pro', usd: 20, highlight: true }],
+    plans: [
+      { name: 'Pro', usd: 20, highlight: true },
+      { name: 'Max (5x)', usd: 100 },
+    ],
     note: 'Anthropic cobra en USD. Se aplican impuestos argentinos.',
   },
   {
-    id: 'chatgpt', name: 'ChatGPT Plus', icon: '💬', category: 'IA & Prod.', billing: 'usd',
+    id: 'chatgpt', name: 'ChatGPT Plus', icon: '💬', category: 'IA', billing: 'usd',
     priceUrl: 'https://openai.com/chatgpt/pricing/',
     plans: [
       { name: 'Plus', usd: 20, highlight: true },
-      { name: 'Team', usd: 25 },
+      { name: 'Pro',  usd: 200 },
     ],
     note: 'OpenAI cobra en USD. Se aplican impuestos argentinos.',
   },
   {
-    id: 'perplexity', name: 'Perplexity', icon: '🔍', category: 'IA & Prod.', billing: 'usd',
+    id: 'perplexity', name: 'Perplexity', icon: '🔍', category: 'IA', billing: 'usd',
     priceUrl: 'https://www.perplexity.ai/pro',
     plans: [{ name: 'Pro', usd: 20, highlight: true }],
     note: 'Cobra en USD. Se aplican impuestos argentinos.',
   },
   {
-    id: 'notion', name: 'Notion', icon: '📝', category: 'IA & Prod.', billing: 'usd',
+    id: 'gemini', name: 'Gemini Advanced', icon: '✨', category: 'IA', billing: 'usd',
+    priceUrl: 'https://one.google.com/about/ai-premium',
+    plans: [{ name: 'Google One AI Premium', usd: 19.99, highlight: true }],
+    note: 'Incluye Gemini Advanced + 2TB Google One. Cobra en USD.',
+  },
+  {
+    id: 'copilot', name: 'Microsoft Copilot Pro', icon: '🪟', category: 'IA', billing: 'usd',
+    priceUrl: 'https://www.microsoft.com/es-ar/microsoft-365/copilot/copilot-for-work',
+    plans: [{ name: 'Pro', usd: 20, highlight: true }],
+    note: 'Copilot en apps de Microsoft 365. Cobra en USD.',
+  },
+  {
+    id: 'cursor', name: 'Cursor', icon: '⌨️', category: 'IA', billing: 'usd',
+    priceUrl: 'https://www.cursor.com/pricing',
+    plans: [
+      { name: 'Pro',      usd: 20, highlight: true },
+      { name: 'Business', usd: 40 },
+    ],
+    note: 'Editor con IA para programadores. Cobra en USD.',
+  },
+  {
+    id: 'midjourney', name: 'Midjourney', icon: '🎨', category: 'IA', billing: 'usd',
+    priceUrl: 'https://www.midjourney.com/account',
+    plans: [
+      { name: 'Basic',    usd: 10, highlight: true },
+      { name: 'Standard', usd: 30 },
+      { name: 'Pro',      usd: 60 },
+    ],
+    note: 'Generación de imágenes con IA. Cobra en USD.',
+  },
+  {
+    id: 'grok', name: 'Grok (X Premium)', icon: '𝕏', category: 'IA', billing: 'usd',
+    priceUrl: 'https://x.com/i/premium_sign_up',
+    plans: [
+      { name: 'Basic',   usd: 3, highlight: true },
+      { name: 'Premium', usd: 8 },
+      { name: 'Premium+',usd: 16 },
+    ],
+    note: 'Acceso a Grok incluido en planes Premium de X. Cobra en USD.',
+  },
+
+  // ── Productividad ─────────────────────────────────────────────────────────────
+  {
+    id: 'microsoft365', name: 'Microsoft 365', icon: '📊', category: 'Productividad', billing: 'usd',
+    priceUrl: 'https://www.microsoft.com/es-ar/microsoft-365/personal-and-family',
+    plans: [
+      { name: 'Personal', usd: 6.99, highlight: true },
+      { name: 'Familiar', usd: 9.99 },
+    ],
+    note: 'Word, Excel, PowerPoint, 1TB OneDrive. Cobra en USD.',
+  },
+  {
+    id: 'gworkspace', name: 'Google Workspace', icon: '🔵', category: 'Productividad', billing: 'usd',
+    priceUrl: 'https://workspace.google.com/intl/es-419/pricing/',
+    plans: [
+      { name: 'Starter (30GB)', usd: 6, highlight: true },
+      { name: 'Standard (2TB)', usd: 12 },
+    ],
+    note: 'Gmail, Drive, Meet y más para equipos. Cobra en USD.',
+  },
+  {
+    id: 'notion', name: 'Notion', icon: '📝', category: 'Productividad', billing: 'usd',
     priceUrl: 'https://www.notion.com/pricing',
     plans: [{ name: 'Plus', usd: 10, highlight: true }],
     note: 'Cobra en USD. Se aplican impuestos argentinos.',
   },
   {
-    id: 'canva', name: 'Canva Pro', icon: '🎨', category: 'IA & Prod.', billing: 'usd',
+    id: 'zoom', name: 'Zoom Pro', icon: '📹', category: 'Productividad', billing: 'usd',
+    priceUrl: 'https://zoom.us/pricing',
+    plans: [
+      { name: 'Pro',      usd: 13.32, highlight: true },
+      { name: 'Business', usd: 18.32 },
+    ],
+    note: 'Reuniones sin límite de tiempo. Cobra en USD.',
+  },
+  {
+    id: 'slack', name: 'Slack Pro', icon: '💼', category: 'Productividad', billing: 'usd',
+    priceUrl: 'https://slack.com/intl/es-la/pricing',
+    plans: [
+      { name: 'Pro',      usd: 7.25, highlight: true },
+      { name: 'Business+', usd: 12.50 },
+    ],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'canva', name: 'Canva Pro', icon: '🖌️', category: 'Productividad', billing: 'usd',
     priceUrl: 'https://www.canva.com/pricing/',
     plans: [{ name: 'Pro', usd: 14.99, highlight: true }],
     note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'obsidian', name: 'Obsidian Sync', icon: '🔮', category: 'Productividad', billing: 'usd',
+    priceUrl: 'https://obsidian.md/pricing',
+    plans: [
+      { name: 'Sync',       usd: 5, highlight: true },
+      { name: 'Sync + Publish', usd: 21 },
+    ],
+    note: 'Add-on de sincronización para Obsidian (la app base es gratis). Cobra en USD.',
   },
 
   // ── Diseño y Dev ─────────────────────────────────────────────────────────────
@@ -273,34 +456,174 @@ const SERVICES: Service[] = [
   {
     id: 'github', name: 'GitHub Copilot', icon: '🐙', category: 'Diseño & Dev', billing: 'usd',
     priceUrl: 'https://github.com/features/copilot#pricing',
-    plans: [{ name: 'Individual', usd: 10, highlight: true }],
+    plans: [
+      { name: 'Pro',  usd: 10, highlight: true },
+      { name: 'Pro+', usd: 39 },
+    ],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'jetbrains', name: 'JetBrains All Products', icon: '🧠', category: 'Diseño & Dev', billing: 'usd',
+    priceUrl: 'https://www.jetbrains.com/store/',
+    plans: [
+      { name: 'All Products', usd: 24.90, highlight: true },
+      { name: 'IDE individual', usd: 8.90 },
+    ],
+    note: 'Primer año. Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'vercel', name: 'Vercel Pro', icon: '▲', category: 'Diseño & Dev', billing: 'usd',
+    priceUrl: 'https://vercel.com/pricing',
+    plans: [{ name: 'Pro', usd: 20, highlight: true }],
+    note: 'Hosting y deploy para frontend. Cobra en USD.',
+  },
+  {
+    id: 'framer', name: 'Framer', icon: '🎯', category: 'Diseño & Dev', billing: 'usd',
+    priceUrl: 'https://www.framer.com/pricing/',
+    plans: [
+      { name: 'Basic', usd: 5, highlight: true },
+      { name: 'Pro',   usd: 15 },
+    ],
+    note: 'Diseño y publicación de sitios. Cobra en USD.',
+  },
+
+  // ── Almacenamiento ────────────────────────────────────────────────────────────
+  {
+    id: 'googleone', name: 'Google One', icon: '💾', category: 'Almacenamiento', billing: 'usd',
+    priceUrl: 'https://one.google.com/about',
+    plans: [
+      { name: '100 GB',   usd: 1.99, highlight: true },
+      { name: '200 GB',   usd: 2.99 },
+      { name: '2 TB',     usd: 9.99 },
+    ],
+    note: 'Almacenamiento para Drive, Gmail y Fotos. Cobra en USD.',
+  },
+  {
+    id: 'icloud', name: 'iCloud+', icon: '☁️', category: 'Almacenamiento', billing: 'ars',
+    priceUrl: 'https://www.apple.com/ar/icloud/',
+    plans: [
+      { name: '50 GB',   ars: 699, highlight: true },
+      { name: '200 GB',  ars: 1399 },
+      { name: '2 TB',    ars: 4399 },
+    ],
+    note: 'Apple cobra en pesos a través de la App Store Argentina.',
+  },
+  {
+    id: 'dropbox', name: 'Dropbox Plus', icon: '📦', category: 'Almacenamiento', billing: 'usd',
+    priceUrl: 'https://www.dropbox.com/plans',
+    plans: [{ name: 'Plus (2 TB)', usd: 9.99, highlight: true }],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'onedrive', name: 'OneDrive', icon: '🗂️', category: 'Almacenamiento', billing: 'usd',
+    priceUrl: 'https://www.microsoft.com/es-ar/microsoft-365/onedrive/compare-onedrive-plans',
+    plans: [
+      { name: '100 GB', usd: 1.99, highlight: true },
+      { name: 'Microsoft 365 Personal (1TB)', usd: 6.99 },
+    ],
     note: 'Cobra en USD. Se aplican impuestos argentinos.',
   },
 
-  // ── VPN y Seguridad ──────────────────────────────────────────────────────────
+  // ── Seguridad y Privacidad ─────────────────────────────────────────────────────
   {
-    id: 'nordvpn', name: 'NordVPN', icon: '🛡️', category: 'VPN & Seg.', billing: 'usd',
+    id: 'nordvpn', name: 'NordVPN', icon: '🛡️', category: 'Seguridad', billing: 'usd',
     priceUrl: 'https://nordvpn.com/es/pricing/',
     plans: [
-      { name: 'Basic mensual',  usd: 12.99, highlight: true },
+      { name: 'Basic mensual',    usd: 12.99, highlight: true },
       { name: 'Complete mensual', usd: 14.99 },
     ],
-    note: 'Precio mensual. Con plan anual baja ~70%. Cobra en USD.',
+    note: 'Con plan anual baja ~70%. Cobra en USD.',
   },
   {
-    id: 'expressvpn', name: 'ExpressVPN', icon: '⚡', category: 'VPN & Seg.', billing: 'usd',
+    id: 'expressvpn', name: 'ExpressVPN', icon: '⚡', category: 'Seguridad', billing: 'usd',
     priceUrl: 'https://www.expressvpn.com/order',
     plans: [{ name: 'Mensual', usd: 12.95, highlight: true }],
-    note: 'Cobra en USD. Con plan anual baja a ~$6.67/mes.',
+    note: 'Con plan anual baja a ~$6.67/mes. Cobra en USD.',
   },
   {
-    id: '1password', name: '1Password', icon: '🔑', category: 'VPN & Seg.', billing: 'usd',
+    id: '1password', name: '1Password', icon: '🔑', category: 'Seguridad', billing: 'usd',
     priceUrl: 'https://1password.com/sign-up/',
     plans: [
       { name: 'Individual', usd: 2.99, highlight: true },
       { name: 'Familiar',   usd: 4.99 },
     ],
     note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'bitwarden', name: 'Bitwarden Premium', icon: '🔓', category: 'Seguridad', billing: 'usd',
+    priceUrl: 'https://bitwarden.com/pricing/',
+    plans: [{ name: 'Premium ($10/año)', usd: 0.83, highlight: true }],
+    note: 'La versión gratis es muy completa. Premium = $10/año ≈ $0.83/mes. Cobra en USD.',
+  },
+  {
+    id: 'proton', name: 'Proton Pass Plus', icon: '🔒', category: 'Seguridad', billing: 'usd',
+    priceUrl: 'https://proton.me/pricing',
+    plans: [
+      { name: 'Pass Plus',     usd: 4.99, highlight: true },
+      { name: 'Proton Unlimited', usd: 9.99 },
+    ],
+    note: 'Email, VPN, Drive y contraseñas cifradas. Cobra en USD.',
+  },
+
+  // ── Redes y Comunidad ─────────────────────────────────────────────────────────
+  {
+    id: 'discord', name: 'Discord Nitro', icon: '🎮', category: 'Redes & Comunidad', billing: 'usd',
+    priceUrl: 'https://discord.com/nitro',
+    plans: [
+      { name: 'Basic', usd: 2.99, highlight: true },
+      { name: 'Nitro', usd: 9.99 },
+    ],
+    note: 'Emoji custom, mejor calidad de video, etc. Cobra en USD.',
+  },
+  {
+    id: 'telegram', name: 'Telegram Premium', icon: '✈️', category: 'Redes & Comunidad', billing: 'usd',
+    priceUrl: 'https://t.me/premiumbot',
+    plans: [{ name: 'Premium', usd: 4.99, highlight: true }],
+    note: 'Sin límites de subida, stickers exclusivos. Cobra en USD.',
+  },
+  {
+    id: 'linkedin', name: 'LinkedIn Premium', icon: '💼', category: 'Redes & Comunidad', billing: 'usd',
+    priceUrl: 'https://www.linkedin.com/premium/products/',
+    plans: [
+      { name: 'Career',   usd: 29.99, highlight: true },
+      { name: 'Business', usd: 59.99 },
+    ],
+    note: 'Cobra en USD. Se aplican impuestos argentinos.',
+  },
+  {
+    id: 'twitch', name: 'Twitch Turbo', icon: '🟣', category: 'Redes & Comunidad', billing: 'usd',
+    priceUrl: 'https://www.twitch.tv/turbo',
+    plans: [{ name: 'Turbo', usd: 8.99, highlight: true }],
+    note: 'Sin ads en toda la plataforma. Cobra en USD.',
+  },
+
+  // ── Educación ─────────────────────────────────────────────────────────────────
+  {
+    id: 'duolingo', name: 'Duolingo Super', icon: '🦉', category: 'Educación', billing: 'usd',
+    priceUrl: 'https://www.duolingo.com/subscribe',
+    plans: [
+      { name: 'Super',  usd: 6.99, highlight: true },
+      { name: 'Max',    usd: 13.99 },
+    ],
+    note: 'Sin ads, vidas ilimitadas. Cobra en USD.',
+  },
+  {
+    id: 'kindle', name: 'Kindle Unlimited', icon: '📚', category: 'Educación', billing: 'usd',
+    priceUrl: 'https://www.amazon.com.ar/kindle-dbs/ku/kuSignUp',
+    plans: [{ name: 'Mensual', usd: 11.99, highlight: true }],
+    note: 'Acceso a millones de libros. Cobra en USD.',
+  },
+  {
+    id: 'audible', name: 'Audible', icon: '🎙️', category: 'Educación', billing: 'usd',
+    priceUrl: 'https://www.audible.com.ar/',
+    plans: [{ name: 'Plus', usd: 7.95, highlight: true }],
+    note: '1 crédito de audiolibro por mes. Cobra en USD.',
+  },
+  {
+    id: 'brilliant', name: 'Brilliant', icon: '🧮', category: 'Educación', billing: 'usd',
+    priceUrl: 'https://brilliant.org/premium/',
+    plans: [{ name: 'Premium', usd: 24.99, highlight: true }],
+    note: 'Matemáticas, ciencia y programación interactiva. Cobra en USD.',
   },
 ]
 
