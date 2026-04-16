@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/logo.png"
+                src="/CODITOLOGO300.png"
                 alt="Codito"
                 style={{
                   height: 'clamp(44px, 11vw, 58px)',
