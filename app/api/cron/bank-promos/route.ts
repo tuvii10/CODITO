@@ -25,6 +25,31 @@ const BANK_CATALOG: Record<string, { icon: string; color: string; tarjeta: strin
 
 const DIAS_VALIDOS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo','Siempre']
 
+const DIAS_REGEX: [RegExp, string][] = [
+  [/\bsiempre\b|\btodos los d[ií]as\b|\bcualquier d[ií]a\b/i, 'Siempre'],
+  [/\blunes\b/i,     'Lunes'],
+  [/\bmartes\b/i,    'Martes'],
+  [/\bmi[eé]rcoles\b/i, 'Miércoles'],
+  [/\bjueves\b/i,    'Jueves'],
+  [/\bviernes\b/i,   'Viernes'],
+  [/\bs[aá]bados?\b/i, 'Sábado'],
+  [/\bdomingos?\b/i,  'Domingo'],
+]
+
+const SUPERS_REGEX: [RegExp, string][] = [
+  [/\bchangom[aá]s\b|\bchango\s*m[aá]s\b/i, 'ChangoMás'],
+  [/\bcarrefour\b/i,   'Carrefour'],
+  [/\bjumbo\b/i,       'Jumbo'],
+  [/\bdisco\b/i,       'Disco'],
+  [/\bvea\b/i,         'Vea'],
+  [/\bcoto\b/i,        'Coto'],
+  [/\bd[ií]a\b|\bdia\s*%|\bdia\s+super/i, 'Día'],
+  [/\bla\s+an[oó]nima\b/i, 'La Anónima'],
+  [/\bwalmarts?\b/i,   'Walmart'],
+  [/\bprice\s*smart\b/i, 'PriceSmart'],
+  [/\bbehappy\b/i,     'Behappy'],
+]
+
 // ─── Búsqueda web (Tavily) ────────────────────────────────────────────────────
 
 async function searchForBank(banco: string): Promise<string> {
@@ -52,7 +77,7 @@ async function searchForBank(banco: string): Promise<string> {
   return parts.join(' | ')
 }
 
-// ─── Parser con Gemini ────────────────────────────────────────────────────────
+// ─── Parser con regex ─────────────────────────────────────────────────────────
 
 type ParsedPromo = {
   descuento: number | null
@@ -62,61 +87,36 @@ type ParsedPromo = {
   nota: string | null
 }
 
-async function parseWithGemini(banco: string, text: string): Promise<ParsedPromo | null> {
-  const geminiKey = process.env.GEMINI_API_KEY
-  if (!geminiKey) throw new Error('Sin GEMINI_API_KEY')
+function parseWithRegex(text: string): ParsedPromo {
+  // Porcentaje: buscar el mayor descuento mencionado en supermercados
+  const pctMatches = [...text.matchAll(/(\d{1,2})\s*%\s*(?:de\s+)?(?:descuento|reintegro|cashback|beneficio|devoluci[oó]n)/gi)]
+  const pcts = pctMatches.map(m => parseInt(m[1])).filter(n => n >= 5 && n <= 70)
+  const descuento = pcts.length > 0 ? Math.max(...pcts) : null
 
-  const prompt = `Sos un extractor de datos de promociones bancarias argentinas.
-Dado el siguiente texto sobre promociones de "${banco}" en supermercados, extraé la información y devolvé SOLO un JSON válido con esta estructura exacta:
+  // Días
+  const dias: string[] = []
+  for (const [re, dia] of DIAS_REGEX) {
+    if (re.test(text) && !dias.includes(dia)) dias.push(dia)
+  }
+  // Si encontró "Siempre" no necesita días individuales
+  const diasFinal = dias.includes('Siempre') ? ['Siempre'] : dias.filter(d => d !== 'Siempre')
 
-{
-  "descuento": <número entero del porcentaje de descuento/reintegro, o null si no hay>,
-  "dias": <array de strings con los días, solo valores de: "Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo","Siempre">,
-  "supers": <array de strings con los supermercados mencionados>,
-  "tope": <string con el tope de reintegro como "$X.XXX por semana/mes", o null>,
-  "nota": <string corto con info relevante adicional, o null>
-}
-
-Reglas:
-- Si no encontrás descuento concreto para supermercados, devolvé null en descuento
-- Solo incluí días donde se aplica el descuento en supermercados
-- Solo incluí supermercados mencionados explícitamente
-- Devolvé SOLO el JSON, sin texto adicional, sin markdown
-
-Texto:
-${text.slice(0, 3000)}`
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0, maxOutputTokens: 512 },
-      }),
-    }
-  )
-
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Gemini error ${res.status}: ${err}`)
+  // Supermercados
+  const supers: string[] = []
+  for (const [re, nombre] of SUPERS_REGEX) {
+    if (re.test(text) && !supers.includes(nombre)) supers.push(nombre)
   }
 
-  const data = await res.json()
-  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+  // Tope: buscar "$X.XXX por semana/mes"
+  const topeMatch = text.match(/\$\s*([\d.,]+)\s*(?:por|\/)\s*(semana|mes|compra)/i)
+  const tope = topeMatch ? `$${topeMatch[1]} por ${topeMatch[2]}` : null
 
-  // Limpiar markdown si Gemini lo agrega igual
-  const clean = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-
-  try {
-    const parsed = JSON.parse(clean) as ParsedPromo
-    // Validar que los días sean válidos
-    parsed.dias = (parsed.dias ?? []).filter((d: string) => DIAS_VALIDOS.includes(d))
-    return parsed
-  } catch {
-    console.warn(`[cron] ${banco}: Gemini devolvió JSON inválido:`, clean)
-    return null
+  return {
+    descuento,
+    dias: diasFinal.filter(d => DIAS_VALIDOS.includes(d)),
+    supers,
+    tope,
+    nota: null,
   }
 }
 
@@ -154,11 +154,10 @@ export async function GET(req: Request) {
         // 1. Buscar con Tavily
         const text = await searchForBank(banco)
 
-        // 2. Parsear con Gemini
-        const parsed = await parseWithGemini(banco, text)
+        // 2. Parsear con regex
+        const parsed = parseWithRegex(text)
 
-        if (!parsed || !parsed.descuento || parsed.dias.length === 0 || parsed.supers.length === 0) {
-          // Datos insuficientes: solo actualizar timestamp
+        if (!parsed.descuento || parsed.dias.length === 0 || parsed.supers.length === 0) {
           const existing = current?.find(p => p.banco === banco)
           if (existing) {
             await supabase.from('bank_promos')
@@ -167,8 +166,8 @@ export async function GET(req: Request) {
               .eq('activo', true)
           }
           skipped.push(banco)
-          console.log(`[cron] ${banco}: datos insuficientes, sin cambios`)
-          await new Promise(r => setTimeout(r, 500))
+          console.log(`[cron] ${banco}: datos insuficientes (pct=${parsed.descuento}, dias=${parsed.dias.length}, supers=${parsed.supers.length})`)
+          await new Promise(r => setTimeout(r, 400))
           continue
         }
 
@@ -214,8 +213,7 @@ export async function GET(req: Request) {
           console.log(`[cron] ${banco}: sin cambios`)
         }
 
-        // Pausa para no saturar APIs
-        await new Promise(r => setTimeout(r, 600))
+        await new Promise(r => setTimeout(r, 400))
       } catch (err) {
         console.warn(`[cron] ${banco}: error —`, err)
         skipped.push(banco)
