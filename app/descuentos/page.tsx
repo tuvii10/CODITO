@@ -47,7 +47,6 @@ export default function Descuentos() {
 
   const diaActivo      = diaFilter === 'Hoy' ? diaHoy : diaFilter
   const filteredPromos = BANK_PROMOS.filter(p => p.dias.includes('Siempre') || p.dias.includes(diaActivo))
-  const otrosPromos    = BANK_PROMOS.filter(p => !p.dias.includes('Siempre') && !p.dias.includes(diaActivo))
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
@@ -98,20 +97,11 @@ export default function Descuentos() {
             {diaFilter === 'Hoy' ? ` hoy (${diaHoy})` : ` los ${diaFilter}`}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 20 }}>
-            {filteredPromos.map(p => <PromoCard key={p.banco} promo={p} active />)}
+            {filteredPromos.map(p => <PromoCard key={p.banco} promo={p} />)}
           </div>
         </>
       )}
 
-      {/* Otros días */}
-      {otrosPromos.length > 0 && (
-        <>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#a1a1aa', marginBottom: 10, marginTop: 8 }}>Otros descuentos (días distintos)</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 32 }}>
-            {otrosPromos.map(p => <PromoCard key={p.banco} promo={p} active={false} />)}
-          </div>
-        </>
-      )}
 
       <p style={{ fontSize: 11, color: '#a1a1aa', textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
         Los descuentos pueden variar. Verificar en el sitio de tu banco antes de comprar.
@@ -120,12 +110,12 @@ export default function Descuentos() {
   )
 }
 
-function PromoCard({ promo, active }: { promo: BankPromo; active: boolean }) {
+function PromoCard({ promo }: { promo: BankPromo }) {
   return (
     <div style={{
-      background: active ? '#fff' : '#fafafa',
-      border: `1.5px solid ${active ? promo.color + '40' : '#e4e4e7'}`,
-      borderRadius: 18, padding: '16px 18px', opacity: active ? 1 : 0.7,
+      background: '#fff',
+      border: `1.5px solid ${promo.color}40`,
+      borderRadius: 18, padding: '16px 18px',
       position: 'relative', overflow: 'hidden',
     }}>
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: promo.color, borderRadius: '18px 0 0 18px' }} />
@@ -138,7 +128,7 @@ function PromoCard({ promo, active }: { promo: BankPromo; active: boolean }) {
               <p style={{ fontSize: 11, color: '#71717a' }}>{promo.tarjeta}</p>
             </div>
           </div>
-          <div style={{ background: active ? promo.color : '#e4e4e7', color: '#fff', borderRadius: 12, padding: '6px 12px', fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, flexShrink: 0 }}>
+          <div style={{ background: promo.color, color: '#fff', borderRadius: 12, padding: '6px 12px', fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, flexShrink: 0 }}>
             -{promo.descuento}%
           </div>
         </div>
