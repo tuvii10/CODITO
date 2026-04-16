@@ -260,6 +260,25 @@ export default function Home() {
             </div>
           </Link>
 
+          {/* Indicador deslizar */}
+          <div style={{
+            gridColumn: '1 / -1',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            padding: '8px 0',
+          }}>
+            <div style={{ flex: 1, height: 1, background: '#e4e4e7' }} />
+            <span style={{
+              fontSize: 12, fontWeight: 700, color: '#a1a1aa',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              whiteSpace: 'nowrap',
+            }}>
+              Más herramientas
+              <span style={{ animation: 'bounce 1.5s infinite', display: 'inline-block' }}>↓</span>
+            </span>
+            <div style={{ flex: 1, height: 1, background: '#e4e4e7' }} />
+            <style>{`@keyframes bounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(4px) } }`}</style>
+          </div>
+
           <Link href="/dolarito" style={{ textDecoration: 'none' }}>
             <div style={{
               background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
