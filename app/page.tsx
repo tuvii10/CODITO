@@ -209,28 +209,9 @@ export default function Home() {
         </Link>
       )}
 
-      {/* Herramientas */}
+      {/* Accesos rápidos */}
       {!searched && (
-        <div style={{ marginTop: 24, marginBottom: 6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#09090b', letterSpacing: '-0.02em', margin: 0 }}>
-              Herramientas
-            </h2>
-            <span style={{
-              fontSize: 11, fontWeight: 700, color: '#f97316',
-              background: '#fff7ed', border: '1px solid #fed7aa',
-              borderRadius: 999, padding: '3px 10px',
-            }}>
-              7 herramientas gratis
-            </span>
-          </div>
-          <p style={{ fontSize: 13, color: '#71717a', margin: 0 }}>
-            Todo lo que necesitás para cuidar tu bolsillo
-          </p>
-        </div>
-      )}
-      {!searched && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 12, marginTop: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 12, marginTop: 14 }}>
           <Link href="/suscripciones" style={{ textDecoration: 'none' }}>
             <div style={{
               background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
@@ -278,25 +259,6 @@ export default function Home() {
               </p>
             </div>
           </Link>
-
-          {/* Indicador deslizar */}
-          <div style={{
-            gridColumn: '1 / -1',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '8px 0',
-          }}>
-            <div style={{ flex: 1, height: 1, background: '#e4e4e7' }} />
-            <span style={{
-              fontSize: 12, fontWeight: 700, color: '#a1a1aa',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              whiteSpace: 'nowrap',
-            }}>
-              Más herramientas
-              <span style={{ animation: 'bounce 1.5s infinite', display: 'inline-block' }}>↓</span>
-            </span>
-            <div style={{ flex: 1, height: 1, background: '#e4e4e7' }} />
-            <style>{`@keyframes bounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(4px) } }`}</style>
-          </div>
 
           <Link href="/dolarito" style={{ textDecoration: 'none' }}>
             <div style={{
@@ -404,6 +366,41 @@ export default function Home() {
 
       {/* Productos destacados — temporalmente oculto */}
       {/* {!searched && <FeaturedProducts />} */}
+
+      {/* Botón flotante "Descubrí más" */}
+      {!searched && (
+        <div
+          className="floating-pill"
+          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: 'rgba(9, 9, 11, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#fff',
+            padding: '12px 22px',
+            borderRadius: 999,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+            zIndex: 40,
+            animation: 'fadeInUp 0.5s ease, floatPulse 2.5s ease-in-out infinite 1s',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>👇</span>
+          Descubrí más herramientas
+          <style>{`
+            @keyframes fadeInUp { from { opacity: 0; transform: translateX(-50%) translateY(20px) } to { opacity: 1; transform: translateX(-50%) translateY(0) } }
+            @keyframes floatPulse { 0%,100% { transform: translateX(-50%) translateY(0) } 50% { transform: translateX(-50%) translateY(-4px) } }
+          `}</style>
+        </div>
+      )}
     </div>
   )
 }
