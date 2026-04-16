@@ -71,10 +71,8 @@ async function searchForBank(banco: string): Promise<string> {
     }),
   })
   const data = await res.json()
-  const parts: string[] = []
-  if (data.answer) parts.push(data.answer)
-  for (const r of (data.results ?? [])) parts.push(`${r.title}: ${r.content}`)
-  return parts.join(' | ')
+  // Usar solo el answer (resumen específico del banco) para evitar mezclar datos de otros bancos
+  return data.answer ?? ''
 }
 
 // ─── Parser con regex ─────────────────────────────────────────────────────────
