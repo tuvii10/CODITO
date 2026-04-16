@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import { fetchAllDeals, Deal } from '@/lib/deals'
 import { getStoreConfig } from '@/lib/stores'
+import CountdownTimer from '@/components/CountdownTimer'
 
-// Cache 12 horas — ofertas se regeneran 2 veces al día, suficiente para
-// que no estemos golpeando las APIs de las tiendas constantemente.
-export const revalidate = 43200
+// Cache 6 horas — ofertas rotan cada 6 horas con productos nuevos
+export const revalidate = 21600
 export const maxDuration = 60
 
 function fmt(n: number) {
@@ -157,9 +157,10 @@ export default async function OfertasPage() {
         }}>
           Ofertas del día
         </h1>
-        <p style={{ fontSize: 13, color: '#71717a', fontWeight: 500, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: '#71717a', fontWeight: 500, lineHeight: 1.5, marginBottom: 14 }}>
           {deals.length} productos con el precio más bajo comparado entre todas las tiendas.
         </p>
+        <CountdownTimer />
       </div>
 
       {/* Lista */}

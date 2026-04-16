@@ -1,18 +1,14 @@
 /**
  * Ofertas del día — basadas en COMPARACIÓN entre sitios.
  *
- * Un producto es una oferta porque está MÁS BARATO que en otros lugares,
- * no porque tenga un cartel de "-X%".
+ * Sistema de rotación: pool de ~120 productos, se seleccionan ~30 por
+ * ventana de 6 horas. Los productos no se repiten por 48 horas (8 ventanas).
  *
  * Estrategia:
- * 1. Recolectar un pool grande de productos buscando en TODAS las tiendas
- *    (VTEX 58+ + Coto + Mercado Libre highlights).
- * 2. Enriquecer con comparaciones externas (scrape de La Anónima, DIA)
- *    para tiendas que no tienen API.
- * 3. Agrupar productos similares y comparar precios entre sellers.
- * 4. Solo quedan los que son el más barato del grupo (o muy cerca del mínimo).
- * 5. Ordenar por ahorro absoluto en pesos.
- * 6. Top 30.
+ * 1. Seleccionar queries de la ventana horaria actual (rotación determinista).
+ * 2. Buscar en VTEX 58+ stores + Coto + SuperPrecio + ML highlights.
+ * 3. Comparar precios entre sellers → detectar los más baratos.
+ * 4. Top 30 con mayor ahorro real.
  */
 import { SearchResult } from './types'
 import { searchVtex } from './vtex'
@@ -24,8 +20,8 @@ import { applyCrossSellerDiscounts, deduplicateToCheapest } from './compare'
 // ─── Tipos ─────────────────────────────────────────────────────────────────
 
 export type Deal = SearchResult & {
-  original_price: number       // precio más alto entre competidores (referencia)
-  discount_pct: number          // % ahorro vs la competencia
+  original_price: number
+  discount_pct: number
   category: string
   verified: boolean
   cheapest_alt: number | null
@@ -33,64 +29,227 @@ export type Deal = SearchResult & {
   min_units: number
 }
 
-// ─── Queries y categorías ─────────────────────────────────────────────────
+// ─── Pool de productos (~120 queries) ────────────────────────────────────
 
-const DEAL_QUERIES: Array<{ q: string; cat: string }> = [
-  // Super
-  { q: 'aceite',                 cat: 'Super' },
-  { q: 'yerba mate',             cat: 'Super' },
-  { q: 'cafe molido',            cat: 'Super' },
-  { q: 'leche en polvo',         cat: 'Super' },
-  { q: 'pañales',                cat: 'Super' },
-  { q: 'detergente ropa',        cat: 'Super' },
-  { q: 'shampoo',                cat: 'Super' },
-  { q: 'whisky',                 cat: 'Super' },
-  // Electro accesible
-  { q: 'cafetera',               cat: 'Electro' },
-  { q: 'licuadora',              cat: 'Electro' },
-  { q: 'plancha vapor',          cat: 'Electro' },
-  { q: 'microondas',             cat: 'Electro' },
-  { q: 'auriculares bluetooth',  cat: 'Electro' },
-  { q: 'parlante bluetooth',     cat: 'Electro' },
-  { q: 'tostadora',              cat: 'Electro' },
-  { q: 'secador pelo',           cat: 'Electro' },
-  { q: 'batidora',               cat: 'Electro' },
-  { q: 'smartwatch',             cat: 'Electro' },
-  // Moda
-  { q: 'zapatillas running',     cat: 'Moda' },
-  { q: 'zapatillas nike',        cat: 'Moda' },
-  { q: 'zapatillas adidas',      cat: 'Moda' },
-  { q: 'zapatillas topper',      cat: 'Moda' },
-  { q: 'campera',                cat: 'Moda' },
-  { q: 'buzo',                   cat: 'Moda' },
-  // Hogar
-  { q: 'colchon',                cat: 'Hogar' },
-  { q: 'taladro',                cat: 'Hogar' },
-  { q: 'juego sabanas',          cat: 'Hogar' },
-  { q: 'olla',                   cat: 'Hogar' },
+const ALL_QUERIES: Array<{ q: string; cat: string }> = [
+  // ═══ Super — Almacén ═══
+  { q: 'aceite girasol',            cat: 'Super' },
+  { q: 'aceite oliva',              cat: 'Super' },
+  { q: 'yerba mate',                cat: 'Super' },
+  { q: 'cafe molido',               cat: 'Super' },
+  { q: 'cafe instantaneo',          cat: 'Super' },
+  { q: 'leche en polvo',            cat: 'Super' },
+  { q: 'leche larga vida',          cat: 'Super' },
+  { q: 'arroz',                     cat: 'Super' },
+  { q: 'fideos',                    cat: 'Super' },
+  { q: 'harina',                    cat: 'Super' },
+  { q: 'azucar',                    cat: 'Super' },
+  { q: 'sal fina',                  cat: 'Super' },
+  { q: 'galletitas',                cat: 'Super' },
+  { q: 'mermelada',                 cat: 'Super' },
+  { q: 'dulce de leche',            cat: 'Super' },
+  { q: 'atun en lata',              cat: 'Super' },
+  { q: 'mayonesa',                  cat: 'Super' },
+  { q: 'salsa tomate',              cat: 'Super' },
+  { q: 'polenta',                   cat: 'Super' },
+  { q: 'cacao en polvo',            cat: 'Super' },
+  { q: 'te en saquitos',            cat: 'Super' },
+  { q: 'manteca',                   cat: 'Super' },
+  { q: 'queso cremoso',             cat: 'Super' },
+  { q: 'yogur',                     cat: 'Super' },
+  // ═══ Super — Limpieza y cuidado ═══
+  { q: 'pañales',                   cat: 'Super' },
+  { q: 'detergente ropa',           cat: 'Super' },
+  { q: 'jabon en polvo',            cat: 'Super' },
+  { q: 'suavizante ropa',           cat: 'Super' },
+  { q: 'shampoo',                   cat: 'Super' },
+  { q: 'acondicionador pelo',       cat: 'Super' },
+  { q: 'jabon liquido manos',       cat: 'Super' },
+  { q: 'desodorante',               cat: 'Super' },
+  { q: 'pasta dental',              cat: 'Super' },
+  { q: 'papel higienico',           cat: 'Super' },
+  { q: 'lavandina',                 cat: 'Super' },
+  { q: 'limpiador pisos',           cat: 'Super' },
+  // ═══ Super — Bebidas ═══
+  { q: 'cerveza',                   cat: 'Super' },
+  { q: 'vino tinto',                cat: 'Super' },
+  { q: 'whisky',                    cat: 'Super' },
+  { q: 'fernet',                    cat: 'Super' },
+  { q: 'gaseosa coca cola',         cat: 'Super' },
+  { q: 'agua mineral',              cat: 'Super' },
+  { q: 'jugo en polvo',             cat: 'Super' },
+  { q: 'soda',                      cat: 'Super' },
+  // ═══ Super — Congelados y frescos ═══
+  { q: 'hamburguesas congeladas',   cat: 'Super' },
+  { q: 'empanadas congeladas',      cat: 'Super' },
+  { q: 'helado',                    cat: 'Super' },
+  { q: 'papas fritas congeladas',   cat: 'Super' },
+  // ═══ Electro — Cocina ═══
+  { q: 'cafetera',                  cat: 'Electro' },
+  { q: 'cafetera express',          cat: 'Electro' },
+  { q: 'licuadora',                 cat: 'Electro' },
+  { q: 'batidora',                  cat: 'Electro' },
+  { q: 'tostadora',                 cat: 'Electro' },
+  { q: 'microondas',                cat: 'Electro' },
+  { q: 'freidora de aire',          cat: 'Electro' },
+  { q: 'pava electrica',            cat: 'Electro' },
+  { q: 'procesadora alimentos',     cat: 'Electro' },
+  { q: 'multiprocesadora',          cat: 'Electro' },
+  { q: 'sandwichera',               cat: 'Electro' },
+  { q: 'exprimidor',                cat: 'Electro' },
+  // ═══ Electro — Cuidado personal ═══
+  { q: 'plancha vapor ropa',        cat: 'Electro' },
+  { q: 'secador pelo',              cat: 'Electro' },
+  { q: 'planchita pelo',            cat: 'Electro' },
+  { q: 'cortadora pelo',            cat: 'Electro' },
+  { q: 'afeitadora electrica',      cat: 'Electro' },
+  // ═══ Electro — Audio y tech ═══
+  { q: 'auriculares bluetooth',     cat: 'Electro' },
+  { q: 'parlante bluetooth',        cat: 'Electro' },
+  { q: 'smartwatch',                cat: 'Electro' },
+  { q: 'mouse inalambrico',         cat: 'Electro' },
+  { q: 'teclado inalambrico',       cat: 'Electro' },
+  { q: 'cargador celular',          cat: 'Electro' },
+  { q: 'power bank',                cat: 'Electro' },
+  { q: 'cable usb tipo c',          cat: 'Electro' },
+  { q: 'webcam',                    cat: 'Electro' },
+  // ═══ Electro — Climatización ═══
+  { q: 'ventilador de pie',         cat: 'Electro' },
+  { q: 'estufa electrica',          cat: 'Electro' },
+  { q: 'caloventor',                cat: 'Electro' },
+  { q: 'purificador agua',          cat: 'Electro' },
+  // ═══ Moda — Calzado ═══
+  { q: 'zapatillas running',        cat: 'Moda' },
+  { q: 'zapatillas nike',           cat: 'Moda' },
+  { q: 'zapatillas adidas',         cat: 'Moda' },
+  { q: 'zapatillas topper',         cat: 'Moda' },
+  { q: 'zapatillas fila',           cat: 'Moda' },
+  { q: 'zapatillas puma',           cat: 'Moda' },
+  { q: 'botas mujer',               cat: 'Moda' },
+  { q: 'ojotas',                    cat: 'Moda' },
+  // ═══ Moda — Ropa ═══
+  { q: 'campera',                   cat: 'Moda' },
+  { q: 'buzo hoodie',               cat: 'Moda' },
+  { q: 'remera algodon',            cat: 'Moda' },
+  { q: 'jean hombre',               cat: 'Moda' },
+  { q: 'jean mujer',                cat: 'Moda' },
+  { q: 'pantalon jogger',           cat: 'Moda' },
+  { q: 'mochila',                   cat: 'Moda' },
+  { q: 'medias pack',               cat: 'Moda' },
+  // ═══ Hogar ═══
+  { q: 'colchon',                   cat: 'Hogar' },
+  { q: 'almohada',                  cat: 'Hogar' },
+  { q: 'juego sabanas',             cat: 'Hogar' },
+  { q: 'acolchado',                 cat: 'Hogar' },
+  { q: 'frazada polar',             cat: 'Hogar' },
+  { q: 'cortina',                   cat: 'Hogar' },
+  { q: 'olla acero inoxidable',     cat: 'Hogar' },
+  { q: 'sarten antiadherente',      cat: 'Hogar' },
+  { q: 'set cuchillos',             cat: 'Hogar' },
+  { q: 'organizador ropa',          cat: 'Hogar' },
+  { q: 'lampara led',               cat: 'Hogar' },
+  // ═══ Hogar — Herramientas ═══
+  { q: 'taladro',                   cat: 'Hogar' },
+  { q: 'set herramientas',          cat: 'Hogar' },
+  { q: 'pintura latex',             cat: 'Hogar' },
+  // ═══ Bebés y niños ═══
+  { q: 'mamadera',                  cat: 'Super' },
+  { q: 'toallitas humedas bebe',    cat: 'Super' },
+  // ═══ Mascotas ═══
+  { q: 'alimento perro',            cat: 'Super' },
+  { q: 'alimento gato',             cat: 'Super' },
+  { q: 'arena gato',                cat: 'Super' },
+  // ═══ Farmacia ═══
+  { q: 'protector solar',           cat: 'Super' },
+  { q: 'crema corporal',            cat: 'Super' },
+  { q: 'vitamina c',                cat: 'Super' },
 ]
 
 const ML_DEAL_CATEGORIES = [
   { id: 'MLA1403', cat: 'Super' },      // Alimentos y Bebidas
-  { id: 'MLA1246', cat: 'Super' },      // Belleza
-  { id: 'MLA5726', cat: 'Electro' },    // Electrodomésticos
-  { id: 'MLA1000', cat: 'Electro' },    // Electrónica
-  { id: 'MLA1051', cat: 'Electro' },    // Celulares
-  { id: 'MLA1276', cat: 'Moda' },       // Deportes
-  { id: 'MLA1430', cat: 'Moda' },       // Ropa
-  { id: 'MLA1574', cat: 'Hogar' },      // Hogar
+  { id: 'MLA1246', cat: 'Super' },       // Belleza
+  { id: 'MLA5726', cat: 'Electro' },     // Electrodomésticos
+  { id: 'MLA1000', cat: 'Electro' },     // Electrónica
+  { id: 'MLA1051', cat: 'Electro' },     // Celulares
+  { id: 'MLA1276', cat: 'Moda' },        // Deportes
+  { id: 'MLA1430', cat: 'Moda' },        // Ropa
+  { id: 'MLA1574', cat: 'Hogar' },       // Hogar
 ]
+
+// ─── Sistema de rotación por ventana de 6 horas ─────────────────────────
+
+const WINDOW_HOURS = 6
+const QUERIES_PER_WINDOW = 30
+const NO_REPEAT_WINDOWS = 8 // 8 ventanas x 6 horas = 48 horas sin repetir
+
+/**
+ * Retorna el índice de la ventana horaria actual (0, 1, 2, 3...)
+ * Cada ventana dura WINDOW_HOURS horas.
+ */
+function getCurrentWindow(): number {
+  const now = new Date()
+  const hoursSinceEpoch = Math.floor(now.getTime() / (1000 * 60 * 60))
+  return Math.floor(hoursSinceEpoch / WINDOW_HOURS)
+}
+
+/**
+ * Genera un número pseudoaleatorio determinista a partir de una seed.
+ * Misma seed = misma secuencia = resultados reproducibles por ventana.
+ */
+function seededRandom(seed: number): () => number {
+  let s = seed
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff
+    return (s >>> 0) / 0xffffffff
+  }
+}
+
+/**
+ * Selecciona las queries para la ventana actual, asegurando que no se
+ * repitan durante NO_REPEAT_WINDOWS ventanas.
+ */
+function selectQueriesForWindow(): Array<{ q: string; cat: string }> {
+  const currentWindow = getCurrentWindow()
+  const totalQueries = ALL_QUERIES.length
+
+  // Crear un shuffle completo usando la seed del "ciclo"
+  // Un ciclo = totalQueries / QUERIES_PER_WINDOW ventanas
+  const cycleLength = Math.ceil(totalQueries / QUERIES_PER_WINDOW)
+  const cycleStart = Math.floor(currentWindow / cycleLength) * cycleLength
+  const positionInCycle = currentWindow - cycleStart
+
+  // Shuffle determinista basado en el inicio del ciclo
+  const rng = seededRandom(cycleStart * 7919) // primo para mejor distribución
+  const indices = Array.from({ length: totalQueries }, (_, i) => i)
+
+  // Fisher-Yates shuffle con RNG determinista
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[indices[i], indices[j]] = [indices[j], indices[i]]
+  }
+
+  // Tomar el slice correspondiente a esta ventana
+  const start = (positionInCycle * QUERIES_PER_WINDOW) % totalQueries
+  const selected: Array<{ q: string; cat: string }> = []
+
+  for (let i = 0; i < QUERIES_PER_WINDOW; i++) {
+    const idx = indices[(start + i) % totalQueries]
+    selected.push(ALL_QUERIES[idx])
+  }
+
+  return selected
+}
 
 // ─── Gather candidates ─────────────────────────────────────────────────────
 
 type Candidate = SearchResult & { __category?: string }
 
 async function gatherCandidates(): Promise<Candidate[]> {
-  // 1. Buscar cada query en VTEX + Coto + SuperPrecio en paralelo.
-  // SuperPrecio aporta cobertura extra: DIA, Cordiez, y confirma precios
-  // contra los VTEX que nosotros ya cubrimos.
+  const queries = selectQueriesForWindow()
+
+  // 1. Buscar cada query en VTEX + Coto + SuperPrecio en paralelo
   const queryBatches = await Promise.all(
-    DEAL_QUERIES.map(async ({ q, cat }) => {
+    queries.map(async ({ q, cat }) => {
       const [vtex, coto, sp] = await Promise.allSettled([
         searchVtex(q),
         searchCoto(q),
@@ -103,7 +262,7 @@ async function gatherCandidates(): Promise<Candidate[]> {
     })
   )
 
-  // 2. Mercado Libre por categoría (usa OAuth highlights)
+  // 2. ML highlights (estos rotan solos, no dependen de la ventana)
   const mlBatches = await Promise.all(
     ML_DEAL_CATEGORIES.map(async ({ id, cat }) => {
       try {
@@ -120,7 +279,6 @@ async function gatherCandidates(): Promise<Candidate[]> {
 
 // ─── Categorización automática ─────────────────────────────────────────────
 
-/** Intenta inferir categoría por nombre cuando no viene del query */
 function inferCategory(name: string, hint?: string): string {
   if (hint) return hint
   const n = name.toLowerCase()
@@ -137,35 +295,26 @@ function inferCategory(name: string, hint?: string): string {
 // ─── Entrypoint ────────────────────────────────────────────────────────────
 
 export async function fetchAllDeals(): Promise<Deal[]> {
-  // Paso 1: juntar un pool grande de productos
   const candidates = await gatherCandidates()
 
   if (candidates.length === 0) return []
 
-  // Paso 2: comparar entre sellers → esto calcula el descuento real
-  // (cada producto se compara con sus similares en otras tiendas)
   const withCrossSeller = applyCrossSellerDiscounts(candidates)
-
-  // Paso 3: dedupe a "cheapest por fuente" — evita mostrar el mismo producto 10 veces
   const deduped = deduplicateToCheapest(withCrossSeller)
 
-  // Paso 4: filtrar solo los que tienen ahorro demostrable
-  // (la comparación cross-seller les puso original_price cuando son más baratos)
   const withRealSavings = deduped.filter(p => {
     if (!p.original_price || p.original_price <= p.price) return false
     const savings = p.original_price - p.price
-    // Umbrales mínimos: $300 ahorro o precio entre $500 y $500k
     return savings >= 300 && p.price >= 500 && p.price <= 500000
   })
 
-  // Paso 5: tomar los 30 con mayor ahorro absoluto primero (para que
-  // el top sea de los que más valor ofrecen)
+  // Top 30 con mayor ahorro absoluto
   withRealSavings.sort((a, b) =>
     ((b.original_price ?? 0) - b.price) - ((a.original_price ?? 0) - a.price)
   )
   const top = withRealSavings.slice(0, 30)
 
-  // Paso 6: re-ordenar el top por precio de menor a mayor (como pide el usuario)
+  // Re-ordenar por precio
   top.sort((a, b) => a.price - b.price)
 
   return top.map((p): Deal => {
@@ -177,7 +326,7 @@ export async function fetchAllDeals(): Promise<Deal[]> {
       original_price: orig,
       discount_pct: discPct,
       category,
-      verified: true, // verificado porque se comparó contra múltiples sellers
+      verified: true,
       cheapest_alt: orig,
       promo_label: p.promo_label ?? `-${discPct}%`,
       min_units: 1,

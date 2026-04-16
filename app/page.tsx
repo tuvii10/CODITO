@@ -6,6 +6,7 @@ import SearchBar from '@/components/SearchBar'
 import ResultsTable from '@/components/ResultsTable'
 import FeaturedProducts from '@/components/FeaturedProducts'
 import PriceAlertBanner from '@/components/PriceAlertBanner'
+import MiniCountdown from '@/components/MiniCountdown'
 import { SearchResult } from '@/lib/types'
 
 export default function Home() {
@@ -175,6 +176,9 @@ export default function Home() {
                   Los mejores descuentos verificados en{' '}
                   <strong style={{ color: '#fff' }}>60+ tiendas</strong>
                 </p>
+                <div style={{ marginTop: 10 }}>
+                  <MiniCountdown />
+                </div>
               </div>
 
               {/* CTA */}

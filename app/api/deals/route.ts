@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { fetchAllDeals } from '@/lib/deals'
 
-// Cachear 24 horas — las ofertas se refrescan una vez por día
-export const revalidate = 86400
+// Cachear 6 horas — las ofertas rotan cada 6 horas con productos nuevos
+export const revalidate = 21600
 
 export async function GET() {
   try {
