@@ -38,8 +38,19 @@ export async function GET(req: NextRequest) {
   const webFiltered = web.filter(r => !r.url || !directUrls.has(r.url))
 
   // Juntar todo (con precio primero, sin precio al final)
-  const rawWithPrice = [...vtex, ...coto, ...spFiltered, ...webFiltered.filter(r => r.price > 0)]
-  const allWithoutPrice = webFiltered.filter(r => r.price === 0)
+  // Filtrar price > 0 en todas las fuentes para evitar $0 falsos
+  const rawWithPrice = [
+    ...vtex.filter(r => r.price > 0),
+    ...coto.filter(r => r.price > 0),
+    ...spFiltered.filter(r => r.price > 0),
+    ...webFiltered.filter(r => r.price > 0),
+  ]
+  const allWithoutPrice = [
+    ...vtex.filter(r => r.price === 0),
+    ...coto.filter(r => r.price === 0),
+    ...spFiltered.filter(r => r.price === 0),
+    ...webFiltered.filter(r => r.price === 0),
+  ]
 
   // Filtrar por relevancia: al menos 20% de los tokens del query deben estar en el nombre
   const queryTokens = tokenize(query)
@@ -120,7 +131,13 @@ function relevanceScore(name: string, queryTokens: string[]): number {
   const nameTokens = tokenize(name)
   if (nameTokens.length === 0) return 0
   const matches = queryTokens.filter(qt =>
-    nameTokens.some(nt => nt.includes(qt) || qt.includes(nt))
+    nameTokens.some(nt => {
+      if (nt === qt) return true
+      // Substring match solo para tokens largos (evita "cola" matcheando "chocolate")
+      if (qt.length >= 5 && nt.includes(qt)) return true
+      if (nt.length >= 5 && qt.includes(nt)) return true
+      return false
+    })
   )
   return matches.length / queryTokens.length
 }
