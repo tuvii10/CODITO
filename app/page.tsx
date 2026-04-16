@@ -47,20 +47,21 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero — imagen personalizada */}
+      {/* Hero — imagen personalizada full width */}
       {!searched && (
-        <div style={{ marginBottom: 24 }}>
+        <div style={{
+          position: 'relative',
+          left: '50%',
+          marginLeft: '-50vw',
+          marginRight: '-50vw',
+          width: '100vw',
+          marginBottom: 24,
+        }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/header.png"
             alt="Codito — Buscá. Comprá barato."
-            style={{
-              width: '100%',
-              height: 'auto',
-              display: 'block',
-              borderRadius: 18,
-              objectFit: 'cover',
-            }}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
           />
         </div>
       )}
@@ -215,23 +216,7 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link href="/descuentos" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#6ee7b7'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(16,185,129,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>🏪</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Descuentos en super</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                Qué banco te da descuento hoy en Carrefour, Coto, Jumbo y otros supermercados.
-              </p>
-            </div>
-          </Link>
-
-          <Link href="/cuotas" style={{ textDecoration: 'none' }}>
+<Link href="/cuotas" style={{ textDecoration: 'none' }}>
             <div style={{
               background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
               padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
