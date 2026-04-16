@@ -896,17 +896,21 @@ export default function Suscripciones() {
         {/* Flecha indicando scroll */}
         <div style={{
           position: 'absolute', right: 0, top: 0, bottom: 4,
-          width: 40,
-          background: 'linear-gradient(90deg, transparent, #fafafa 60%)',
+          width: 50,
+          background: 'linear-gradient(90deg, transparent, #fafafa 40%)',
           display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-          paddingRight: 4, pointerEvents: 'none',
+          paddingRight: 6, pointerEvents: 'none',
         }}>
           <span style={{
-            fontSize: 16, color: '#a1a1aa',
+            width: 28, height: 28, borderRadius: '50%',
+            background: '#09090b', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, fontWeight: 900,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
             animation: 'nudgeRight 1.5s ease-in-out infinite',
           }}>›</span>
         </div>
-        <style>{`@keyframes nudgeRight { 0%,100% { transform: translateX(0); opacity: 0.5 } 50% { transform: translateX(4px); opacity: 1 } }`}</style>
+        <style>{`@keyframes nudgeRight { 0%,100% { transform: translateX(0) } 50% { transform: translateX(4px) } }`}</style>
       </div>
 
       {/* ── Contador ── */}
