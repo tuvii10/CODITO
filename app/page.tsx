@@ -259,6 +259,70 @@ export default function Home() {
               </p>
             </div>
           </Link>
+
+          <Link href="/dolarito" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
+              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#86efac'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(22,163,74,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>💵</div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Dolarito</p>
+              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
+                Todas las cotizaciones del dólar en vivo: Blue, Oficial, MEP, Tarjeta y más.
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/inflacito" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
+              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#fca5a5'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(239,68,68,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>📈</div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Inflacito</p>
+              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
+                ¿Cuánto vale hoy lo que costaba antes? Calculá cuánto perdiste por inflación.
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/platita" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
+              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#93c5fd'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(37,99,235,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>💰</div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Platita</p>
+              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
+                ¿Plazo fijo, dólares o colchón? Compará qué te conviene más.
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/changito" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
+              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#fcd34d'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(245,158,11,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>🛒</div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Changito</p>
+              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
+                Armá tu canasta básica y fijate cuánto te sale llenar el chango.
+              </p>
+            </div>
+          </Link>
         </div>
       )}
 
