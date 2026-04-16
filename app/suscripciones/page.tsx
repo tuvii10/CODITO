@@ -368,13 +368,12 @@ function calcUsdToARS(usd: number, oficialRate: number, taxes: { iva: number; af
 // ─── Página ───────────────────────────────────────────────────────────────────
 
 export default function Suscripciones() {
-  const [tab, setTab]           = useState<'suscripciones' | 'descuentos'>(() => {
-    if (typeof window !== 'undefined') {
-      const p = new URLSearchParams(window.location.search).get('tab')
-      if (p === 'descuentos') return 'descuentos'
-    }
-    return 'suscripciones'
-  })
+  const [tab, setTab]           = useState<'suscripciones' | 'descuentos'>('suscripciones')
+
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get('tab')
+    if (p === 'descuentos') setTab('descuentos')
+  }, [])
   const [rates, setRates]       = useState<DolarRates>({ blue: null, oficial: null, mep: null })
   const [loadingRates, setLoadingRates] = useState(true)
   const [catFilter, setCatFilter]       = useState('Todos')
