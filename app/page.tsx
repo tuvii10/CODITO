@@ -53,18 +53,13 @@ export default function Home() {
         <>
           {/* Desktop: full width */}
           <div className="hero-desktop" style={{
-            position: 'relative',
-            left: '50%',
-            marginLeft: '-50vw',
-            marginRight: '-50vw',
-            width: '100vw',
             marginBottom: 10,
           }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/header.png"
               alt="Codito — Buscá. Comprá barato."
-              style={{ width: '100%', height: 'auto', display: 'block' }}
+              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 16 }}
             />
           </div>
           {/* Mobile: contenido normal */}
