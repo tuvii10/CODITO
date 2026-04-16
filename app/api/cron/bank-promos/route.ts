@@ -3,12 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 
 export const maxDuration = 60
 
-// ─── Catálogo de bancos conocidos ─────────────────────────────────────────────
-// Para cada banco guardamos los metadatos fijos (icon, color, tarjeta)
-// y buscamos si el texto menciona cambios en descuento/días/supers/tope.
+// ─── Catálogo de bancos ────────────────────────────────────────────────────────
 
 const BANK_CATALOG: Record<string, { icon: string; color: string; tarjeta: string }> = {
-  'Banco Nación':    { icon: '🇦🇷', color: '#009cde', tarjeta: 'Visa' },
+  'Banco Nación':    { icon: '🇦🇷', color: '#009cde', tarjeta: 'Visa / Mastercard' },
   'Santander':       { icon: '🔴', color: '#ec0000', tarjeta: 'Visa / Mastercard' },
   'Galicia':         { icon: '🟠', color: '#e95b0c', tarjeta: 'Visa / Mastercard' },
   'BBVA':            { icon: '🔵', color: '#004481', tarjeta: 'Visa / Mastercard' },
@@ -21,93 +19,105 @@ const BANK_CATALOG: Record<string, { icon: string; color: string; tarjeta: strin
   'Mercado Pago':    { icon: '💙', color: '#009ee3', tarjeta: 'Tarjeta MP / QR' },
   'Personal Pay':    { icon: '🟢', color: '#00a550', tarjeta: 'Visa Prepaga' },
   'Brubank':         { icon: '🟣', color: '#6a0dad', tarjeta: 'Visa Débito' },
+  'Banco Patagonia': { icon: '🏔️', color: '#2563eb', tarjeta: 'Visa / Mastercard' },
+  'ICBC':            { icon: '🔷', color: '#1a5fa8', tarjeta: 'Visa / Mastercard' },
 }
 
-const DIAS_SEMANA = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']
+const DIAS_VALIDOS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo','Siempre']
 
-const SUPERS_CONOCIDOS = [
-  'Carrefour','Coto','Jumbo','Disco','Vea','Changomás','La Anónima',
-  'Día','DIA','Makro','Supermercados Toledo','Walmart',
-]
+// ─── Búsqueda web (Tavily) ────────────────────────────────────────────────────
 
-// ─── Parser de texto libre ─────────────────────────────────────────────────────
+async function searchForBank(banco: string): Promise<string> {
+  const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+  const query = `descuento ${banco} supermercado tarjeta ${mes} argentina porcentaje días tope`
 
-function extractFromText(banco: string, text: string): {
+  const tavilyKey = process.env.TAVILY_API_KEY
+  if (!tavilyKey) throw new Error('Sin TAVILY_API_KEY')
+
+  const res = await fetch('https://api.tavily.com/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: tavilyKey,
+      query,
+      search_depth: 'basic',
+      max_results: 5,
+      include_answer: true,
+    }),
+  })
+  const data = await res.json()
+  const parts: string[] = []
+  if (data.answer) parts.push(data.answer)
+  for (const r of (data.results ?? [])) parts.push(`${r.title}: ${r.content}`)
+  return parts.join(' | ')
+}
+
+// ─── Parser con Gemini ────────────────────────────────────────────────────────
+
+type ParsedPromo = {
   descuento: number | null
   dias: string[]
   supers: string[]
   tope: string | null
-} {
-  const t = text.toLowerCase()
-
-  // Descuento: primer número seguido de %
-  const pctMatch = text.match(/(\d{1,2})\s*%/)
-  const descuento = pctMatch ? parseInt(pctMatch[1]) : null
-
-  // Días mencionados
-  const dias = DIAS_SEMANA.filter(d => t.includes(d.toLowerCase()))
-  if (t.includes('todos los días') || t.includes('siempre') || t.includes('todos los dias')) {
-    dias.push('Siempre')
-  }
-
-  // Supermercados mencionados
-  const supers = SUPERS_CONOCIDOS.filter(s => t.includes(s.toLowerCase()))
-
-  // Tope: busca "$NNN.NNN" cerca de palabras clave de tope
-  let tope: string | null = null
-  const topeMatch = text.match(/(?:tope|hasta|máximo|maximo|límite|limite)[^$\n]*\$\s*([\d.,]+)/i)
-    ?? text.match(/\$\s*([\d.,]+)[^$\n]*(?:tope|límite|semanal|mensual|por\s+semana|por\s+mes)/i)
-  if (topeMatch) {
-    // Buscar la unidad de tiempo cerca
-    const nearby = text.slice(Math.max(0, text.indexOf(topeMatch[0]) - 30),
-                              text.indexOf(topeMatch[0]) + topeMatch[0].length + 40)
-    const unit = nearby.match(/semanal|por semana|mensual|por mes/i)?.[0] ?? ''
-    tope = `$${topeMatch[1]}${unit ? ' ' + unit : ''}`
-  }
-
-  return { descuento, dias, supers, tope }
+  nota: string | null
 }
 
-// ─── Búsqueda web ──────────────────────────────────────────────────────────────
+async function parseWithGemini(banco: string, text: string): Promise<ParsedPromo | null> {
+  const geminiKey = process.env.GEMINI_API_KEY
+  if (!geminiKey) throw new Error('Sin GEMINI_API_KEY')
 
-async function searchForBank(banco: string): Promise<string> {
-  const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
-  const query = `descuento ${banco} supermercado tarjeta ${mes} argentina`
+  const prompt = `Sos un extractor de datos de promociones bancarias argentinas.
+Dado el siguiente texto sobre promociones de "${banco}" en supermercados, extraé la información y devolvé SOLO un JSON válido con esta estructura exacta:
 
-  const tavilyKey = process.env.TAVILY_API_KEY
-  if (tavilyKey) {
-    const res = await fetch('https://api.tavily.com/search', {
+{
+  "descuento": <número entero del porcentaje de descuento/reintegro, o null si no hay>,
+  "dias": <array de strings con los días, solo valores de: "Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo","Siempre">,
+  "supers": <array de strings con los supermercados mencionados>,
+  "tope": <string con el tope de reintegro como "$X.XXX por semana/mes", o null>,
+  "nota": <string corto con info relevante adicional, o null>
+}
+
+Reglas:
+- Si no encontrás descuento concreto para supermercados, devolvé null en descuento
+- Solo incluí días donde se aplica el descuento en supermercados
+- Solo incluí supermercados mencionados explícitamente
+- Devolvé SOLO el JSON, sin texto adicional, sin markdown
+
+Texto:
+${text.slice(0, 3000)}`
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+    {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        api_key: tavilyKey,
-        query,
-        search_depth: 'basic',
-        max_results: 5,
-        include_answer: true,
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0, maxOutputTokens: 512 },
       }),
-    })
-    const data = await res.json()
-    const parts: string[] = []
-    if (data.answer) parts.push(data.answer)
-    for (const r of (data.results ?? [])) parts.push(`${r.title}: ${r.content}`)
-    return parts.join(' | ')
+    }
+  )
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Gemini error ${res.status}: ${err}`)
   }
 
-  const serperKey = process.env.SERPER_API_KEY
-  if (serperKey) {
-    const res = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-KEY': serperKey },
-      body: JSON.stringify({ q: query, gl: 'ar', hl: 'es', num: 5 }),
-    })
-    const data = await res.json()
-    return (data.organic ?? []).map((r: { title: string; snippet: string }) =>
-      `${r.title}: ${r.snippet}`
-    ).join(' | ')
-  }
+  const data = await res.json()
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 
-  throw new Error('Sin API de búsqueda')
+  // Limpiar markdown si Gemini lo agrega igual
+  const clean = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+
+  try {
+    const parsed = JSON.parse(clean) as ParsedPromo
+    // Validar que los días sean válidos
+    parsed.dias = (parsed.dias ?? []).filter((d: string) => DIAS_VALIDOS.includes(d))
+    return parsed
+  } catch {
+    console.warn(`[cron] ${banco}: Gemini devolvió JSON inválido:`, clean)
+    return null
+  }
 }
 
 // ─── Supabase ─────────────────────────────────────────────────────────────────
@@ -130,44 +140,85 @@ export async function GET(req: Request) {
 
   try {
     const supabase = getSupabase()
-
-    // Leer las promociones actuales de Supabase para comparar
     const { data: current } = await supabase
       .from('bank_promos')
       .select('*')
       .eq('activo', true)
 
     const updates: string[] = []
+    const skipped: string[] = []
     const now = new Date().toISOString()
 
-    // Buscar cada banco y comparar con los datos actuales
     for (const [banco, meta] of Object.entries(BANK_CATALOG)) {
       try {
+        // 1. Buscar con Tavily
         const text = await searchForBank(banco)
-        const extracted = extractFromText(banco, text)
 
-        // Solo actualizar si encontramos datos concretos
-        if (!extracted.descuento || extracted.dias.length === 0 || extracted.supers.length === 0) {
+        // 2. Parsear con Gemini
+        const parsed = await parseWithGemini(banco, text)
+
+        if (!parsed || !parsed.descuento || parsed.dias.length === 0 || parsed.supers.length === 0) {
+          // Datos insuficientes: solo actualizar timestamp
+          const existing = current?.find(p => p.banco === banco)
+          if (existing) {
+            await supabase.from('bank_promos')
+              .update({ updated_at: now })
+              .eq('banco', banco)
+              .eq('activo', true)
+          }
+          skipped.push(banco)
           console.log(`[cron] ${banco}: datos insuficientes, sin cambios`)
+          await new Promise(r => setTimeout(r, 500))
           continue
         }
 
         const existing = current?.find(p => p.banco === banco)
 
-        // Sin parser confiable activo: solo actualizamos updated_at para
-        // mostrar que el cron verificó. Los datos se editan manualmente en Supabase.
-        if (existing) {
+        const hasChanged = !existing ||
+          existing.descuento !== parsed.descuento ||
+          JSON.stringify([...(existing.dias ?? [])].sort()) !== JSON.stringify([...parsed.dias].sort()) ||
+          JSON.stringify([...(existing.supers ?? [])].sort()) !== JSON.stringify([...parsed.supers].sort())
+
+        if (hasChanged) {
+          if (existing) {
+            await supabase.from('bank_promos').update({
+              descuento:  parsed.descuento,
+              dias:       parsed.dias,
+              supers:     parsed.supers,
+              tope:       parsed.tope,
+              nota:       parsed.nota,
+              updated_at: now,
+            }).eq('banco', banco).eq('activo', true)
+          } else {
+            await supabase.from('bank_promos').insert({
+              banco,
+              icon:       meta.icon,
+              color:      meta.color,
+              tarjeta:    meta.tarjeta,
+              descuento:  parsed.descuento,
+              dias:       parsed.dias,
+              supers:     parsed.supers,
+              tope:       parsed.tope,
+              nota:       parsed.nota,
+              activo:     true,
+              updated_at: now,
+            })
+          }
+          updates.push(`${banco}: ${parsed.descuento}% los ${parsed.dias.join('/')} en ${parsed.supers.join(', ')}`)
+          console.log(`[cron] ${banco}: actualizado →`, parsed)
+        } else {
           await supabase.from('bank_promos')
             .update({ updated_at: now })
             .eq('banco', banco)
             .eq('activo', true)
-          console.log(`[cron] ${banco}: verificado (sin cambios automáticos)`)
+          console.log(`[cron] ${banco}: sin cambios`)
         }
 
-        // Pausa entre búsquedas para no saturar la API
-        await new Promise(r => setTimeout(r, 500))
+        // Pausa para no saturar APIs
+        await new Promise(r => setTimeout(r, 600))
       } catch (err) {
-        console.warn(`[cron] ${banco}: error buscando —`, err)
+        console.warn(`[cron] ${banco}: error —`, err)
+        skipped.push(banco)
       }
     }
 
@@ -175,6 +226,7 @@ export async function GET(req: Request) {
       ok: true,
       checked: Object.keys(BANK_CATALOG).length,
       updated: updates.length,
+      skipped: skipped.length,
       changes: updates,
       updated_at: now,
     })
