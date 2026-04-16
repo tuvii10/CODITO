@@ -54,7 +54,7 @@ const SUPERS_REGEX: [RegExp, string][] = [
 
 async function searchForBank(banco: string): Promise<string> {
   const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
-  const query = `descuento ${banco} supermercado tarjeta ${mes} argentina porcentaje días tope`
+  const query = `descuento ${banco} supermercado Carrefour Coto Jumbo ChangoMás tarjeta ${mes} argentina porcentaje días`
 
   const tavilyKey = process.env.TAVILY_API_KEY
   if (!tavilyKey) throw new Error('Sin TAVILY_API_KEY')
@@ -163,7 +163,7 @@ export async function GET(req: Request) {
         // 2. Parsear con regex
         const parsed = parseWithRegex(text)
 
-        if (!parsed.descuento || parsed.dias.length === 0 || parsed.supers.length === 0) {
+        if (!parsed.descuento || parsed.dias.length === 0) {
           const existing = current?.find(p => p.banco === banco)
           if (existing) {
             await supabase.from('bank_promos')
@@ -172,9 +172,14 @@ export async function GET(req: Request) {
               .eq('activo', true)
           }
           skipped.push(banco)
-          console.log(`[cron] ${banco}: datos insuficientes (pct=${parsed.descuento}, dias=${parsed.dias.length}, supers=${parsed.supers.length})`)
+          console.log(`[cron] ${banco}: datos insuficientes (pct=${parsed.descuento}, dias=${parsed.dias.length})`)
           await new Promise(r => setTimeout(r, 400))
           continue
+        }
+
+        // Si no encontró supers específicos, usar fallback genérico
+        if (parsed.supers.length === 0) {
+          parsed.supers = ['Supermercados adheridos']
         }
 
         const existing = current?.find(p => p.banco === banco)

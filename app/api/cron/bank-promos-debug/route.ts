@@ -36,7 +36,7 @@ export async function GET(req: Request) {
     if (!tavilyKey) return NextResponse.json({ error: 'Sin TAVILY_API_KEY' })
 
     const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
-    const query = `descuento ${banco} supermercado tarjeta ${mes} argentina porcentaje días tope`
+    const query = `descuento ${banco} supermercado Carrefour Coto Jumbo ChangoMás tarjeta ${mes} argentina porcentaje días`
 
     try {
       const res = await fetch('https://api.tavily.com/search', {
