@@ -306,47 +306,7 @@ const SERVICES: Service[] = [
 
 const CATEGORIES = ['Todos', ...Array.from(new Set(SERVICES.map(s => s.category)))]
 
-// ─── Datos: descuentos supermercados ─────────────────────────────────────────
-
-type BankPromo = {
-  banco: string; icon: string; color: string; tarjeta: string
-  descuento: number; dias: string[]; supers: string[]; tope?: string; nota?: string
-}
-
-const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo', 'Siempre']
-
-const BANK_PROMOS: BankPromo[] = [
-  { banco: 'Santander', icon: '🔴', color: '#ec0000', tarjeta: 'Visa / Mastercard',
-    descuento: 25, dias: ['Miércoles'], supers: ['Carrefour', 'Disco', 'Vea', 'Jumbo'], tope: '$5.000 de descuento' },
-  { banco: 'Galicia', icon: '🟠', color: '#e95b0c', tarjeta: 'Visa / Mastercard',
-    descuento: 20, dias: ['Martes', 'Jueves'], supers: ['Coto', 'Jumbo'], nota: 'Aplicable en compras presenciales' },
-  { banco: 'BBVA', icon: '🔵', color: '#004481', tarjeta: 'Visa / Mastercard',
-    descuento: 25, dias: ['Lunes'], supers: ['Carrefour'], tope: '$3.000 de descuento' },
-  { banco: 'Banco Macro', icon: '🟡', color: '#f5b400', tarjeta: 'Visa / Mastercard',
-    descuento: 20, dias: ['Miércoles'], supers: ['Changomás', 'La Anónima'] },
-  { banco: 'Banco Nación', icon: '🇦🇷', color: '#009cde', tarjeta: 'Visa',
-    descuento: 20, dias: ['Miércoles', 'Viernes'], supers: ['Changomás', 'Vea', 'Carrefour'], nota: 'Programa Precios Cuidados / BNA+' },
-  { banco: 'Naranja X', icon: '🍊', color: '#ff6a00', tarjeta: 'Naranja Visa',
-    descuento: 20, dias: ['Viernes'], supers: ['Carrefour', 'Día', 'Supermercados varios'] },
-  { banco: 'HSBC', icon: '⬜', color: '#db0011', tarjeta: 'Visa / Mastercard',
-    descuento: 25, dias: ['Jueves'], supers: ['Jumbo', 'Disco', 'Vea'], tope: '$4.000 de descuento' },
-  { banco: 'Brubank', icon: '🟣', color: '#6a0dad', tarjeta: 'Visa Débito',
-    descuento: 10, dias: ['Siempre'], supers: ['Carrefour'], nota: 'Sin tope de descuento' },
-  { banco: 'Personal Pay', icon: '🟢', color: '#00a550', tarjeta: 'Visa Prepaga',
-    descuento: 15, dias: ['Siempre'], supers: ['Supermercados seleccionados'], nota: 'Verificar en la app' },
-  { banco: 'Uala', icon: '💜', color: '#7b2d8b', tarjeta: 'Mastercard Prepaga',
-    descuento: 10, dias: ['Lunes', 'Martes'], supers: ['Coto', 'Carrefour'] },
-  { banco: 'Mercado Pago', icon: '💙', color: '#009ee3', tarjeta: 'Tarjeta MP / QR',
-    descuento: 10, dias: ['Siempre'], supers: ['Supermercados seleccionados'], nota: 'Verificar descuento activo en la app' },
-  { banco: 'Banco Provincia', icon: '🏦', color: '#0057a8', tarjeta: 'Visa / Mastercard',
-    descuento: 20, dias: ['Martes'], supers: ['Carrefour', 'Changomás'], nota: 'Solo provincia de Buenos Aires' },
-]
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getDiaHoy() {
-  return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()]
-}
 
 function fmtARS(n: number) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
@@ -368,20 +328,11 @@ function calcUsdToARS(usd: number, oficialRate: number, taxes: { iva: number; af
 // ─── Página ───────────────────────────────────────────────────────────────────
 
 export default function Suscripciones() {
-  const [tab, setTab]           = useState<'suscripciones' | 'descuentos'>('suscripciones')
-
-  useEffect(() => {
-    const p = new URLSearchParams(window.location.search).get('tab')
-    if (p === 'descuentos') setTab('descuentos')
-  }, [])
   const [rates, setRates]       = useState<DolarRates>({ blue: null, oficial: null, mep: null })
   const [loadingRates, setLoadingRates] = useState(true)
   const [catFilter, setCatFilter]       = useState('Todos')
-  const [diaFilter, setDiaFilter]       = useState('Hoy')
   const [fiscal, setFiscal]             = useState<FiscalProfile>('consumidor_final')
   const [customIIBB, setCustomIIBB]     = useState(3)
-
-  const diaHoy = getDiaHoy()
 
   useEffect(() => {
     fetch('/api/dolares')
@@ -399,10 +350,6 @@ export default function Suscripciones() {
   const arsServices      = filteredServices.filter(s => s.billing === 'ars')
   const usdServices      = filteredServices.filter(s => s.billing === 'usd')
 
-  const diaActivo      = diaFilter === 'Hoy' ? diaHoy : diaFilter
-  const filteredPromos = BANK_PROMOS.filter(p => p.dias.includes('Siempre') || p.dias.includes(diaActivo))
-  const otrosPromos    = BANK_PROMOS.filter(p => !p.dias.includes('Siempre') && !p.dias.includes(diaActivo))
-
   return (
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
       <div style={{ marginBottom: 20 }}>
@@ -418,7 +365,7 @@ export default function Suscripciones() {
           Lo que pagás sin darte cuenta
         </h1>
         <p style={{ fontSize: 14, color: '#71717a', maxWidth: 500, margin: '0 auto', lineHeight: 1.6 }}>
-          Precios reales de todas las suscripciones en pesos + los mejores descuentos en supermercados.
+          Precios reales de todas las suscripciones en pesos, con el simulador de impuestos argentinos incluido.
         </p>
       </div>
 
@@ -444,211 +391,136 @@ export default function Suscripciones() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 6, background: '#f4f4f5', borderRadius: 16, padding: 4, marginBottom: 24 }}>
-        {([
-          { key: 'suscripciones', label: '📱 Suscripciones' },
-          { key: 'descuentos',    label: '🏪 Descuentos en super' },
-        ] as const).map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{
-            flex: 1, padding: '10px 12px', borderRadius: 12, border: 'none',
-            background: tab === t.key ? '#fff' : 'transparent',
-            fontWeight: 700, fontSize: 'clamp(12px, 3vw, 14px)',
-            color: tab === t.key ? '#09090b' : '#71717a',
-            cursor: 'pointer', transition: 'all 0.15s',
-            boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+      {/* ── Panel: cotización + perfil fiscal ── */}
+      <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #e4e4e7', padding: '18px 20px', marginBottom: 16 }}>
+
+        {/* Cotizaciones */}
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+          💵 Cotización USD hoy
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+          {(['oficial', 'mep', 'blue'] as const).map(t => (
+            <div key={t} style={{
+              flex: 1, minWidth: 80, textAlign: 'center',
+              background: t === 'oficial' ? '#eff6ff' : '#fafafa',
+              border: `1.5px solid ${t === 'oficial' ? '#bfdbfe' : '#e4e4e7'}`,
+              borderRadius: 12, padding: '10px 8px',
+            }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: t === 'oficial' ? '#1d4ed8' : '#71717a', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
+                {t === 'oficial' ? 'Oficial ✓' : t === 'mep' ? 'MEP / bolsa' : 'Blue'}
+              </p>
+              <p style={{ fontSize: 17, fontWeight: 900, color: '#09090b', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                {loadingRates ? '—' : rates[t] ? fmtARS(rates[t]!) : '—'}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Perfil fiscal */}
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+          🧾 Tu condición ante AFIP (para servicios en USD)
+        </p>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          {(Object.keys(TAX_PROFILES) as FiscalProfile[]).map(p => (
+            <button key={p} onClick={() => setFiscal(p)} style={{
+              flex: 1, minWidth: 120, padding: '8px 10px', borderRadius: 10,
+              border: `1.5px solid ${fiscal === p ? '#0284c7' : '#e4e4e7'}`,
+              background: fiscal === p ? '#eff6ff' : '#fafafa',
+              color: fiscal === p ? '#0284c7' : '#71717a',
+              fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+            }}>
+              {TAX_PROFILES[p].label}
+            </button>
+          ))}
+        </div>
+
+        {/* Desglose impuestos */}
+        <div style={{ background: '#f8fafc', borderRadius: 12, padding: '12px 14px', fontSize: 12 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+            <TaxBadge label="IVA" pct={taxes.iva} color="#0284c7" />
+            <TaxBadge label="Perc. AFIP" pct={taxes.afip} color="#7c3aed"
+              recoverable={fiscal !== 'consumidor_final'}
+              recoverableNote={fiscal === 'monotributista' ? 'Crédito fiscal' : 'Crédito fiscal RI'} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <TaxBadge label="IIBB" pct={customIIBB} color="#b45309" />
+              <span style={{ fontSize: 10, color: '#71717a' }}>prov.:</span>
+              <input
+                type="number"
+                value={customIIBB}
+                min={0} max={10} step={0.5}
+                onChange={e => setCustomIIBB(parseFloat(e.target.value) || 0)}
+                style={{ width: 44, border: '1px solid #e4e4e7', borderRadius: 6, padding: '2px 6px', fontSize: 12, outline: 'none' }}
+              />
+              <span style={{ fontSize: 10, color: '#71717a' }}>%</span>
+            </div>
+            <div style={{
+              marginLeft: 'auto', background: '#09090b', color: '#fff',
+              borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800,
+              display: 'flex', alignItems: 'center', gap: 4,
+            }}>
+              Total: +{totalTaxPct}%
+            </div>
+          </div>
+          <p style={{ fontSize: 10, color: '#71717a', lineHeight: 1.5 }}>
+            {profile.detail}
+            {' '}Las tasas son aprox. y pueden variar. Fuente: RG AFIP 4815 + normativas IIBB provinciales.
+          </p>
+        </div>
+      </div>
+
+      {/* Leyenda */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
+        <span style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Referencias:</span>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
+          🏠 Precio local ARS
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+          💵 Cobra en USD + impuestos
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#fef9c3', color: '#854d0e', border: '1px solid #fde047' }}>
+          ~ Precio aprox.
+        </span>
+      </div>
+
+      {/* Filtro categorías */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
+        {CATEGORIES.map(cat => (
+          <button key={cat} onClick={() => setCatFilter(cat)} style={{
+            padding: '6px 14px', borderRadius: 999,
+            border: '1px solid #e4e4e7',
+            background: catFilter === cat ? '#09090b' : '#fafafa',
+            color: catFilter === cat ? '#fff' : '#71717a',
+            fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
           }}>
-            {t.label}
+            {cat}
           </button>
         ))}
       </div>
 
-      {/* ── TAB SUSCRIPCIONES ──────────────────────────────────────────────── */}
-      {tab === 'suscripciones' && (
+      {/* ── Servicios en ARS ── */}
+      {arsServices.length > 0 && (
         <>
-          {/* ── Panel: cotización + perfil fiscal ── */}
-          <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #e4e4e7', padding: '18px 20px', marginBottom: 16 }}>
-
-            {/* Cotizaciones */}
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-              💵 Cotización USD hoy
-            </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-              {(['oficial', 'mep', 'blue'] as const).map(t => (
-                <div key={t} style={{
-                  flex: 1, minWidth: 80, textAlign: 'center',
-                  background: t === 'oficial' ? '#eff6ff' : '#fafafa',
-                  border: `1.5px solid ${t === 'oficial' ? '#bfdbfe' : '#e4e4e7'}`,
-                  borderRadius: 12, padding: '10px 8px',
-                }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: t === 'oficial' ? '#1d4ed8' : '#71717a', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
-                    {t === 'oficial' ? 'Oficial ✓' : t === 'mep' ? 'MEP / bolsa' : 'Blue'}
-                  </p>
-                  <p style={{ fontSize: 17, fontWeight: 900, color: '#09090b', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                    {loadingRates ? '—' : rates[t] ? fmtARS(rates[t]!) : '—'}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Perfil fiscal */}
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-              🧾 Tu condición ante AFIP (para servicios en USD)
-            </p>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-              {(Object.keys(TAX_PROFILES) as FiscalProfile[]).map(p => (
-                <button key={p} onClick={() => setFiscal(p)} style={{
-                  flex: 1, minWidth: 120, padding: '8px 10px', borderRadius: 10,
-                  border: `1.5px solid ${fiscal === p ? '#0284c7' : '#e4e4e7'}`,
-                  background: fiscal === p ? '#eff6ff' : '#fafafa',
-                  color: fiscal === p ? '#0284c7' : '#71717a',
-                  fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
-                }}>
-                  {TAX_PROFILES[p].label}
-                </button>
-              ))}
-            </div>
-
-            {/* Desglose impuestos */}
-            <div style={{ background: '#f8fafc', borderRadius: 12, padding: '12px 14px', fontSize: 12 }}>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                <TaxBadge label="IVA" pct={taxes.iva} color="#0284c7" />
-                <TaxBadge label="Perc. AFIP" pct={taxes.afip} color="#7c3aed"
-                  recoverable={fiscal !== 'consumidor_final'}
-                  recoverableNote={fiscal === 'monotributista' ? 'Crédito fiscal' : 'Crédito fiscal RI'} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <TaxBadge label="IIBB" pct={customIIBB} color="#b45309" />
-                  <span style={{ fontSize: 10, color: '#71717a' }}>prov.:</span>
-                  <input
-                    type="number"
-                    value={customIIBB}
-                    min={0} max={10} step={0.5}
-                    onChange={e => setCustomIIBB(parseFloat(e.target.value) || 0)}
-                    style={{ width: 44, border: '1px solid #e4e4e7', borderRadius: 6, padding: '2px 6px', fontSize: 12, outline: 'none' }}
-                  />
-                  <span style={{ fontSize: 10, color: '#71717a' }}>%</span>
-                </div>
-                <div style={{
-                  marginLeft: 'auto', background: '#09090b', color: '#fff',
-                  borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800,
-                  display: 'flex', alignItems: 'center', gap: 4,
-                }}>
-                  Total: +{totalTaxPct}%
-                </div>
-              </div>
-              <p style={{ fontSize: 10, color: '#71717a', lineHeight: 1.5 }}>
-                {profile.detail}
-                {' '}Las tasas son aprox. y pueden variar. Fuente: RG AFIP 4815 + normativas IIBB provinciales.
-              </p>
-            </div>
+          <SectionDivider label="🏠 Cobran directamente en pesos argentinos" color="green" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 28 }}>
+            {arsServices.map(s => <ServiceCard key={s.id} service={s} oficialRate={oficialRate} taxes={taxes} />)}
           </div>
-
-          {/* Leyenda */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>Referencias:</span>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
-              🏠 Precio local ARS
-            </span>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
-              💵 Cobra en USD + impuestos
-            </span>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#fef9c3', color: '#854d0e', border: '1px solid #fde047' }}>
-              ~ Precio aprox.
-            </span>
-          </div>
-
-          {/* Filtro categorías */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
-            {CATEGORIES.map(cat => (
-              <button key={cat} onClick={() => setCatFilter(cat)} style={{
-                padding: '6px 14px', borderRadius: 999,
-                border: '1px solid #e4e4e7',
-                background: catFilter === cat ? '#09090b' : '#fafafa',
-                color: catFilter === cat ? '#fff' : '#71717a',
-                fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
-              }}>
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* ── Servicios en ARS ── */}
-          {arsServices.length > 0 && (
-            <>
-              <SectionDivider label="🏠 Cobran directamente en pesos argentinos" color="green" />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 28 }}>
-                {arsServices.map(s => <ServiceCard key={s.id} service={s} oficialRate={oficialRate} taxes={taxes} />)}
-              </div>
-            </>
-          )}
-
-          {/* ── Servicios en USD ── */}
-          {usdServices.length > 0 && (
-            <>
-              <SectionDivider label="💵 Cobran en USD — conversión oficial + impuestos" color="blue" />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 32 }}>
-                {usdServices.map(s => <ServiceCard key={s.id} service={s} oficialRate={oficialRate} taxes={taxes} />)}
-              </div>
-            </>
-          )}
-
-          <p style={{ fontSize: 11, color: '#a1a1aa', textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
-            Precios orientativos — última actualización aprox. abril 2025.<br />
-            Los precios en ARS cambian con la inflación. Siempre verificar en el sitio oficial antes de suscribirse.
-          </p>
         </>
       )}
 
-      {/* ── TAB DESCUENTOS ────────────────────────────────────────────────── */}
-      {tab === 'descuentos' && (
+      {/* ── Servicios en USD ── */}
+      {usdServices.length > 0 && (
         <>
-          <div style={{ background: '#fff', borderRadius: 20, padding: '14px 18px', border: '1px solid #e4e4e7', marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Filtrar por día</p>
-              <span style={{ fontSize: 11, fontWeight: 700, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 999, padding: '3px 10px' }}>
-                🟢 Hoy es {diaHoy}
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {(['Hoy', ...DIAS]).map(d => (
-                <button key={d} onClick={() => setDiaFilter(d)} style={{
-                  padding: '6px 12px', borderRadius: 999, border: '1px solid #e4e4e7',
-                  background: diaFilter === d ? (d === 'Hoy' ? '#16a34a' : '#09090b') : '#fafafa',
-                  color: diaFilter === d ? '#fff' : '#71717a',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
-                }}>
-                  {d === 'Hoy' ? `🟢 Hoy (${diaHoy})` : d}
-                </button>
-              ))}
-            </div>
+          <SectionDivider label="💵 Cobran en USD — conversión oficial + impuestos" color="blue" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 32 }}>
+            {usdServices.map(s => <ServiceCard key={s.id} service={s} oficialRate={oficialRate} taxes={taxes} />)}
           </div>
-
-          {filteredPromos.length > 0 && (
-            <>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                ✅ {filteredPromos.length} descuento{filteredPromos.length > 1 ? 's' : ''} disponible{filteredPromos.length > 1 ? 's' : ''}
-                {diaFilter === 'Hoy' ? ` hoy (${diaHoy})` : ` los ${diaFilter}`}
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 20 }}>
-                {filteredPromos.map(p => <PromoCard key={p.banco} promo={p} active />)}
-              </div>
-            </>
-          )}
-
-          {otrosPromos.length > 0 && (
-            <>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#a1a1aa', marginBottom: 10, marginTop: 8 }}>Otros descuentos (días distintos)</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%,340px),1fr))', gap: 12, marginBottom: 32 }}>
-                {otrosPromos.map(p => <PromoCard key={p.banco} promo={p} active={false} />)}
-              </div>
-            </>
-          )}
-
-          <p style={{ fontSize: 11, color: '#a1a1aa', textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
-            Los descuentos pueden variar. Verificar en el sitio de tu banco antes de comprar.
-          </p>
         </>
       )}
+
+      <p style={{ fontSize: 11, color: '#a1a1aa', textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
+        Precios orientativos — última actualización aprox. abril 2025.<br />
+        Los precios en ARS cambian con la inflación. Siempre verificar en el sitio oficial antes de suscribirse.
+      </p>
     </div>
   )
 }
@@ -866,52 +738,6 @@ function SectionDivider({ label, color }: { label: string; color: 'green' | 'blu
         {label}
       </span>
       <div style={{ height: 1, flex: 1, background: '#e4e4e7' }} />
-    </div>
-  )
-}
-
-function PromoCard({ promo, active }: { promo: BankPromo; active: boolean }) {
-  return (
-    <div style={{
-      background: active ? '#fff' : '#fafafa',
-      border: `1.5px solid ${active ? promo.color + '40' : '#e4e4e7'}`,
-      borderRadius: 18, padding: '16px 18px', opacity: active ? 1 : 0.7,
-      position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: promo.color, borderRadius: '18px 0 0 18px' }} />
-      <div style={{ paddingLeft: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 22 }}>{promo.icon}</span>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', letterSpacing: '-0.01em' }}>{promo.banco}</p>
-              <p style={{ fontSize: 11, color: '#71717a' }}>{promo.tarjeta}</p>
-            </div>
-          </div>
-          <div style={{ background: active ? promo.color : '#e4e4e7', color: '#fff', borderRadius: 12, padding: '6px 12px', fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, flexShrink: 0 }}>
-            -{promo.descuento}%
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-          {promo.dias.map(d => (
-            <span key={d} style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: d === 'Siempre' ? '#f0fdf4' : '#eff6ff', color: d === 'Siempre' ? '#15803d' : '#1d4ed8', border: `1px solid ${d === 'Siempre' ? '#bbf7d0' : '#bfdbfe'}` }}>
-              {d === 'Siempre' ? '🟢 Todos los días' : `📅 ${d}`}
-            </span>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: promo.tope || promo.nota ? 8 : 0 }}>
-          {promo.supers.map(s => (
-            <span key={s} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: '#f4f4f5', color: '#374151', fontWeight: 500 }}>
-              🏪 {s}
-            </span>
-          ))}
-        </div>
-        {(promo.tope || promo.nota) && (
-          <p style={{ fontSize: 10, color: '#a1a1aa', marginTop: 4, lineHeight: 1.4 }}>
-            {promo.tope && `⚠️ Tope: ${promo.tope}. `}{promo.nota}
-          </p>
-        )}
-      </div>
     </div>
   )
 }

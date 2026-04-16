@@ -105,7 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 💸 <span className="ofertas-header-text-long">Suscripciones</span>
               </Link>
 
-              <Link href="/suscripciones?tab=descuentos" style={{
+              <Link href="/descuentos" style={{
                 textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
