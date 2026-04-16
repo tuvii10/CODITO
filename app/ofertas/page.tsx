@@ -139,13 +139,11 @@ export default async function OfertasPage() {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {/* Volver */}
-      <Link href="/" style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        fontSize: 13, color: '#71717a', textDecoration: 'none',
-        marginBottom: 20, fontWeight: 600,
-      }}>
-        ← Volver
-      </Link>
+      <div style={{ marginBottom: 20 }}>
+        <Link href="/" style={{ fontSize: 13, fontWeight: 700, color: '#09090b', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: 10, padding: '7px 14px' }}>
+          ← Inicio
+        </Link>
+      </div>
 
       {/* Encabezado minimal */}
       <div style={{ marginBottom: 24 }}>

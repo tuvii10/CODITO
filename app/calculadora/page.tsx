@@ -111,8 +111,8 @@ export default function Calculadora() {
 
       {/* Back */}
       <div style={{ marginBottom: 20 }}>
-        <Link href="/" style={{ fontSize: 13, color: '#71717a', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          ← Volver
+        <Link href="/" style={{ fontSize: 13, fontWeight: 700, color: '#09090b', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: 10, padding: '7px 14px' }}>
+          ← Inicio
         </Link>
       </div>
 
