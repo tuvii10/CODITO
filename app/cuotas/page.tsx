@@ -35,11 +35,12 @@ function parseNum(s: string): number {
 // ─── Página ───────────────────────────────────────────────────────────────────
 
 export default function CuotasPage() {
-  const [contado,    setContado]    = useState('')
-  const [totalCuota, setTotalCuota] = useState('')
-  const [nCuotas,    setNCuotas]    = useState('12')
-  const [inflacion,  setInflacion]  = useState('2.9')
-  const [calculado,  setCalculado]  = useState(false)
+  const [contado,       setContado]       = useState('')
+  const [totalCuota,    setTotalCuota]    = useState('')
+  const [nCuotas,       setNCuotas]       = useState('12')
+  const [inflacion,     setInflacion]     = useState('2.9')
+  const [calculado,     setCalculado]     = useState(false)
+  const [showInflacion, setShowInflacion] = useState(false)
 
   const contadoNum    = parseNum(contado)
   const totalNum      = parseNum(totalCuota)
@@ -180,48 +181,39 @@ export default function CuotasPage() {
           )}
         </div>
 
-        {/* Inflación mensual */}
+        {/* Inflación — simplificada */}
         <div style={{ marginBottom: 22 }}>
-          <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
-            📈 Inflación mensual estimada
-          </label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {[2.5, 2.9, 3.5, 4.0, 5.0].map(v => (
-              <button
-                key={v}
-                onClick={() => { setInflacion(String(v)); setCalculado(false) }}
-                style={{
-                  padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700,
-                  border: `1.5px solid ${inflacion === String(v) ? '#7c3aed' : '#e4e4e7'}`,
-                  background: inflacion === String(v) ? '#7c3aed' : '#fafafa',
-                  color: inflacion === String(v) ? '#fff' : '#71717a',
-                  cursor: 'pointer',
-                }}
-              >
-                {v}%
-              </button>
-            ))}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.4 }}>
+              📈 Inflación mensual estimada:{' '}
+              <strong style={{ color: '#09090b' }}>{inflacion}%</strong>
+              <span style={{ color: '#a1a1aa', marginLeft: 4 }}>(IPC INDEC)</span>
+            </p>
+            <button
+              onClick={() => setShowInflacion(v => !v)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#0284c7', fontWeight: 600, padding: 0 }}
+            >
+              {showInflacion ? 'ocultar' : 'cambiar'}
+            </button>
+          </div>
+          {showInflacion && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
               <input
                 type="number"
                 step={0.1}
                 min={0}
                 max={30}
-                placeholder="otro"
-                value={[2.5, 2.9, 3.5, 4.0, 5.0].includes(parseFloat(inflacion)) ? '' : inflacion}
+                value={inflacion}
                 onChange={e => { setInflacion(e.target.value); setCalculado(false) }}
                 style={{
-                  width: 70, border: '1.5px solid #e4e4e7', borderRadius: 10,
-                  padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#09090b',
+                  width: 90, border: '1.5px solid #e4e4e7', borderRadius: 10,
+                  padding: '8px 12px', fontSize: 15, fontWeight: 700, color: '#09090b',
                   outline: 'none', background: '#fafafa', textAlign: 'center',
                 }}
               />
-              <span style={{ fontSize: 13, color: '#71717a', fontWeight: 700 }}>%</span>
+              <span style={{ fontSize: 14, color: '#71717a', fontWeight: 700 }}>% mensual</span>
             </div>
-          </div>
-          <p style={{ fontSize: 10, color: '#a1a1aa', marginTop: 6 }}>
-            IPC INDEC febrero 2026: 2.4% · marzo 2026: estimado ~2.9%
-          </p>
+          )}
         </div>
 
         {/* Botón calcular */}
