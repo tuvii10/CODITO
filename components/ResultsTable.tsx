@@ -52,16 +52,18 @@ export default function ResultsTable({ results, query, onClear }: Props) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {onClear && (
           <button onClick={onClear} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: '#71717a', fontSize: 13, padding: '4px 0',
-            display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+            background: '#09090b', border: 'none', cursor: 'pointer',
+            color: '#fff', fontSize: 12, fontWeight: 700,
+            padding: '7px 14px', borderRadius: 10,
+            display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,
+            letterSpacing: '-0.01em',
           }}>
             ← Inicio
           </button>
         )}
-        <p style={{ fontSize: 13, color: '#4d7fa8', flex: 1 }}>
-          <strong style={{ color: '#09090b' }}>{results.length}</strong> resultado{results.length !== 1 ? 's' : ''} para{' '}
-          <strong style={{ color: '#0284c7' }}>&quot;{query}&quot;</strong>
+        <p style={{ fontSize: 11, color: '#a1a1aa', flex: 1 }}>
+          <strong style={{ color: '#71717a' }}>{results.length}</strong> resultados para{' '}
+          <strong style={{ color: '#09090b' }}>&quot;{query}&quot;</strong>
         </p>
         <button onClick={handleShare} style={{
           background: shared ? '#f0fdf4' : '#f8fafc',
