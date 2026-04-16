@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://codito.com.ar'
+  const base = 'https://www.codito.com.ar'
   return [
     {
       url: `${base}/`,
@@ -13,10 +13,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${base}/ofertas`,
       lastModified: new Date(),
       changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${base}/dolarito`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${base}/inflacito`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: `${base}/calculadora`,
+      url: `${base}/platita`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${base}/changito`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
+      url: `${base}/dividito`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
@@ -28,10 +52,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${base}/api-docs`,
+      url: `${base}/cuotas`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.7,
+    },
+    {
+      url: `${base}/calculadora`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${base}/descuentos`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.7,
     },
   ]
 }

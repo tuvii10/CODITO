@@ -4,13 +4,24 @@ import Script from 'next/script'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://codito-rho.vercel.app'),
+  metadataBase: new URL('https://www.codito.com.ar'),
   title: {
-    default: 'Codito — El precio más bajo de Argentina',
+    default: 'Codito — Comparador de Precios Argentina | El precio más bajo',
     template: '%s · Codito',
   },
-  description: 'Buscá cualquier producto y te mostramos dónde está más barato. Comparamos supermercados, electro y moda al instante.',
-  keywords: ['comparador de precios', 'Argentina', 'supermercados', 'ofertas', 'precio más bajo'],
+  description: 'Compará precios en Argentina entre supermercados, electro y moda. Encontrá el producto más barato en Carrefour, Coto, Jumbo, Disco, Vea, MercadoLibre y 60+ tiendas.',
+  keywords: [
+    'comparador de precios', 'comparar precios argentina', 'precio mas barato',
+    'ofertas supermercado', 'ofertas argentina', 'descuentos supermercado',
+    'carrefour precios', 'coto precios', 'jumbo precios', 'disco precios',
+    'dolar hoy', 'dolar blue hoy', 'cotizacion dolar',
+    'inflacion argentina', 'calculadora inflacion',
+    'plazo fijo argentina', 'plazo fijo vs dolar',
+    'canasta basica argentina', 'precios supermercado argentina',
+    'cuotas sin interes', 'dividir gastos amigos',
+    'suscripciones argentina precio', 'netflix argentina precio',
+    'comparador precios supermercados', 'donde es mas barato',
+  ],
   authors: [{ name: 'Codito' }],
   icons: {
     icon: '/favicon.png',
@@ -20,10 +31,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_AR',
-    url: 'https://codito-rho.vercel.app',
+    url: 'https://www.codito.com.ar',
     siteName: 'Codito',
-    title: 'Codito — El precio más bajo de Argentina',
-    description: 'Buscá cualquier producto y te mostramos dónde está más barato. Sin vueltas, sin perder guita.',
+    title: 'Codito — Comparador de Precios Argentina',
+    description: 'Compará precios entre supermercados, electro y moda. Encontrá el producto más barato en 60+ tiendas argentinas.',
     images: [
       {
         url: '/logo.png',
