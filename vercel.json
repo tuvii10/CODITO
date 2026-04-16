@@ -11,6 +11,10 @@
     {
       "path": "/api/health",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/bank-promos",
+      "schedule": "0 8 * * *"
     }
   ]
 }
