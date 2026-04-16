@@ -38,9 +38,8 @@ export default function CuotasPage() {
   const [contado,       setContado]       = useState('')
   const [totalCuota,    setTotalCuota]    = useState('')
   const [nCuotas,       setNCuotas]       = useState('12')
-  const [inflacion,     setInflacion]     = useState('2.9')
-  const [calculado,     setCalculado]     = useState(false)
-  const [showInflacion, setShowInflacion] = useState(false)
+  const [inflacion,  setInflacion]  = useState('2.9')
+  const [calculado,  setCalculado]  = useState(false)
 
   const contadoNum    = parseNum(contado)
   const totalNum      = parseNum(totalCuota)
@@ -181,39 +180,11 @@ export default function CuotasPage() {
           )}
         </div>
 
-        {/* Inflación — simplificada */}
+        {/* Inflación — fija */}
         <div style={{ marginBottom: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.4 }}>
-              📈 Inflación mensual estimada:{' '}
-              <strong style={{ color: '#09090b' }}>{inflacion}%</strong>
-              <span style={{ color: '#a1a1aa', marginLeft: 4 }}>(IPC INDEC)</span>
-            </p>
-            <button
-              onClick={() => setShowInflacion(v => !v)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#0284c7', fontWeight: 600, padding: 0 }}
-            >
-              {showInflacion ? 'ocultar' : 'cambiar'}
-            </button>
-          </div>
-          {showInflacion && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
-              <input
-                type="number"
-                step={0.1}
-                min={0}
-                max={30}
-                value={inflacion}
-                onChange={e => { setInflacion(e.target.value); setCalculado(false) }}
-                style={{
-                  width: 90, border: '1.5px solid #e4e4e7', borderRadius: 10,
-                  padding: '8px 12px', fontSize: 15, fontWeight: 700, color: '#09090b',
-                  outline: 'none', background: '#fafafa', textAlign: 'center',
-                }}
-              />
-              <span style={{ fontSize: 14, color: '#71717a', fontWeight: 700 }}>% mensual</span>
-            </div>
-          )}
+          <p style={{ fontSize: 12, color: '#a1a1aa', lineHeight: 1.4 }}>
+            📈 Inflación mensual estimada: <strong style={{ color: '#71717a' }}>{inflacion}%</strong> (IPC INDEC)
+          </p>
         </div>
 
         {/* Botón calcular */}
