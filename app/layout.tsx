@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Script from 'next/script'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -49,6 +50,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <head>
         <meta name="color-scheme" content="light" />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-G1T4Y4E5FP"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-G1T4Y4E5FP');
+          `}
+        </Script>
       </head>
       <body style={{ minHeight: '100vh', background: '#fafafa' }}>
         {/* Header minimal */}
