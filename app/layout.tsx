@@ -124,6 +124,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 🏪 <span className="ofertas-header-text-long">Descuentos</span>
               </Link>
 
+              <Link href="/cuotas" style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                background: '#f4f4f5',
+                color: '#09090b',
+                fontWeight: 700,
+                fontSize: 13,
+                padding: '9px 14px',
+                borderRadius: 12,
+                whiteSpace: 'nowrap',
+                letterSpacing: '-0.01em',
+                border: '1px solid #e4e4e7',
+                transition: 'background 0.15s',
+              }}>
+                🧮 <span className="ofertas-header-text-long">¿Cuotas?</span>
+              </Link>
+
               <Link href="/ofertas" className="ofertas-header-btn" style={{
                 textDecoration: 'none',
                 display: 'inline-flex',
