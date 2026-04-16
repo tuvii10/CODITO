@@ -15,6 +15,29 @@ import { SearchResult } from './types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Dominios que NO son tiendas: noticias, blogs, foros, redes sociales, etc.
+const BLOCKED_DOMAINS = [
+  'lavoz', 'infobae', 'clarin', 'lanacion', 'pagina12', 'ambito', 'cronista',
+  'iprofesional', 'tn.com', 'telam', 'perfil.com', 'minutouno', 'eldestape',
+  'diarioregistrado', 'eldiario', 'rosario3', 'losandes', 'diariopopular',
+  'wikipedia', 'reddit', 'twitter', 'facebook', 'instagram', 'tiktok',
+  'youtube', 'linkedin', 'pinterest', 'quora', 'taringa',
+  'blogspot', 'wordpress', 'medium.com', 'tumblr',
+  'stackoverflow', 'github', 'gitlab',
+  'google.com', 'google.com.ar',
+  'buscaprecios', 'hardgamers', 'comparaencasa', 'preciosd',
+  'glassdoor', 'computrabajo', 'zonajobs', 'bumeran',
+]
+
+function isBlockedUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    return BLOCKED_DOMAINS.some(d => host.includes(d))
+  } catch {
+    return true
+  }
+}
+
 function storeFromUrl(url: string): string {
   try {
     const host = new URL(url).hostname.replace('www.', '').replace('.com.ar', '').replace('.com', '')
@@ -69,7 +92,7 @@ export async function searchTavily(query: string): Promise<SearchResult[]> {
     const items: { title: string; url: string; content?: string; score?: number }[] = data.results ?? []
 
     return items
-      .filter(r => r.url && !r.url.includes('wikipedia') && !r.url.includes('infobae'))
+      .filter(r => r.url && !isBlockedUrl(r.url))
       .map(r => {
         const price = extractPrice(r.content ?? '')
         return {
@@ -141,7 +164,7 @@ export async function searchSerper(query: string): Promise<SearchResult[]> {
           image: r.imageUrl ?? null,
         } satisfies SearchResult
       })
-      .filter(r => r.url)
+      .filter(r => r.url && !isBlockedUrl(r.url))
   } catch {
     return []
   }
