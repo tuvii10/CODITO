@@ -629,6 +629,36 @@ const SERVICES: Service[] = [
 
 const CATEGORIES = ['Todos', ...Array.from(new Set(SERVICES.map(s => s.category)))]
 
+// ─── Tasas IIBB por provincia (percepción sobre compras en el exterior) ────────
+// Fuente: padrones IIBB provinciales, RG AFIP 4815. Tasas aprox. — verificar.
+
+const PROVINCIAS_IIBB: { nombre: string; tasa: number }[] = [
+  { nombre: 'Buenos Aires (PBA)',     tasa: 3   },
+  { nombre: 'CABA',                   tasa: 3   },
+  { nombre: 'Catamarca',              tasa: 3   },
+  { nombre: 'Chaco',                  tasa: 3   },
+  { nombre: 'Chubut',                 tasa: 1.5 },
+  { nombre: 'Córdoba',                tasa: 3   },
+  { nombre: 'Corrientes',             tasa: 3   },
+  { nombre: 'Entre Ríos',             tasa: 3   },
+  { nombre: 'Formosa',                tasa: 3   },
+  { nombre: 'Jujuy',                  tasa: 3   },
+  { nombre: 'La Pampa',               tasa: 3   },
+  { nombre: 'La Rioja',               tasa: 3   },
+  { nombre: 'Mendoza',                tasa: 4   },
+  { nombre: 'Misiones',               tasa: 3   },
+  { nombre: 'Neuquén',                tasa: 3   },
+  { nombre: 'Río Negro',              tasa: 3   },
+  { nombre: 'Salta',                  tasa: 3.5 },
+  { nombre: 'San Juan',               tasa: 3   },
+  { nombre: 'San Luis',               tasa: 3   },
+  { nombre: 'Santa Cruz',             tasa: 3   },
+  { nombre: 'Santa Fe',               tasa: 3   },
+  { nombre: 'Santiago del Estero',    tasa: 3   },
+  { nombre: 'Tierra del Fuego',       tasa: 0   },
+  { nombre: 'Tucumán',                tasa: 3   },
+]
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtARS(n: number) {
@@ -655,7 +685,7 @@ export default function Suscripciones() {
   const [loadingRates, setLoadingRates] = useState(true)
   const [catFilter, setCatFilter]       = useState('Todos')
   const [fiscal, setFiscal]             = useState<FiscalProfile>('consumidor_final')
-  const [customIIBB, setCustomIIBB]     = useState(3)
+  const [provincia, setProvincia]       = useState('Buenos Aires (PBA)')
 
   useEffect(() => {
     fetch('/api/dolares')
@@ -666,7 +696,8 @@ export default function Suscripciones() {
 
   const oficialRate = rates.oficial
   const profile     = TAX_PROFILES[fiscal]
-  const taxes       = { iva: profile.iva, afip: profile.afip, iibb: customIIBB }
+  const iibbTasa    = PROVINCIAS_IIBB.find(p => p.nombre === provincia)?.tasa ?? 3
+  const taxes       = { iva: profile.iva, afip: profile.afip, iibb: iibbTasa }
   const totalTaxPct = taxes.iva + taxes.afip + taxes.iibb
 
   const filteredServices = (catFilter === 'Todos' ? SERVICES : SERVICES.filter(s => s.category === catFilter))
@@ -764,17 +795,23 @@ export default function Suscripciones() {
             <TaxBadge label="Perc. AFIP" pct={taxes.afip} color="#7c3aed"
               recoverable={fiscal !== 'consumidor_final'}
               recoverableNote={fiscal === 'monotributista' ? 'Crédito fiscal' : 'Crédito fiscal RI'} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <TaxBadge label="IIBB" pct={customIIBB} color="#b45309" />
-              <span style={{ fontSize: 10, color: '#71717a' }}>prov.:</span>
-              <input
-                type="number"
-                value={customIIBB}
-                min={0} max={10} step={0.5}
-                onChange={e => setCustomIIBB(parseFloat(e.target.value) || 0)}
-                style={{ width: 44, border: '1px solid #e4e4e7', borderRadius: 6, padding: '2px 6px', fontSize: 12, outline: 'none' }}
-              />
-              <span style={{ fontSize: 10, color: '#71717a' }}>%</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <TaxBadge label={`IIBB ${iibbTasa}%`} pct={null as unknown as number} color="#b45309" hidePct />
+              <select
+                value={provincia}
+                onChange={e => setProvincia(e.target.value)}
+                style={{
+                  border: '1px solid #e4e4e7', borderRadius: 8, padding: '4px 8px',
+                  fontSize: 12, color: '#09090b', background: '#fafafa', outline: 'none',
+                  cursor: 'pointer', maxWidth: 190,
+                }}
+              >
+                {PROVINCIAS_IIBB.map(p => (
+                  <option key={p.nombre} value={p.nombre}>
+                    {p.nombre} ({p.tasa}%)
+                  </option>
+                ))}
+              </select>
             </div>
             <div style={{
               marginLeft: 'auto', background: '#09090b', color: '#fff',
@@ -1026,12 +1063,12 @@ function ServiceCard({ service, oficialRate, taxes }: {
 
 // ─── Subcomponentes ───────────────────────────────────────────────────────────
 
-function TaxBadge({ label, pct, color, recoverable, recoverableNote }: {
-  label: string; pct: number; color: string; recoverable?: boolean; recoverableNote?: string
+function TaxBadge({ label, pct, color, recoverable, recoverableNote, hidePct }: {
+  label: string; pct: number; color: string; recoverable?: boolean; recoverableNote?: string; hidePct?: boolean
 }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: `${color}15`, color, border: `1px solid ${color}40` }}>
-      {label} {pct}%
+      {hidePct ? label : `${label} ${pct}%`}
       {recoverable && (
         <span style={{ fontSize: 9, background: '#f0fdf4', color: '#15803d', borderRadius: 999, padding: '1px 5px', fontWeight: 600 }}>
           {recoverableNote}
