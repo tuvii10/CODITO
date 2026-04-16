@@ -870,8 +870,9 @@ export default function Suscripciones() {
       </div>
 
       {/* ── Filtro de categorías ── */}
-      <div style={{ overflowX: 'auto', paddingBottom: 4, marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 6, minWidth: 'max-content' }}>
+      <div style={{ position: 'relative' }}>
+        <div style={{ overflowX: 'auto', paddingBottom: 4, marginBottom: 20 }}>
+          <div style={{ display: 'flex', gap: 6, minWidth: 'max-content' }}>
           {CATEGORIES.map(cat => {
             const icon = cat === 'Todos' ? '✦' : (CAT_ICONS[cat] ?? '')
             const active = catFilter === cat
@@ -890,7 +891,22 @@ export default function Suscripciones() {
               </button>
             )
           })}
+          </div>
         </div>
+        {/* Flecha indicando scroll */}
+        <div style={{
+          position: 'absolute', right: 0, top: 0, bottom: 4,
+          width: 40,
+          background: 'linear-gradient(90deg, transparent, #fafafa 60%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+          paddingRight: 4, pointerEvents: 'none',
+        }}>
+          <span style={{
+            fontSize: 16, color: '#a1a1aa',
+            animation: 'nudgeRight 1.5s ease-in-out infinite',
+          }}>›</span>
+        </div>
+        <style>{`@keyframes nudgeRight { 0%,100% { transform: translateX(0); opacity: 0.5 } 50% { transform: translateX(4px); opacity: 1 } }`}</style>
       </div>
 
       {/* ── Contador ── */}
@@ -1050,26 +1066,14 @@ function ServiceCard({ service, oficialRate, taxes }: {
         )}
       </div>
 
-      {/* Footer: nota + link */}
-      <div style={{ borderTop: '1px solid #f4f4f5', padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: '#fafafa' }}>
-        {service.note ? (
-          <p style={{ fontSize: 10, color: '#a1a1aa', flex: 1, lineHeight: 1.5, minWidth: 0 }}>
+      {/* Footer: nota */}
+      {service.note && (
+        <div style={{ borderTop: '1px solid #f4f4f5', padding: '10px 18px', background: '#fafafa' }}>
+          <p style={{ fontSize: 10, color: '#a1a1aa', lineHeight: 1.5 }}>
             {service.note}
           </p>
-        ) : <span />}
-        <a
-          href={service.priceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            fontSize: 11, fontWeight: 700, color: '#0284c7', textDecoration: 'none',
-            background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8,
-            padding: '5px 12px', whiteSpace: 'nowrap', flexShrink: 0,
-          }}
-        >
-          Ver precios →
-        </a>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
