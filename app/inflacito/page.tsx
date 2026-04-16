@@ -43,7 +43,7 @@ const TIME_OPTIONS = [
 const FUN_FACTS = [
   { name: 'Café', price: 1500, emoji: '☕' },
   { name: 'Kilo de pan', price: 2000, emoji: '🍞' },
-  { name: 'Nafta súper (litro)', price: 800, emoji: '⛽' },
+  { name: 'Nafta súper (litro)', price: 2000, emoji: '⛽' },
 ]
 
 function formatARS(value: number): string {
