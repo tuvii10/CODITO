@@ -5,27 +5,17 @@ export const revalidate = 86400 // revalidar cada 24hs
 
 // Fallback hardcodeado con datos verificados (abril 2026)
 // Se usa si Supabase no está disponible o la tabla está vacía
+// Datos verificados abril 2026
+// Fuentes: iProfesional, El Observador, Radio Fueguina, El Destape, Sitios Argentina, Infozona
 const FALLBACK_PROMOS: BankPromo[] = [
-  // Lunes
-  { banco: 'Banco Provincia', icon: '🏦', color: '#0057a8', tarjeta: 'Cuenta DNI / Mastercard', descuento: 20, dias: ['Lunes','Martes'],   supers: ['Día','Carrefour','Changomás'],                                                  tope: '$8.000 por día',      nota: 'Lunes 20% en Día. Martes 15% en mayoristas seleccionados.' },
-  { banco: 'Uala',            icon: '💜', color: '#7b2d8b', tarjeta: 'Mastercard Prepaga',       descuento: 25, dias: ['Lunes'],            supers: ['Coto','Día'],                                                                   tope: null,                  nota: null },
-  { banco: 'BBVA',            icon: '🔵', color: '#004481', tarjeta: 'Visa / Mastercard',        descuento: 25, dias: ['Lunes'],            supers: ['Carrefour'],                                                                    tope: '$8.000 por semana',   nota: null },
-  // Martes
-  { banco: 'Supervielle',     icon: '🟦', color: '#0071ce', tarjeta: 'Visa / Mastercard',        descuento: 20, dias: ['Martes'],           supers: ['Jumbo','Disco','Vea','Changomás'],                                              tope: '$25.000 por mes',     nota: null },
-  { banco: 'Galicia',         icon: '🟠', color: '#e95b0c', tarjeta: 'Visa / Mastercard',        descuento: 25, dias: ['Martes','Jueves'],  supers: ['Jumbo'],                                                                        tope: null,                  nota: '30% con tarjeta Eminent' },
-  // Miércoles
-  { banco: 'Banco Nación',    icon: '🇦🇷', color: '#009cde', tarjeta: 'Visa',                   descuento: 30, dias: ['Miércoles'],        supers: ['Changomás','Carrefour','Vea','Coto','Disco'],                                   tope: '$12.000 por semana',  nota: 'Programa BNA+' },
-  { banco: 'Santander',       icon: '🔴', color: '#ec0000', tarjeta: 'Visa / Mastercard',        descuento: 25, dias: ['Miércoles'],        supers: ['Carrefour','Disco','Vea','Jumbo'],                                              tope: '$20.000 por mes',     nota: null },
-  { banco: 'MODO',            icon: '💳', color: '#6c11e8', tarjeta: 'Múltiples bancos',         descuento: 30, dias: ['Miércoles'],        supers: ['Disco','Vea','La Anónima','Día'],                                               tope: null,                  nota: '20% Viernes a Domingo con MODO' },
-  // Jueves
-  { banco: 'HSBC',            icon: '⬜', color: '#db0011', tarjeta: 'Visa / Mastercard',        descuento: 25, dias: ['Jueves'],           supers: ['Jumbo','Disco','Vea'],                                                          tope: '$15.000 por mes',     nota: 'Reintegro en cuenta' },
-  { banco: 'Banco Macro',     icon: '🟡', color: '#f5b400', tarjeta: 'Visa / Mastercard',        descuento: 20, dias: ['Jueves'],           supers: ['Disco','Vea','Makro'],                                                          tope: null,                  nota: null },
-  { banco: 'ICBC',            icon: '🔷', color: '#1a5fa8', tarjeta: 'Visa / Mastercard',        descuento: 20, dias: ['Jueves'],           supers: ['Carrefour','Disco','Jumbo'],                                                    tope: '$10.000 por mes',     nota: null },
-  { banco: 'Personal Pay',    icon: '🟢', color: '#00a550', tarjeta: 'Visa Prepaga',             descuento: 25, dias: ['Jueves','Viernes'], supers: ['Diarco','Día','Changomás','Makro','Maxiconsumo'],                               tope: null,                  nota: 'Requiere nivel 2 en la app' },
-  // Viernes
-  { banco: 'Naranja X',       icon: '🍊', color: '#ff6a00', tarjeta: 'Naranja Visa',             descuento: 20, dias: ['Viernes'],          supers: ['Carrefour','Día'],                                                              tope: null,                  nota: '3 cuotas sin interés en supermercados seleccionados' },
-  // Siempre
-  { banco: 'Mercado Pago',    icon: '💙', color: '#009ee3', tarjeta: 'Tarjeta MP / QR',          descuento: 25, dias: ['Siempre'],          supers: ['Coto','Carrefour','Carrefour Maxi','Jumbo','Disco','Vea','Día','Changomás'],    tope: null,                  nota: 'Verificar descuento activo en la app' },
+  { banco: 'Banco Nación',    icon: '🇦🇷', color: '#009cde', tarjeta: 'Visa / Mastercard',           descuento: 30, dias: ['Miércoles'],                    supers: ['ChangoMás','Carrefour','Vea','Coto','Disco'],  tope: '$12.000 por semana', nota: 'Requiere pagar con MODO + QR. Programa BNA+.' },
+  { banco: 'MODO',            icon: '💳',  color: '#6c11e8', tarjeta: 'Múltiples bancos',             descuento: 20, dias: ['Siempre'],                      supers: ['Disco','Vea','La Anónima','DIA'],              tope: null,                 nota: 'Reintegro en cuenta. El tope varía según el banco emisor.' },
+  { banco: 'Banco Patagonia', icon: '🏔️', color: '#2563eb', tarjeta: 'Cuentasueldo',                 descuento: 35, dias: ['Miércoles'],                    supers: ['Carrefour'],                                  tope: null,                 nota: 'Solo para clientes con plan sueldo singular.' },
+  { banco: 'Banco Macro',     icon: '🟡',  color: '#f5b400', tarjeta: 'Visa / Mastercard',            descuento: 20, dias: ['Martes','Jueves'],              supers: ['Coto'],                                       tope: '$25.000 por mes',    nota: 'Pago con MODO. Mínimo de compra $60.000.' },
+  { banco: 'Naranja X',       icon: '🍊',  color: '#ff6a00', tarjeta: 'Naranja Visa',                 descuento: 25, dias: ['Martes'],                       supers: ['ChangoMás'],                                  tope: '$15.000 por semana', nota: 'Plan Turbo. Plan Épico: 30%. La intensidad varía según el plan.' },
+  { banco: 'BBVA',            icon: '🔵',  color: '#004481', tarjeta: 'Visa / Mastercard',            descuento: 30, dias: ['Viernes'],                      supers: ['Carrefour'],                                  tope: '$15.000 por mes',    nota: null },
+  { banco: 'Cuenta DNI',      icon: '🏦',  color: '#0057a8', tarjeta: 'Cuenta DNI (Banco Provincia)', descuento: 30, dias: ['Lunes','Miércoles','Jueves'],    supers: ['Día','Carrefour','La Anónima','ChangoMás','Coto'], tope: '$15.000 por mes', nota: 'Lun 10% Día · Mié 10% Carrefour/La Anónima · Jue 20% ChangoMás · Jue 30% Coto (NFC).' },
+  { banco: 'Mercado Pago',    icon: '💙',  color: '#009ee3', tarjeta: 'Tarjeta MP / QR',              descuento: 25, dias: ['Siempre'],                      supers: ['Carrefour','Coto','Día','Vea','ChangoMás'],    tope: null,                 nota: 'Sin tope en la mayoría de casos. Verificar descuento activo en la app.' },
 ]
 
 async function getPromos(): Promise<{ promos: BankPromo[]; updatedAt: string | null }> {
