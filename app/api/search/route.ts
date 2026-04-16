@@ -47,11 +47,26 @@ export async function GET(req: NextRequest) {
   ]
   // Resultados sin precio se descartan para evitar $0 falsos
 
+  // Filtrar resultados que no son productos (artículos, listados, etc.)
+  const nonProductPatterns = [
+    /\|\s*MercadoLibre$/i,
+    /Listado\./i,
+    /mejores?\s+precios?\s+y\s+variedad/i,
+    /^ofertas?\s+(en|de)\s+/i,
+    /cotizaci[oó]n/i,
+    /^el\s+inexplicable/i,
+    /^cu[aá]nto\s+(cuesta|sale|vale)/i,
+    /recetas?\s+(de|para)/i,
+    /noticias?\s+/i,
+  ]
+  const isProduct = (name: string) => !nonProductPatterns.some(p => p.test(name))
+  const productsOnly = rawWithPrice.filter(r => isProduct(r.name))
+
   // Filtrar por relevancia: al menos 20% de los tokens del query deben estar en el nombre
   const queryTokens = tokenize(query)
   const relevant = queryTokens.length === 0
-    ? rawWithPrice
-    : rawWithPrice.filter(r => relevanceScore(r.name, queryTokens) >= 0.2)
+    ? productsOnly
+    : productsOnly.filter(r => relevanceScore(r.name, queryTokens) >= 0.2)
 
   // Deduplicar por tienda+nombre normalizado (evita duplicados del mismo producto)
   const deduped = deduplicateByName(relevant)

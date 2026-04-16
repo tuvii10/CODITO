@@ -15,27 +15,73 @@ import { SearchResult } from './types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-// Dominios que NO son tiendas: noticias, blogs, foros, redes sociales, etc.
+// Dominios que NO son tiendas: noticias, blogs, foros, redes sociales, comparadores, etc.
 const BLOCKED_DOMAINS = [
+  // Noticias
   'lavoz', 'infobae', 'clarin', 'lanacion', 'pagina12', 'ambito', 'cronista',
   'iprofesional', 'tn.com', 'telam', 'perfil.com', 'minutouno', 'eldestape',
   'diarioregistrado', 'eldiario', 'rosario3', 'losandes', 'diariopopular',
+  'chequeado', 'bae.com', 'canal26', 'c5n.com', 'todonoticias',
+  // Redes sociales
   'wikipedia', 'reddit', 'twitter', 'facebook', 'instagram', 'tiktok',
   'youtube', 'linkedin', 'pinterest', 'quora', 'taringa',
+  // Blogs/foros
   'blogspot', 'wordpress', 'medium.com', 'tumblr',
   'stackoverflow', 'github', 'gitlab',
-  'google.com', 'google.com.ar',
-  'buscaprecios', 'hardgamers', 'comparaencasa', 'preciosd',
+  // Buscadores
+  'google.com', 'google.com.ar', 'bing.com', 'yahoo.com',
+  // Comparadores (muestran precios viejos/agregados)
+  'buscaprecios', 'hardgamers', 'comparaencasa', 'preciosd', 'preciosclaros',
+  'compraensanjuan', 'elmejoracuerdo', 'knasta',
+  // Empleo
   'glassdoor', 'computrabajo', 'zonajobs', 'bumeran',
+  // MercadoLibre listados (no productos)
+  'listado.mercadolibre',
+  // Recetas, salud, educación
+  'recetasgratis', 'paulinacocina', 'cocineros', 'allrecipes',
+  'mayoclinic', 'medlineplus',
+]
+
+// Patrones de URL que indican listados/categorías, no productos individuales
+const BLOCKED_URL_PATTERNS = [
+  '/listado/', '/listados/', '/categoria/', '/categorias/',
+  '/search?', '/buscar?', '/resultados?',
+  '/tag/', '/tags/', '/archivo/', '/blog/',
+  '/noticias/', '/nota/', '/articulo/',
+]
+
+// Palabras en el título que indican que NO es un producto
+const BLOCKED_TITLE_PATTERNS = [
+  /^ofertas?\s+(en|de)\s+/i,
+  /^listado/i,
+  /\|\s*MercadoLibre$/i,
+  /mejores?\s+precios?\s+y\s+variedad/i,
+  /cotizaci[oó]n/i,
+  /noticias?\s+(de|sobre|del)/i,
+  /^cu[aá]nto\s+(cuesta|sale|vale)/i,
+  /^c[oó]mo\s+(hacer|preparar|cocinar)/i,
+  /recetas?\s+(de|para|con)/i,
+  /^el\s+inexplicable/i,
+  /^por\s+qu[eé]/i,
+  /^ranking\s+de/i,
+  /^los\s+\d+\s+mejores/i,
+  /^gu[ií]a\s+(de|para)/i,
 ]
 
 function isBlockedUrl(url: string): boolean {
   try {
+    const lower = url.toLowerCase()
     const host = new URL(url).hostname.toLowerCase()
-    return BLOCKED_DOMAINS.some(d => host.includes(d))
+    if (BLOCKED_DOMAINS.some(d => host.includes(d))) return true
+    if (BLOCKED_URL_PATTERNS.some(p => lower.includes(p))) return true
+    return false
   } catch {
     return true
   }
+}
+
+function isBlockedTitle(title: string): boolean {
+  return BLOCKED_TITLE_PATTERNS.some(p => p.test(title))
 }
 
 function storeFromUrl(url: string): string {
@@ -92,7 +138,7 @@ export async function searchTavily(query: string): Promise<SearchResult[]> {
     const items: { title: string; url: string; content?: string; score?: number }[] = data.results ?? []
 
     return items
-      .filter(r => r.url && !isBlockedUrl(r.url))
+      .filter(r => r.url && !isBlockedUrl(r.url) && !isBlockedTitle(r.title))
       .map(r => {
         const price = extractPrice(r.content ?? '')
         return {
@@ -146,6 +192,7 @@ export async function searchSerper(query: string): Promise<SearchResult[]> {
     const items: SerperItem[] = data.shopping ?? []
 
     return items
+      .filter(r => r.link && !isBlockedUrl(r.link) && !isBlockedTitle(r.title))
       .map(r => {
         const price = r.price ? extractPrice(r.price) : null
         return {
@@ -164,7 +211,6 @@ export async function searchSerper(query: string): Promise<SearchResult[]> {
           image: r.imageUrl ?? null,
         } satisfies SearchResult
       })
-      .filter(r => r.url && !isBlockedUrl(r.url))
   } catch {
     return []
   }
