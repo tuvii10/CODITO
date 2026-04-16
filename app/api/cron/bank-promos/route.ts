@@ -86,15 +86,10 @@ type ParsedPromo = {
 }
 
 function parseWithRegex(text: string): ParsedPromo {
-  const KW = '(?:descuento|reintegro|cashback|beneficio|devoluci[oó]n|ahorro)'
-  // Patrón A: "30% de reintegro"
-  const reA = new RegExp(`(\\d{1,2})\\s*%\\s*(?:de\\s+)?${KW}`, 'gi')
-  // Patrón B: "reintegro del 30%"
-  const reB = new RegExp(`${KW}\\s+de[l]?\\s+(\\d{1,2})\\s*%`, 'gi')
-  const pcts = [
-    ...[...text.matchAll(reA)].map(m => parseInt(m[1])),
-    ...[...text.matchAll(reB)].map(m => parseInt(m[1])),
-  ].filter(n => n >= 5 && n <= 70)
+  // El texto ya es un resumen de descuentos del banco, cualquier % entre 5-70 es relevante
+  const pcts = [...text.matchAll(/\b(\d{1,2})\s*%/g)]
+    .map(m => parseInt(m[1]))
+    .filter(n => n >= 5 && n <= 70)
   const descuento = pcts.length > 0 ? Math.max(...pcts) : null
 
   // Días
