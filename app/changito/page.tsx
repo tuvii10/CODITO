@@ -1,321 +1,355 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
-const PRODUCTOS = [
-  { nombre: 'Leche entera 1L', precio: 1800, categoria: 'Lácteos', emoji: '🥛' },
-  { nombre: 'Pan lactal', precio: 3200, categoria: 'Panadería', emoji: '🍞' },
-  { nombre: 'Huevos x12', precio: 4500, categoria: 'Lácteos', emoji: '🥚' },
-  { nombre: 'Aceite girasol 1.5L', precio: 3800, categoria: 'Almacén', emoji: '🫒' },
-  { nombre: 'Arroz 1kg', precio: 1900, categoria: 'Almacén', emoji: '🍚' },
-  { nombre: 'Fideos 500g', precio: 1200, categoria: 'Almacén', emoji: '🍝' },
-  { nombre: 'Azúcar 1kg', precio: 1500, categoria: 'Almacén', emoji: '🍬' },
-  { nombre: 'Yerba mate 1kg', precio: 5500, categoria: 'Almacén', emoji: '🧉' },
-  { nombre: 'Harina 1kg', precio: 1100, categoria: 'Almacén', emoji: '🌾' },
-  { nombre: 'Carne picada 1kg', precio: 7500, categoria: 'Carnes', emoji: '🥩' },
-  { nombre: 'Pollo entero 1kg', precio: 4200, categoria: 'Carnes', emoji: '🍗' },
-  { nombre: 'Papa 1kg', precio: 1800, categoria: 'Verduras', emoji: '🥔' },
-  { nombre: 'Tomate 1kg', precio: 2500, categoria: 'Verduras', emoji: '🍅' },
-  { nombre: 'Cebolla 1kg', precio: 1500, categoria: 'Verduras', emoji: '🧅' },
-  { nombre: 'Banana 1kg', precio: 2200, categoria: 'Frutas', emoji: '🍌' },
-  { nombre: 'Jabón en polvo 800g', precio: 4200, categoria: 'Limpieza', emoji: '🧼' },
-  { nombre: 'Papel higiénico x4', precio: 3500, categoria: 'Limpieza', emoji: '🧻' },
-  { nombre: 'Lavandina 1L', precio: 900, categoria: 'Limpieza', emoji: '🫧' },
-  { nombre: 'Coca-Cola 2.25L', precio: 3200, categoria: 'Bebidas', emoji: '🥤' },
-  { nombre: 'Agua mineral 2L', precio: 1200, categoria: 'Bebidas', emoji: '💧' },
+// ─── Productos de la canasta básica ─────────────────────────────────────────
+
+type ProductoBase = {
+  busqueda: string
+  nombre: string
+  emoji: string
+  categoria: string
+}
+
+const CANASTA: ProductoBase[] = [
+  { busqueda: 'leche entera 1 litro', nombre: 'Leche entera 1L', emoji: '🥛', categoria: 'Lácteos' },
+  { busqueda: 'huevos docena', nombre: 'Huevos x12', emoji: '🥚', categoria: 'Lácteos' },
+  { busqueda: 'pan lactal', nombre: 'Pan lactal', emoji: '🍞', categoria: 'Panadería' },
+  { busqueda: 'aceite girasol 1.5 litros', nombre: 'Aceite girasol 1.5L', emoji: '🫒', categoria: 'Almacén' },
+  { busqueda: 'arroz 1 kg', nombre: 'Arroz 1kg', emoji: '🍚', categoria: 'Almacén' },
+  { busqueda: 'fideos spaghetti 500g', nombre: 'Fideos 500g', emoji: '🍝', categoria: 'Almacén' },
+  { busqueda: 'azucar 1 kg', nombre: 'Azúcar 1kg', emoji: '🍬', categoria: 'Almacén' },
+  { busqueda: 'yerba mate 1 kg', nombre: 'Yerba mate 1kg', emoji: '🧉', categoria: 'Almacén' },
+  { busqueda: 'harina 000 1 kg', nombre: 'Harina 1kg', emoji: '🌾', categoria: 'Almacén' },
+  { busqueda: 'carne picada comun', nombre: 'Carne picada 1kg', emoji: '🥩', categoria: 'Carnes' },
+  { busqueda: 'pollo entero', nombre: 'Pollo entero 1kg', emoji: '🍗', categoria: 'Carnes' },
+  { busqueda: 'papa kg', nombre: 'Papa 1kg', emoji: '🥔', categoria: 'Verduras' },
+  { busqueda: 'tomate kg', nombre: 'Tomate 1kg', emoji: '🍅', categoria: 'Verduras' },
+  { busqueda: 'cebolla kg', nombre: 'Cebolla 1kg', emoji: '🧅', categoria: 'Verduras' },
+  { busqueda: 'banana kg', nombre: 'Banana 1kg', emoji: '🍌', categoria: 'Frutas' },
+  { busqueda: 'jabon en polvo skip', nombre: 'Jabón en polvo', emoji: '🧼', categoria: 'Limpieza' },
+  { busqueda: 'papel higienico 4 rollos', nombre: 'Papel higiénico x4', emoji: '🧻', categoria: 'Limpieza' },
+  { busqueda: 'lavandina 1 litro', nombre: 'Lavandina 1L', emoji: '🫧', categoria: 'Limpieza' },
+  { busqueda: 'coca cola 2.25', nombre: 'Coca-Cola 2.25L', emoji: '🥤', categoria: 'Bebidas' },
+  { busqueda: 'agua mineral 2 litros', nombre: 'Agua mineral 2L', emoji: '💧', categoria: 'Bebidas' },
 ]
 
-const CATEGORIAS = ['Todos', 'Lácteos', 'Panadería', 'Almacén', 'Carnes', 'Verduras', 'Frutas', 'Limpieza', 'Bebidas']
+type ResultadoProducto = {
+  nombre: string
+  tienda: string
+  tiendaLogo: string
+  precio: number
+  url: string | null
+  image: string | null
+}
 
-const formatPrice = (n: number) =>
-  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
+type ProductoState = {
+  loading: boolean
+  resultado: ResultadoProducto | null
+  error: boolean
+}
 
-const canastaBasicaTotal = PRODUCTOS.reduce((sum, p) => sum + p.precio, 0)
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-export default function ChangitoPage() {
-  const [cantidades, setCantidades] = useState<Record<number, number>>({})
-  const [categoriaActiva, setCategoriaActiva] = useState('Todos')
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency', currency: 'ARS', maximumFractionDigits: 0,
+  }).format(n)
+}
 
-  const setCantidad = (index: number, delta: number) => {
-    setCantidades(prev => {
-      const current = prev[index] || 0
-      const next = Math.max(0, current + delta)
-      return { ...prev, [index]: next }
-    })
-  }
+// ─── Componente ─────────────────────────────────────────────────────────────
 
-  const productosFiltrados = categoriaActiva === 'Todos'
-    ? PRODUCTOS
-    : PRODUCTOS.filter(p => p.categoria === categoriaActiva)
+export default function Changito() {
+  const [estados, setEstados] = useState<Record<number, ProductoState>>({})
+  const [buscando, setBuscando] = useState(false)
+  const [progreso, setProgreso] = useState(0)
+  const [terminado, setTerminado] = useState(false)
 
-  const totalProductos = Object.values(cantidades).reduce((sum, c) => sum + c, 0)
-  const totalPrecio = PRODUCTOS.reduce((sum, p, i) => sum + p.precio * (cantidades[i] || 0), 0)
+  const buscarProducto = useCallback(async (idx: number, busqueda: string): Promise<void> => {
+    setEstados(prev => ({ ...prev, [idx]: { loading: true, resultado: null, error: false } }))
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(busqueda)}`)
+      const data = await res.json()
+      const results = data.results || []
+
+      // Tomar el más barato con precio > 0
+      const validos = results.filter((r: { price: number }) => r.price > 0)
+
+      if (validos.length > 0) {
+        const mejor = validos[0] // ya vienen ordenados por precio
+        setEstados(prev => ({
+          ...prev,
+          [idx]: {
+            loading: false,
+            error: false,
+            resultado: {
+              nombre: mejor.name,
+              tienda: mejor.store_name,
+              tiendaLogo: mejor.store_logo || '',
+              precio: mejor.price,
+              url: mejor.url,
+              image: mejor.image,
+            },
+          },
+        }))
+      } else {
+        setEstados(prev => ({ ...prev, [idx]: { loading: false, resultado: null, error: true } }))
+      }
+    } catch {
+      setEstados(prev => ({ ...prev, [idx]: { loading: false, resultado: null, error: true } }))
+    }
+  }, [])
+
+  const buscarTodos = useCallback(async () => {
+    setBuscando(true)
+    setTerminado(false)
+    setProgreso(0)
+
+    // Buscar de a 3 en paralelo para no sobrecargar
+    for (let i = 0; i < CANASTA.length; i += 3) {
+      const batch = CANASTA.slice(i, i + 3)
+      await Promise.all(batch.map((p, j) => buscarProducto(i + j, p.busqueda)))
+      setProgreso(Math.min(i + 3, CANASTA.length))
+    }
+
+    setBuscando(false)
+    setTerminado(true)
+  }, [buscarProducto])
+
+  // Calcular total
+  const productosEncontrados = Object.values(estados).filter(e => e.resultado)
+  const totalCanasta = productosEncontrados.reduce((sum, e) => sum + (e.resultado?.precio || 0), 0)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fafafa' }}>
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: '18px 8px 120px 8px' }}>
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
-        {/* Back button */}
-        <Link href="/" style={{
-          fontSize: 13,
-          fontWeight: 700,
-          background: '#f4f4f5',
-          border: '1px solid #e4e4e7',
-          borderRadius: 10,
-          padding: '7px 14px',
-          textDecoration: 'none',
-          color: '#18181b',
-          display: 'inline-block',
-          marginBottom: 18,
-        }}>
-          ← Volver
+      {/* Back */}
+      <div style={{ marginBottom: 20 }}>
+        <Link href="/" style={{ fontSize: 13, fontWeight: 700, color: '#09090b', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f4f4f5', border: '1px solid #e4e4e7', borderRadius: 10, padding: '7px 14px' }}>
+          ← Inicio
         </Link>
+      </div>
 
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{
-            width: 64,
-            height: 64,
-            borderRadius: 18,
-            background: 'linear-gradient(135deg, #f59e0b, #eab308)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 32,
-            margin: '0 auto 12px auto',
-            boxShadow: '0 4px 16px rgba(245,158,11,0.25)',
-          }}>
-            🛒
-          </div>
-          <h1 style={{
-            fontSize: 'clamp(24px, 6vw, 36px)',
-            fontWeight: 900,
-            color: '#18181b',
-            margin: '0 0 4px 0',
-          }}>
-            Changito
-          </h1>
-          <p style={{ color: '#71717a', fontSize: 14, margin: 0 }}>
-            Armá tu canasta y calculá cuánto gastás
-          </p>
-        </div>
-
-        {/* Canasta básica estimada */}
+      {/* Header */}
+      <div style={{ marginBottom: 28, textAlign: 'center' }}>
         <div style={{
-          background: '#fff',
-          borderRadius: 20,
-          padding: 'clamp(16px,4vw,24px)',
-          border: '1px solid #e4e4e7',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-          marginBottom: 20,
-        }}>
-          <div style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#71717a',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '0.08em',
-            marginBottom: 8,
-          }}>
-            Canasta básica estimada
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 'clamp(22px,5vw,30px)', fontWeight: 900, color: '#18181b' }}>
-              {formatPrice(canastaBasicaTotal)}
-            </span>
-            <span style={{ fontSize: 13, color: '#a1a1aa' }}>
-              ({PRODUCTOS.length} productos, 1 de cada uno)
-            </span>
-          </div>
-          <p style={{ fontSize: 12, color: '#a1a1aa', margin: '10px 0 0 0', lineHeight: 1.5 }}>
-            Precios estimados orientativos. Buscá el producto para ver el precio real.
-          </p>
-        </div>
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 64, height: 64, borderRadius: 20,
+          background: 'linear-gradient(135deg, #f59e0b, #eab308)',
+          fontSize: 30, marginBottom: 14,
+          boxShadow: '0 8px 24px rgba(245,158,11,0.35)',
+        }}>🛒</div>
+        <h1 style={{ fontSize: 'clamp(24px, 6vw, 36px)', fontWeight: 900, color: '#09090b', letterSpacing: '-0.03em', marginBottom: 8 }}>
+          Changito
+        </h1>
+        <p style={{ fontSize: 14, color: '#71717a', maxWidth: 440, margin: '0 auto', lineHeight: 1.5 }}>
+          Tu canasta básica con precios reales. Buscamos el producto más barato en todas las tiendas.
+        </p>
+      </div>
 
-        {/* Category tabs */}
+      {/* Botón buscar */}
+      {!terminado && (
         <div style={{
-          display: 'flex',
-          gap: 6,
-          overflowX: 'auto',
-          paddingBottom: 8,
-          marginBottom: 16,
-          WebkitOverflowScrolling: 'touch',
+          background: '#fff', borderRadius: 20, padding: 'clamp(16px,4vw,24px)',
+          border: '1px solid #e4e4e7', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 16,
+          textAlign: 'center',
         }}>
-          {CATEGORIAS.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setCategoriaActiva(cat)}
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                padding: '7px 14px',
-                borderRadius: 10,
-                border: '1px solid #e4e4e7',
-                background: categoriaActiva === cat ? '#18181b' : '#f4f4f5',
-                color: categoriaActiva === cat ? '#fff' : '#71717a',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {cat}
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#09090b', marginBottom: 4 }}>
+            {CANASTA.length} productos esenciales
+          </p>
+          <p style={{ fontSize: 12, color: '#71717a', marginBottom: 16 }}>
+            Buscamos el precio más bajo de cada uno en tiempo real
+          </p>
+
+          {buscando ? (
+            <div>
+              <div style={{
+                width: '100%', height: 8, borderRadius: 4, background: '#f4f4f5',
+                overflow: 'hidden', marginBottom: 10,
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 4,
+                  background: 'linear-gradient(90deg, #f59e0b, #eab308)',
+                  width: `${(progreso / CANASTA.length) * 100}%`,
+                  transition: 'width 0.3s',
+                }} />
+              </div>
+              <p style={{ fontSize: 13, color: '#71717a', fontWeight: 600 }}>
+                Buscando precios... {progreso}/{CANASTA.length}
+              </p>
+            </div>
+          ) : (
+            <button onClick={buscarTodos} style={{
+              padding: '14px 32px', borderRadius: 14,
+              border: 'none',
+              background: 'linear-gradient(135deg, #f59e0b, #eab308)',
+              color: '#fff', fontSize: 16, fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(245,158,11,0.4)',
+              transition: 'transform 0.1s',
+            }}>
+              🔍 Buscar precios reales
             </button>
-          ))}
+          )}
         </div>
+      )}
 
-        {/* Product list */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {productosFiltrados.map(producto => {
-            const realIndex = PRODUCTOS.indexOf(producto)
-            const cantidad = cantidades[realIndex] || 0
+      {/* Resumen total */}
+      {terminado && productosEncontrados.length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #fefce8, #fef9c3)',
+          border: '2px solid #fde047',
+          borderRadius: 20, padding: 'clamp(20px,5vw,28px)',
+          marginBottom: 16, textAlign: 'center',
+        }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+            Tu canasta básica más barata
+          </p>
+          <p style={{ fontSize: 'clamp(32px,8vw,48px)', fontWeight: 900, color: '#09090b', letterSpacing: '-0.03em', lineHeight: 1 }}>
+            {fmt(totalCanasta)}
+          </p>
+          <p style={{ fontSize: 13, color: '#71717a', marginTop: 8 }}>
+            {productosEncontrados.length} de {CANASTA.length} productos encontrados
+          </p>
+          <button onClick={buscarTodos} style={{
+            marginTop: 12, padding: '10px 20px', borderRadius: 10,
+            border: '1px solid #fde047', background: '#fff',
+            fontSize: 13, fontWeight: 700, color: '#a16207', cursor: 'pointer',
+          }}>
+            🔄 Actualizar precios
+          </button>
+        </div>
+      )}
+
+      {/* Lista de productos */}
+      {Object.keys(estados).length > 0 && (
+        <div style={{ display: 'grid', gap: 10, marginBottom: 32 }}>
+          {CANASTA.map((producto, idx) => {
+            const estado = estados[idx]
+            if (!estado) return null
 
             return (
-              <div key={realIndex} style={{
-                background: '#fff',
-                borderRadius: 20,
-                padding: 'clamp(16px,4vw,24px)',
-                border: '1px solid #e4e4e7',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+              <div key={idx} style={{
+                background: '#fff', borderRadius: 16,
+                border: estado.resultado ? '1.5px solid #e4e4e7' : '1.5px solid #fecaca',
+                padding: '14px 16px',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {/* Emoji */}
-                  <div style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    background: '#fef9c3',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 22,
-                    flexShrink: 0,
-                  }}>
-                    {producto.emoji}
-                  </div>
-
-                  {/* Name + category + price */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: '#18181b' }}>
-                      {producto.nombre}
+                {/* Loading */}
+                {estado.loading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 24 }}>{producto.emoji}</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#09090b', marginBottom: 2 }}>{producto.nombre}</p>
+                      <p style={{ fontSize: 12, color: '#a1a1aa' }}>Buscando el más barato...</p>
                     </div>
                     <div style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: '#a1a1aa',
-                      textTransform: 'uppercase' as const,
-                      letterSpacing: '0.08em',
-                      marginTop: 2,
+                      width: 20, height: 20,
+                      border: '3px solid #f4f4f5', borderTopColor: '#f59e0b',
+                      borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+                    }} />
+                    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                  </div>
+                )}
+
+                {/* Resultado encontrado */}
+                {estado.resultado && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* Imagen o emoji */}
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 12, overflow: 'hidden',
+                      background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, border: '1px solid #f4f4f5',
                     }}>
-                      {producto.categoria}
+                      {estado.resultado.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={estado.resultado.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: 24 }}>{producto.emoji}</span>
+                      )}
                     </div>
-                    <div style={{ fontWeight: 900, fontSize: 17, color: '#f59e0b', marginTop: 4 }}>
-                      {formatPrice(producto.precio)}
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{
+                        fontSize: 13, fontWeight: 700, color: '#09090b', marginBottom: 2,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {estado.resultado.nombre}
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {estado.resultado.tiendaLogo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={estado.resultado.tiendaLogo} alt="" style={{ width: 14, height: 14, borderRadius: 3 }} />
+                        )}
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, color: '#fff',
+                          background: '#16a34a', padding: '2px 8px', borderRadius: 6,
+                        }}>
+                          {estado.resultado.tienda}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Precio + comprar */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <p style={{ fontSize: 18, fontWeight: 900, color: '#09090b', letterSpacing: '-0.02em', marginBottom: 4 }}>
+                        {fmt(estado.resultado.precio)}
+                      </p>
+                      {estado.resultado.url && (
+                        <a
+                          href={estado.resultado.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-block',
+                            fontSize: 12, fontWeight: 800, color: '#fff',
+                            background: 'linear-gradient(135deg, #f59e0b, #eab308)',
+                            padding: '6px 14px', borderRadius: 8,
+                            textDecoration: 'none',
+                            boxShadow: '0 2px 8px rgba(245,158,11,0.3)',
+                          }}
+                        >
+                          Comprar →
+                        </a>
+                      )}
                     </div>
                   </div>
+                )}
 
-                  {/* Quantity selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                    <button
-                      onClick={() => setCantidad(realIndex, -1)}
+                {/* Error */}
+                {estado.error && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 24 }}>{producto.emoji}</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#09090b', marginBottom: 2 }}>{producto.nombre}</p>
+                      <p style={{ fontSize: 12, color: '#dc2626' }}>No encontrado</p>
+                    </div>
+                    <Link
+                      href={`/?q=${encodeURIComponent(producto.busqueda)}`}
                       style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        border: '1px solid #e4e4e7',
-                        background: '#f4f4f5',
-                        fontSize: 18,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#71717a',
+                        fontSize: 12, fontWeight: 700, color: '#71717a',
+                        background: '#f4f4f5', padding: '6px 12px', borderRadius: 8,
+                        textDecoration: 'none', border: '1px solid #e4e4e7',
                       }}
                     >
-                      -
-                    </button>
-                    <span style={{
-                      minWidth: 28,
-                      textAlign: 'center',
-                      fontWeight: 900,
-                      fontSize: 16,
-                      color: cantidad > 0 ? '#18181b' : '#a1a1aa',
-                    }}>
-                      {cantidad}
-                    </span>
-                    <button
-                      onClick={() => setCantidad(realIndex, 1)}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        border: '1px solid #e4e4e7',
-                        background: '#18181b',
-                        fontSize: 18,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#fff',
-                      }}
-                    >
-                      +
-                    </button>
+                      Buscar manual
+                    </Link>
                   </div>
-                </div>
-
-                {/* Search real price link */}
-                <div style={{ marginTop: 10 }}>
-                  <Link
-                    href={`/?q=${encodeURIComponent(producto.nombre)}`}
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: '#f59e0b',
-                      textDecoration: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}
-                  >
-                    🔍 Buscar precio real
-                  </Link>
-                </div>
+                )}
               </div>
             )
           })}
         </div>
-      </div>
+      )}
 
-      {/* Sticky bottom bar */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        background: '#18181b',
-        borderTop: '1px solid #27272a',
-        padding: '14px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div style={{ maxWidth: 600, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 20 }}>🛒</span>
-            <span style={{ color: '#a1a1aa', fontSize: 14, fontWeight: 600 }}>
-              Tu changito: <span style={{ color: '#fff', fontWeight: 900 }}>{totalProductos}</span> {totalProductos === 1 ? 'producto' : 'productos'}
-            </span>
-          </div>
-          <span style={{ color: '#f59e0b', fontWeight: 900, fontSize: 'clamp(18px,4vw,22px)' }}>
-            {formatPrice(totalPrecio)}
-          </span>
-        </div>
-      </div>
+      {/* Footer */}
+      <p style={{ fontSize: 11, color: '#a1a1aa', textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
+        Precios actualizados en tiempo real. Los precios pueden variar según disponibilidad y ubicación.
+        Changito by Codito.
+      </p>
     </div>
   )
 }
