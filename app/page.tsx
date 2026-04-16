@@ -248,6 +248,43 @@ export default function Home() {
         </Link>
       )}
 
+      {/* Accesos rápidos */}
+      {!searched && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 12, marginTop: 14 }}>
+          <Link href="/suscripciones" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
+              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#a5b4fc'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(99,102,241,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>💸</div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Suscripciones</p>
+              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
+                Cuánto pagás en pesos por Netflix, Spotify, ChatGPT y más, con impuestos incluidos.
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/descuentos" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
+              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#6ee7b7'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(16,185,129,0.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>🏪</div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Descuentos en super</p>
+              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
+                Qué banco te da descuento hoy en Carrefour, Coto, Jumbo y otros supermercados.
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Resultados */}
       {searched && (
         <div style={{ marginTop: 28 }}>
