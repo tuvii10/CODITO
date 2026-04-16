@@ -66,14 +66,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body style={{ minHeight: '100vh', background: '#fafafa' }}>
         {/* Header minimal */}
         <header style={{
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(14px) saturate(150%)',
-          WebkitBackdropFilter: 'blur(14px) saturate(150%)',
+          background: '#ffffff',
           borderBottom: 'none',
           position: 'sticky',
           top: 0,
           zIndex: 50,
+          boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
         }}>
+          {/* Onda decorativa */}
+          <svg style={{ position: 'absolute', bottom: -20, left: 0, width: '100%', height: 20, pointerEvents: 'none' }} viewBox="0 0 1440 20" preserveAspectRatio="none">
+            <path d="M0,0 C360,20 1080,20 1440,0 L1440,0 L0,0 Z" fill="#ffffff" />
+          </svg>
           <div style={{
             maxWidth: 960,
             margin: '0 auto',
