@@ -154,46 +154,14 @@ export async function GET(req: Request) {
 
         const existing = current?.find(p => p.banco === banco)
 
-        const changed =
-          !existing ||
-          existing.descuento !== extracted.descuento ||
-          JSON.stringify(existing.dias.sort()) !== JSON.stringify(extracted.dias.sort()) ||
-          JSON.stringify(existing.supers.sort()) !== JSON.stringify(extracted.supers.sort())
-
-        if (changed) {
-          if (existing) {
-            // Actualizar registro existente
-            await supabase.from('bank_promos').update({
-              descuento:  extracted.descuento,
-              dias:       extracted.dias,
-              supers:     extracted.supers,
-              tope:       extracted.tope,
-              updated_at: now,
-            }).eq('banco', banco).eq('activo', true)
-          } else {
-            // Insertar banco nuevo
-            await supabase.from('bank_promos').insert({
-              banco,
-              icon:       meta.icon,
-              color:      meta.color,
-              tarjeta:    meta.tarjeta,
-              descuento:  extracted.descuento,
-              dias:       extracted.dias,
-              supers:     extracted.supers,
-              tope:       extracted.tope,
-              activo:     true,
-              updated_at: now,
-            })
-          }
-          updates.push(`${banco}: ${extracted.descuento}% los ${extracted.dias.join('/')}`)
-          console.log(`[cron] ${banco}: actualizado →`, extracted)
-        } else {
-          // Sin cambios, solo tocar updated_at para mostrar que se verificó
+        // Sin parser confiable activo: solo actualizamos updated_at para
+        // mostrar que el cron verificó. Los datos se editan manualmente en Supabase.
+        if (existing) {
           await supabase.from('bank_promos')
             .update({ updated_at: now })
             .eq('banco', banco)
             .eq('activo', true)
-          console.log(`[cron] ${banco}: sin cambios`)
+          console.log(`[cron] ${banco}: verificado (sin cambios automáticos)`)
         }
 
         // Pausa entre búsquedas para no saturar la API
