@@ -69,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           background: 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(14px) saturate(150%)',
           WebkitBackdropFilter: 'blur(14px) saturate(150%)',
-          borderBottom: '1px solid #e4e4e7',
+          borderBottom: 'none',
           position: 'sticky',
           top: 0,
           zIndex: 50,
@@ -99,63 +99,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* Navegación */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <Link href="/suscripciones" style={{
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                background: '#f4f4f5',
-                color: '#09090b',
-                fontWeight: 700,
-                fontSize: 13,
-                padding: '9px 14px',
-                borderRadius: 12,
-                whiteSpace: 'nowrap',
-                letterSpacing: '-0.01em',
-                border: '1px solid #e4e4e7',
-                transition: 'background 0.15s',
-              }}>
-                💸 <span className="ofertas-header-text-long">Suscripciones</span>
-              </Link>
-
-<Link href="/dividito" style={{
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                background: '#f4f4f5',
-                color: '#09090b',
-                fontWeight: 700,
-                fontSize: 13,
-                padding: '9px 14px',
-                borderRadius: 12,
-                whiteSpace: 'nowrap',
-                letterSpacing: '-0.01em',
-                border: '1px solid #e4e4e7',
-                transition: 'background 0.15s',
-              }}>
-                🍕 <span className="ofertas-header-text-long">Dividito</span>
-              </Link>
-
-<Link href="/cuotas" style={{
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                background: '#f4f4f5',
-                color: '#09090b',
-                fontWeight: 700,
-                fontSize: 13,
-                padding: '9px 14px',
-                borderRadius: 12,
-                whiteSpace: 'nowrap',
-                letterSpacing: '-0.01em',
-                border: '1px solid #e4e4e7',
-                transition: 'background 0.15s',
-              }}>
-                🧮 <span className="ofertas-header-text-long">¿Cuotas?</span>
-              </Link>
-
               <Link href="/ofertas" className="ofertas-header-btn" style={{
                 textDecoration: 'none',
                 display: 'inline-flex',
@@ -182,7 +125,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main style={{
           maxWidth: 960,
           margin: '0 auto',
-          padding: 'clamp(18px, 5vw, 32px) clamp(12px, 4vw, 24px) 60px',
+          padding: 'clamp(10px, 3vw, 16px) clamp(12px, 4vw, 24px) 60px',
         }}>
           {children}
         </main>
