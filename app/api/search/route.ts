@@ -45,12 +45,7 @@ export async function GET(req: NextRequest) {
     ...spFiltered.filter(r => r.price > 0),
     ...webFiltered.filter(r => r.price > 0),
   ]
-  const allWithoutPrice = [
-    ...vtex.filter(r => r.price === 0),
-    ...coto.filter(r => r.price === 0),
-    ...spFiltered.filter(r => r.price === 0),
-    ...webFiltered.filter(r => r.price === 0),
-  ]
+  // Resultados sin precio se descartan para evitar $0 falsos
 
   // Filtrar por relevancia: al menos 20% de los tokens del query deben estar en el nombre
   const queryTokens = tokenize(query)
@@ -65,7 +60,7 @@ export async function GET(req: NextRequest) {
   const allWithPrice = applyCrossSellerDiscounts(deduped)
   allWithPrice.sort((a, b) => a.price - b.price)
 
-  const results = [...allWithPrice, ...allWithoutPrice]
+  const results = [...allWithPrice]
 
   // Guardar historial (fire-and-forget, no bloqueamos la respuesta)
   recordPriceHistory(query, allWithPrice).catch(() => {})

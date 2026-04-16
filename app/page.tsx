@@ -257,7 +257,8 @@ export default function Home() {
               boxShadow: '0 2px 12px rgba(2,132,199,0.07)',
             }}>
               <div style={{ fontSize: 40, marginBottom: 14 }}>⏳</div>
-              <p style={{ color: '#4d7fa8', fontWeight: 600 }}>Buscando...</p>
+              <p style={{ color: '#4d7fa8', fontWeight: 600, marginBottom: 6 }}>Buscando los mejores precios...</p>
+              <p style={{ color: '#94a3b8', fontSize: 13, fontWeight: 400 }}>Comparando en diferentes sitios web, puede demorar unos segundos</p>
             </div>
           ) : results.length === 0 ? (
             <div style={{
