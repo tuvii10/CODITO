@@ -312,7 +312,7 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link href="/changito" style={{ textDecoration: 'none' }}>
+          <Link href="/changuito" style={{ textDecoration: 'none' }}>
             <div style={{
               background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
               padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
@@ -321,7 +321,7 @@ export default function Home() {
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
             >
               <div style={{ fontSize: 28, marginBottom: 10 }}>🛒</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Changito</p>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Changuito</p>
               <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
                 Armá tu canasta básica y fijate cuánto te sale llenar el chango.
               </p>

@@ -34,7 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${base}/changito`,
+      url: `${base}/changuito`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,

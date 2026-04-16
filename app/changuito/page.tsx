@@ -60,7 +60,7 @@ function fmt(n: number) {
 
 // ─── Componente ─────────────────────────────────────────────────────────────
 
-export default function Changito() {
+export default function Changuito() {
   const [estados, setEstados] = useState<Record<number, ProductoState>>({})
   const [buscando, setBuscando] = useState(false)
   const [progreso, setProgreso] = useState(0)
@@ -142,7 +142,7 @@ export default function Changito() {
           boxShadow: '0 8px 24px rgba(245,158,11,0.35)',
         }}>🛒</div>
         <h1 style={{ fontSize: 'clamp(24px, 6vw, 36px)', fontWeight: 900, color: '#09090b', letterSpacing: '-0.03em', marginBottom: 8 }}>
-          Changito
+          Changuito
         </h1>
         <p style={{ fontSize: 14, color: '#71717a', maxWidth: 440, margin: '0 auto', lineHeight: 1.5 }}>
           Tu canasta básica con precios reales. Buscamos el producto más barato en todas las tiendas.
@@ -348,7 +348,7 @@ export default function Changito() {
       {/* Footer */}
       <p style={{ fontSize: 11, color: '#a1a1aa', textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
         Precios actualizados en tiempo real. Los precios pueden variar según disponibilidad y ubicación.
-        Changito by Codito.
+        Changuito by Codito.
       </p>
     </div>
   )
