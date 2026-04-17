@@ -6,44 +6,68 @@
  * GET /api/health?q=query → permite pasar una query custom
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { searchVtex, VTEX_STORE_NAMES } from '@/lib/vtex'
+import { searchVtex, VTEX_STORES_WITH_CATEGORY, VTEX_STORE_NAMES } from '@/lib/vtex'
 import { fetchMLHighlightsByCategory } from '@/lib/mercadolibre'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+// Query de prueba por categoría de tienda — evita falsos negativos
+// (ej: buscar "leche" en Topper o Sporting devuelve vacío aunque funcionen bien)
+const CATEGORY_TEST_QUERY: Record<string, string> = {
+  supermercado: 'leche',
+  electro:      'cafetera',
+  hogar:        'olla',
+  farmacia:     'shampoo',
+  belleza:      'crema',
+  mascotas:     'alimento perro',
+  moda:         'zapatillas',
+  deportes:     'zapatillas',
+  libros:       'libro',
+  multi:        'leche',
+}
+
 type StoreStatus = {
   store: string
   status: 'ok' | 'fail'
   products: number
+  query: string
 }
 
 export async function GET(req: NextRequest) {
-  const testQuery = req.nextUrl.searchParams.get('q')?.trim() || 'leche'
+  const overrideQuery = req.nextUrl.searchParams.get('q')?.trim()
 
   const started = Date.now()
 
-  // ML se prueba con el endpoint de highlights (OAuth token)
-  // Usamos MLA1403 (Alimentos y Bebidas) como query de test
-  const [vtexResults, mlResults] = await Promise.allSettled([
-    searchVtex(testQuery),
-    fetchMLHighlightsByCategory('MLA1403', 3),
-  ])
+  // Probar cada tienda con una query relevante a su categoría
+  const storeResults = await Promise.allSettled(
+    VTEX_STORES_WITH_CATEGORY.map(async ({ name, category }) => {
+      const q = overrideQuery ?? CATEGORY_TEST_QUERY[category] ?? 'leche'
+      const results = await searchVtex(q, name)
+      return { name, q, count: results.length }
+    })
+  )
 
-  const vtex = vtexResults.status === 'fulfilled' ? vtexResults.value : []
-  const ml = mlResults.status === 'fulfilled' ? mlResults.value : []
-
-  // Agrupar VTEX por tienda y contar productos por cada una
-  const vtexByStore = new Map<string, number>()
-  for (const r of vtex) {
-    vtexByStore.set(r.store_name, (vtexByStore.get(r.store_name) ?? 0) + 1)
+  const vtexByStore = new Map<string, { count: number; q: string }>()
+  for (const r of storeResults) {
+    if (r.status === 'fulfilled') {
+      vtexByStore.set(r.value.name, { count: r.value.count, q: r.value.q })
+    }
   }
 
-  const vtexDetails: StoreStatus[] = VTEX_STORE_NAMES.map(name => ({
-    store: name,
-    status: (vtexByStore.get(name) ?? 0) > 0 ? 'ok' : 'fail',
-    products: vtexByStore.get(name) ?? 0,
-  }))
+  // ML se prueba con MLA1403 (Alimentos y Bebidas)
+  const mlResult = await Promise.allSettled([fetchMLHighlightsByCategory('MLA1403', 3)])
+  const ml = mlResult[0].status === 'fulfilled' ? mlResult[0].value : []
+
+  const vtexDetails: StoreStatus[] = VTEX_STORE_NAMES.map(name => {
+    const info = vtexByStore.get(name)
+    return {
+      store: name,
+      status: (info?.count ?? 0) > 0 ? 'ok' : 'fail',
+      products: info?.count ?? 0,
+      query: info?.q ?? '',
+    }
+  })
 
   const vtexOk = vtexDetails.filter(s => s.status === 'ok').length
   const vtexFail = vtexDetails.filter(s => s.status === 'fail').length
@@ -55,13 +79,14 @@ export async function GET(req: NextRequest) {
         ? 'degraded'
         : 'healthy'
 
+  const totalProducts = vtexDetails.reduce((sum, s) => sum + s.products, 0)
+
   const report = {
     timestamp: new Date().toISOString(),
     duration_ms: Date.now() - started,
-    test_query: testQuery,
     overall,
     summary: {
-      vtex_total: vtex.length,
+      vtex_total: totalProducts,
       vtex_stores_ok: vtexOk,
       vtex_stores_fail: vtexFail,
       ml_products: ml.length,

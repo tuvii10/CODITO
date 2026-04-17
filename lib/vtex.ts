@@ -22,10 +22,10 @@ const VTEX_STORES: VtexStore[] = [
 
   // ── Electro / tecnología ────────────────────────────────
   { name: 'Frávega',        domain: 'www.fravega.com',           category: 'electro' },
-  { name: 'Naldo',          domain: 'www.naldo.com.ar',          category: 'electro' },
+  // Naldo → 400 en su API VTEX (verificado abril 2026)
+  // Samsung → 400 en shop.samsung.com.ar (verificado abril 2026)
+  // BGH → 400 en su API VTEX (verificado abril 2026)
   { name: 'Motorola',       domain: 'www.motorola.com.ar',       category: 'electro' },
-  { name: 'BGH',            domain: 'www.bgh.com.ar',            category: 'electro' },
-  { name: 'Samsung',        domain: 'shop.samsung.com.ar',       category: 'electro' },
   { name: 'Whirlpool',      domain: 'www.whirlpool.com.ar',      category: 'electro' },
   { name: 'KitchenAid',     domain: 'www.kitchenaid.com.ar',     category: 'electro' },
   { name: 'Liliana',        domain: 'www.liliana.com.ar',        category: 'electro' },
@@ -347,9 +347,16 @@ async function searchOneStore(store: VtexStore, query: string): Promise<SearchRe
   }
 }
 
-export async function searchVtex(query: string): Promise<SearchResult[]> {
+/**
+ * Busca en todas las tiendas VTEX.
+ * Si se pasa `onlyStore`, busca solo en esa tienda (usado por /api/health).
+ */
+export async function searchVtex(query: string, onlyStore?: string): Promise<SearchResult[]> {
+  const stores = onlyStore
+    ? VTEX_STORES.filter(s => s.name === onlyStore)
+    : VTEX_STORES
   const results = await Promise.allSettled(
-    VTEX_STORES.map(s => searchOneStore(s, query))
+    stores.map(s => searchOneStore(s, query))
   )
   return results
     .filter(r => r.status === 'fulfilled')
@@ -357,13 +364,13 @@ export async function searchVtex(query: string): Promise<SearchResult[]> {
 }
 
 /**
- * Versión liviana: busca solo en las 15 tiendas VTEX más grandes/populares.
+ * Versión liviana: busca solo en las tiendas VTEX más grandes/populares.
  * Usado en featured/route para evitar timeouts cuando hay muchas queries
  * corriendo en paralelo.
  */
 const VTEX_TOP_STORES = [
   'Carrefour', 'Disco', 'Vea', 'Jumbo', 'Chango Más', 'DIA',
-  'Frávega', 'Naldo', 'Samsung', 'Easy',
+  'Frávega', 'Easy',
   'Farmacity', 'Puppis',
   'Topper', 'Marathon', 'Sporting',
 ]
@@ -380,3 +387,4 @@ export async function searchVtexLite(query: string): Promise<SearchResult[]> {
 
 export const VTEX_STORE_COUNT = VTEX_STORES.length
 export const VTEX_STORE_NAMES = VTEX_STORES.map(s => s.name)
+export const VTEX_STORES_WITH_CATEGORY = VTEX_STORES.map(s => ({ name: s.name, category: s.category }))

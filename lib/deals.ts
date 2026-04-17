@@ -247,20 +247,29 @@ type Candidate = SearchResult & { __category?: string }
 async function gatherCandidates(): Promise<Candidate[]> {
   const queries = selectQueriesForWindow()
 
-  // 1. Buscar cada query en VTEX + Coto + SuperPrecio en paralelo
-  const queryBatches = await Promise.all(
-    queries.map(async ({ q, cat }) => {
-      const [vtex, coto, sp] = await Promise.allSettled([
-        searchVtex(q),
-        searchCoto(q),
-        searchSuperPrecio(q, 25),
-      ])
-      const vtexRes = vtex.status === 'fulfilled' ? vtex.value : []
-      const cotoRes = coto.status === 'fulfilled' ? coto.value : []
-      const spRes = sp.status === 'fulfilled' ? sp.value : []
-      return [...vtexRes, ...cotoRes, ...spRes].map(r => ({ ...r, __category: cat }))
-    })
-  )
+  // 1. Buscar en VTEX + Coto + SuperPrecio en batches de 6 queries simultáneas.
+  // Antes se lanzaban las 30 queries a la vez → ~1700 conexiones HTTP simultáneas
+  // → timeout en Vercel. Con batches de 6: máximo ~350 conexiones a la vez.
+  const BATCH_SIZE = 6
+  const allQueryResults: Candidate[] = []
+
+  for (let i = 0; i < queries.length; i += BATCH_SIZE) {
+    const batch = queries.slice(i, i + BATCH_SIZE)
+    const batchResults = await Promise.all(
+      batch.map(async ({ q, cat }) => {
+        const [vtex, coto, sp] = await Promise.allSettled([
+          searchVtex(q),
+          searchCoto(q),
+          searchSuperPrecio(q, 25),
+        ])
+        const vtexRes = vtex.status === 'fulfilled' ? vtex.value : []
+        const cotoRes = coto.status === 'fulfilled' ? coto.value : []
+        const spRes = sp.status === 'fulfilled' ? sp.value : []
+        return [...vtexRes, ...cotoRes, ...spRes].map(r => ({ ...r, __category: cat }))
+      })
+    )
+    allQueryResults.push(...batchResults.flat())
+  }
 
   // 2. ML highlights (estos rotan solos, no dependen de la ventana)
   const mlBatches = await Promise.all(
@@ -274,7 +283,7 @@ async function gatherCandidates(): Promise<Candidate[]> {
     })
   )
 
-  return [...queryBatches.flat(), ...mlBatches.flat()].filter(p => p.price > 0)
+  return [...allQueryResults, ...mlBatches.flat()].filter(p => p.price > 0)
 }
 
 // ─── Categorización automática ─────────────────────────────────────────────
