@@ -4,6 +4,7 @@ import { searchVtex } from '@/lib/vtex'
 import { searchCoto } from '@/lib/coto'
 import { searchSuperPrecio } from '@/lib/superprecio'
 import { searchWeb } from '@/lib/web-search'
+import { searchMercadoLibreWeb } from '@/lib/ml-search'
 import { applyCrossSellerDiscounts } from '@/lib/compare'
 import { SearchResult } from '@/lib/types'
 
@@ -17,26 +18,30 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Búsqueda demasiado larga' }, { status: 400 })
   }
 
-  // Fuentes en paralelo
-  const [vtexRes, cotoRes, spRes, webRes] = await Promise.allSettled([
+  // Fuentes en paralelo — ahora incluye MercadoLibre directo
+  const [vtexRes, cotoRes, spRes, mlRes, webRes] = await Promise.allSettled([
     searchVtex(query),
     searchCoto(query),
     searchSuperPrecio(query, 30),
+    searchMercadoLibreWeb(query, 20),
     searchWeb(query),
   ])
 
   const vtex = vtexRes.status === 'fulfilled' ? vtexRes.value : []
   const coto = cotoRes.status === 'fulfilled' ? cotoRes.value : []
   const sp   = spRes.status   === 'fulfilled' ? spRes.value   : []
+  const ml   = mlRes.status   === 'fulfilled' ? mlRes.value   : []
   const web  = webRes.status  === 'fulfilled' ? webRes.value  : []
 
-  // Deduplicar web + superprecio contra resultados directos
-  const directUrls = new Set([...vtex, ...coto].map(r => r.url).filter(Boolean))
+  // Deduplicar contra resultados directos
+  const directUrls = new Set([...vtex, ...coto, ...ml].map(r => r.url).filter(Boolean))
   const spFiltered = sp.filter(r => !r.url || !directUrls.has(r.url))
   const webFiltered = web.filter(r => !r.url || !directUrls.has(r.url))
 
   // Juntar todo — solo con precio > 0
+  // ML tiene prioridad alta (resultados confiables con precios precisos)
   const rawWithPrice = [
+    ...ml.filter(r => r.price > 0),
     ...vtex.filter(r => r.price > 0),
     ...coto.filter(r => r.price > 0),
     ...spFiltered.filter(r => r.price > 0),
@@ -79,12 +84,15 @@ export async function GET(req: NextRequest) {
     .filter(r => !isGenericCategory(r))
     .map(r => {
       const score = queryTokens.length === 0 ? 1 : relevanceScore(r.name, queryTokens)
-      // Penalizar resultados web — las tiendas directas son más confiables
-      const sourceBoost = r.source === 'searxng' ? 0.8 : 1.0
+      // ML y tiendas directas (VTEX/Coto/SuperPrecio) ya filtran por relevancia
+      // Web scraping (Tavily/Serper) necesita penalización
+      const isDirectSource = r.store_name === 'MercadoLibre' || r.source !== 'searxng'
+      const sourceBoost = isDirectSource ? 1.0 : 0.75
       return { ...r, __score: score * sourceBoost }
     })
-    // Mínimo 50% de las palabras del query deben matchear (antes era 20%)
-    .filter(r => r.__score >= 0.5)
+    // Mínimo 40% de las palabras del query deben matchear
+    // (las tiendas directas ya pre-filtran, el threshold es para web)
+    .filter(r => r.__score >= 0.4)
 
   // 4. Ordenar por relevancia primero, después por precio
   scored.sort((a, b) => {
@@ -115,6 +123,7 @@ export async function GET(req: NextRequest) {
     total: results.length,
     query,
     sources: {
+      mercadolibre: ml.length,
       tiendas_vtex: vtex.length,
       coto: coto.length,
       superprecio: sp.length,
