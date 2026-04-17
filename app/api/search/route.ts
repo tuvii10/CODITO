@@ -17,9 +17,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Búsqueda demasiado larga' }, { status: 400 })
   }
 
-  // Fuentes en paralelo. ML no se incluye en búsqueda libre: su API search
-  // está deprecada (ver /api/featured para best sellers por categoría).
-  // SuperPrecio agrega cobertura de tiendas sin API propia (DIA, Cordiez, etc).
+  // Fuentes en paralelo
   const [vtexRes, cotoRes, spRes, webRes] = await Promise.allSettled([
     searchVtex(query),
     searchCoto(query),
@@ -37,17 +35,17 @@ export async function GET(req: NextRequest) {
   const spFiltered = sp.filter(r => !r.url || !directUrls.has(r.url))
   const webFiltered = web.filter(r => !r.url || !directUrls.has(r.url))
 
-  // Juntar todo (con precio primero, sin precio al final)
-  // Filtrar price > 0 en todas las fuentes para evitar $0 falsos
+  // Juntar todo — solo con precio > 0
   const rawWithPrice = [
     ...vtex.filter(r => r.price > 0),
     ...coto.filter(r => r.price > 0),
     ...spFiltered.filter(r => r.price > 0),
     ...webFiltered.filter(r => r.price > 0),
   ]
-  // Resultados sin precio se descartan para evitar $0 falsos
 
-  // ── Filtro 1: nombres que NO son productos reales ──
+  // ═══ PIPELINE DE FILTRADO ═══
+
+  // 1. Filtrar nombres que NO son productos
   const nonProductPatterns = [
     /\|\s*MercadoLibre$/i,
     /Listado\./i,
@@ -62,50 +60,55 @@ export async function GET(req: NextRequest) {
     /los mejores precios/i,
     /precio y variedad/i,
     /comprar online/i,
+    /^\d+\s+resultados/i,
+    /env[ií]o gratis/i,
   ]
-  const isProduct = (name: string) => !nonProductPatterns.some(p => p.test(name))
 
-  // ── Filtro 2: nombres genéricos (solo el nombre de la categoría, sin marca/modelo/detalle) ──
-  // Si el nombre tiene menos de 4 palabras útiles y viene de web, probablemente es una categoría
-  const isGenericCategoryName = (r: SearchResult) => {
-    const words = r.name.replace(/[-–—|·]/g, ' ').split(/\s+/).filter(w => w.length > 2)
-    // Si tiene 3 palabras o menos Y viene de web (searxng), probablemente es categoría
-    if (words.length <= 3 && r.source === 'searxng') return true
-    return false
+  // 2. Filtrar nombres genéricos de categoría (web)
+  const isGenericCategory = (r: SearchResult) => {
+    if (r.source !== 'searxng') return false
+    const words = r.name.replace(/[-–—|·:,]/g, ' ').split(/\s+/).filter(w => w.length > 2)
+    return words.length <= 3
   }
 
-  // ── Filtro 3: precios ridículamente bajos para lo que se busca ──
-  // Detectar si los resultados más baratos son outliers (ej: $1.200 para lavarropas)
-  const filterOutlierPrices = (results: SearchResult[]) => {
-    if (results.length < 3) return results
-    // Calcular la mediana de precios
-    const prices = results.map(r => r.price).sort((a, b) => a - b)
-    const median = prices[Math.floor(prices.length / 2)]
-    // Si un precio es menor al 5% de la mediana, es probablemente falso
-    return results.filter(r => r.price >= median * 0.05)
-  }
-
-  const productsOnly = rawWithPrice
-    .filter(r => isProduct(r.name))
-    .filter(r => !isGenericCategoryName(r))
-
-  // Filtrar por relevancia: al menos 20% de los tokens del query deben estar en el nombre
+  // 3. Scoring de relevancia mejorado
   const queryTokens = tokenize(query)
-  const relevant = queryTokens.length === 0
-    ? productsOnly
-    : productsOnly.filter(r => relevanceScore(r.name, queryTokens) >= 0.2)
 
-  // Deduplicar por tienda+nombre normalizado (evita duplicados del mismo producto)
-  const deduped = deduplicateByName(relevant)
+  const scored = rawWithPrice
+    .filter(r => !nonProductPatterns.some(p => p.test(r.name)))
+    .filter(r => !isGenericCategory(r))
+    .map(r => {
+      const score = queryTokens.length === 0 ? 1 : relevanceScore(r.name, queryTokens)
+      // Penalizar resultados web — las tiendas directas son más confiables
+      const sourceBoost = r.source === 'searxng' ? 0.8 : 1.0
+      return { ...r, __score: score * sourceBoost }
+    })
+    // Mínimo 50% de las palabras del query deben matchear (antes era 20%)
+    .filter(r => r.__score >= 0.5)
 
-  // Descuentos reales: comparar entre sellers
-  const allWithPrice = applyCrossSellerDiscounts(deduped)
-  allWithPrice.sort((a, b) => a.price - b.price)
+  // 4. Ordenar por relevancia primero, después por precio
+  scored.sort((a, b) => {
+    // Primero: resultados con score perfecto (1.0) van arriba
+    const scoreDiff = b.__score - a.__score
+    if (Math.abs(scoreDiff) > 0.3) return scoreDiff
+    // Dentro del mismo rango de relevancia, ordenar por precio
+    return a.price - b.price
+  })
 
-  const results = filterOutlierPrices(allWithPrice)
+  // 5. Deduplicar por tienda+nombre
+  const deduped = deduplicateByName(scored)
 
-  // Guardar historial (fire-and-forget, no bloqueamos la respuesta)
-  recordPriceHistory(query, allWithPrice).catch(() => {})
+  // 6. Aplicar descuentos cross-seller
+  const withDiscounts = applyCrossSellerDiscounts(deduped)
+
+  // 7. Ordenar final por precio (el usuario espera ver lo más barato primero)
+  withDiscounts.sort((a, b) => a.price - b.price)
+
+  // 8. Filtrar outliers de precio
+  const results = filterOutlierPrices(withDiscounts)
+
+  // Guardar historial (fire-and-forget)
+  recordPriceHistory(query, results).catch(() => {})
 
   return NextResponse.json({
     results,
@@ -136,7 +139,6 @@ async function recordPriceHistory(query: string, results: SearchResult[]) {
   const supabase = createClient(url, key)
   const normalizedQuery = query.toLowerCase().trim()
 
-  // Solo guardamos los 5 más baratos para no llenar la tabla
   const rows = results.slice(0, 5).map(r => ({
     query: normalizedQuery,
     store_name: r.store_name,
@@ -148,11 +150,11 @@ async function recordPriceHistory(query: string, results: SearchResult[]) {
   await supabase.from('price_history').insert(rows)
 }
 
-// ─── Relevancia ───────────────────────────────────────────────────────────────
+// ─── Relevancia mejorada ─────────────────────────────────────────────────────
 
 const STOP_WORDS = new Set([
   'de','del','la','el','los','las','y','con','sin','para','en','por',
-  'un','una','x','ml','cc','gr','kg','lt','lts',
+  'un','una','x','ml','cc','gr','kg','lt','lts','cm','mm',
 ])
 
 function tokenize(text: string): string[] {
@@ -165,18 +167,45 @@ function tokenize(text: string): string[] {
 }
 
 function relevanceScore(name: string, queryTokens: string[]): number {
+  const nameNorm = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   const nameTokens = tokenize(name)
   if (nameTokens.length === 0) return 0
-  const matches = queryTokens.filter(qt =>
-    nameTokens.some(nt => {
-      if (nt === qt) return true
-      // Substring match solo para tokens largos (evita "cola" matcheando "chocolate")
-      if (qt.length >= 5 && nt.includes(qt)) return true
-      if (nt.length >= 5 && qt.includes(nt)) return true
-      return false
-    })
-  )
-  return matches.length / queryTokens.length
+
+  let matchedTokens = 0
+
+  for (const qt of queryTokens) {
+    // Match exacto de token
+    if (nameTokens.some(nt => nt === qt)) {
+      matchedTokens++
+      continue
+    }
+    // Match en el nombre completo (para términos compuestos como "coca cola")
+    if (nameNorm.includes(qt)) {
+      matchedTokens++
+      continue
+    }
+    // Substring match solo si ambos tokens son largos (5+ chars)
+    if (qt.length >= 5 && nameTokens.some(nt => nt.length >= 5 && (nt.includes(qt) || qt.includes(nt)))) {
+      matchedTokens += 0.8 // partial credit
+      continue
+    }
+  }
+
+  return matchedTokens / queryTokens.length
+}
+
+// ─── Filtro de outliers ──────────────────────────────────────────────────────
+
+function filterOutlierPrices(results: SearchResult[]) {
+  if (results.length < 4) return results
+  // Calcular mediana
+  const prices = results.map(r => r.price).sort((a, b) => a - b)
+  const median = prices[Math.floor(prices.length / 2)]
+  // Calcular Q1 (primer cuartil)
+  const q1 = prices[Math.floor(prices.length * 0.25)]
+  // Un precio es outlier si es menor al 10% de la mediana O menor a Q1/3
+  const threshold = Math.max(median * 0.10, q1 / 3)
+  return results.filter(r => r.price >= threshold)
 }
 
 // ─── Dedup por tienda + nombre normalizado ────────────────────────────────────
