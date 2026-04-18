@@ -192,12 +192,13 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 24,
-                  fontWeight: 900,
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   transition: 'transform 0.2s',
                 }}>
-                  →
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                  </svg>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>
                   Ver todo
@@ -211,117 +212,89 @@ export default function Home() {
       {/* Accesos rápidos */}
       {!searched && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: 12, marginTop: 14 }}>
-          <Link href="/suscripciones" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#a5b4fc'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(99,102,241,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>💸</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Suscripciones</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                Cuánto pagás en pesos por Netflix, Spotify, ChatGPT y más, con impuestos incluidos.
-              </p>
+
+          <Link href="/suscripciones" className="tool-card tool-card--indigo" aria-label="Suscripciones — precios en pesos con impuestos">
+            <div className="tool-icon tool-icon--indigo" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
             </div>
+            <p className="tool-card-title">Suscripciones</p>
+            <p className="tool-card-desc">Cuánto pagás en pesos por Netflix, Spotify, ChatGPT y más, con impuestos incluidos.</p>
           </Link>
 
-<Link href="/cuotas" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#c4b5fd'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(124,58,237,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>🧮</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>¿Cuotas o contado?</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                Calculá si te conviene pagar en cuotas ajustando por inflación real.
-              </p>
+          <Link href="/cuotas" className="tool-card tool-card--violet" aria-label="¿Cuotas o contado? — calculadora de inflación">
+            <div className="tool-icon tool-icon--violet" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <line x1="8" y1="10" x2="16" y2="10"/>
+                <line x1="8" y1="14" x2="16" y2="14"/>
+                <line x1="8" y1="18" x2="12" y2="18"/>
+              </svg>
             </div>
+            <p className="tool-card-title">¿Cuotas o contado?</p>
+            <p className="tool-card-desc">Calculá si te conviene pagar en cuotas ajustando por inflación real.</p>
           </Link>
 
-          <Link href="/dividito" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#fdba74'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(249,115,22,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>👥</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Dividito</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                Dividí los gastos entre amigos. Te decimos quién le debe a quién, sin vueltas.
-              </p>
+          <Link href="/dividito" className="tool-card tool-card--orange" aria-label="Dividito — dividir gastos entre amigos">
+            <div className="tool-icon tool-icon--orange" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
             </div>
+            <p className="tool-card-title">Dividito</p>
+            <p className="tool-card-desc">Dividí los gastos entre amigos. Te decimos quién le debe a quién, sin vueltas.</p>
           </Link>
 
-          <Link href="/dolarito" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#86efac'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(22,163,74,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>💵</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Dolarito</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                Todas las cotizaciones del dólar en vivo: Blue, Oficial, MEP, Tarjeta y más.
-              </p>
+          <Link href="/dolarito" className="tool-card tool-card--green" aria-label="Dolarito — cotizaciones del dólar en vivo">
+            <div className="tool-icon tool-icon--green" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
             </div>
+            <p className="tool-card-title">Dolarito</p>
+            <p className="tool-card-desc">Todas las cotizaciones del dólar en vivo: Blue, Oficial, MEP, Tarjeta y más.</p>
           </Link>
 
-          <Link href="/inflacito" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#fca5a5'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(239,68,68,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>📈</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Inflacito</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                ¿Cuánto vale hoy lo que costaba antes? Calculá cuánto perdiste por inflación.
-              </p>
+          <Link href="/inflacito" className="tool-card tool-card--red" aria-label="Inflacito — calculadora de inflación">
+            <div className="tool-icon tool-icon--red" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
             </div>
+            <p className="tool-card-title">Inflacito</p>
+            <p className="tool-card-desc">¿Cuánto vale hoy lo que costaba antes? Calculá cuánto perdiste por inflación.</p>
           </Link>
 
-          <Link href="/platita" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#93c5fd'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(37,99,235,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>💰</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Platita</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                ¿Plazo fijo, dólares o colchón? Compará qué te conviene más.
-              </p>
+          <Link href="/platita" className="tool-card tool-card--blue" aria-label="Platita — comparador de inversiones">
+            <div className="tool-icon tool-icon--blue" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a10 10 0 0 1 7.38 16.74"/>
+                <path d="M12 8v4l3 3"/>
+                <circle cx="12" cy="12" r="10" strokeDasharray="4 2"/>
+              </svg>
             </div>
+            <p className="tool-card-title">Platita</p>
+            <p className="tool-card-desc">¿Plazo fijo, dólares o colchón? Compará qué te conviene más.</p>
           </Link>
 
-          <Link href="/changuito" style={{ textDecoration: 'none' }}>
-            <div style={{
-              background: '#fff', border: '1.5px solid #e4e4e7', borderRadius: 18,
-              padding: '18px 20px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#fcd34d'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(245,158,11,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#e4e4e7'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>🛒</div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#09090b', marginBottom: 5, letterSpacing: '-0.01em' }}>Changuito</p>
-              <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5 }}>
-                Armá tu canasta básica y fijate cuánto te sale llenar el chango.
-              </p>
+          <Link href="/changuito" className="tool-card tool-card--amber" aria-label="Changuito — armá tu canasta básica">
+            <div className="tool-icon tool-icon--amber" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
             </div>
+            <p className="tool-card-title">Changuito</p>
+            <p className="tool-card-desc">Armá tu canasta básica y fijate cuánto te sale llenar el chango.</p>
           </Link>
+
         </div>
       )}
 
@@ -370,6 +343,10 @@ export default function Home() {
       {!searched && (
         <div
           className="floating-pill"
+          role="button"
+          aria-label="Ver más herramientas"
+          tabIndex={0}
+          onKeyDown={e => e.key === 'Enter' && window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
           onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
           style={{
             position: 'fixed',

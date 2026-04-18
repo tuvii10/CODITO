@@ -90,3 +90,91 @@ html, body {
   .hero-desktop { display: none; }
   .hero-mobile  { display: block; }
 }
+
+/* ── Focus visible global ─────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ── Tool cards ───────────────────────────────────────────────────── */
+.tool-card {
+  display: block;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.tool-card:hover { transform: translateY(-2px); }
+.tool-card--indigo:hover, .tool-card--indigo:focus-visible {
+  border-color: #a5b4fc;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.12);
+}
+.tool-card--violet:hover, .tool-card--violet:focus-visible {
+  border-color: #c4b5fd;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.12);
+}
+.tool-card--orange:hover, .tool-card--orange:focus-visible {
+  border-color: #fdba74;
+  box-shadow: 0 4px 16px rgba(249,115,22,0.12);
+}
+.tool-card--green:hover, .tool-card--green:focus-visible {
+  border-color: #86efac;
+  box-shadow: 0 4px 16px rgba(22,163,74,0.12);
+}
+.tool-card--red:hover, .tool-card--red:focus-visible {
+  border-color: #fca5a5;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.12);
+}
+.tool-card--blue:hover, .tool-card--blue:focus-visible {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.12);
+}
+.tool-card--amber:hover, .tool-card--amber:focus-visible {
+  border-color: #fcd34d;
+  box-shadow: 0 4px 16px rgba(245,158,11,0.12);
+}
+
+.tool-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.tool-icon--indigo { background: #eef2ff; color: #6366f1; }
+.tool-icon--violet { background: #f5f3ff; color: #7c3aed; }
+.tool-icon--orange { background: #fff7ed; color: #ea580c; }
+.tool-icon--green  { background: #f0fdf4; color: #16a34a; }
+.tool-icon--red    { background: #fef2f2; color: #dc2626; }
+.tool-icon--blue   { background: #eff6ff; color: #2563eb; }
+.tool-icon--amber  { background: #fffbeb; color: #d97706; }
+
+.tool-card-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 5px;
+  letter-spacing: -0.01em;
+}
+.tool-card-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── prefers-reduced-motion ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .tool-card:hover { transform: none; }
+}
